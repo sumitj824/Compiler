@@ -16,6 +16,7 @@ void count();
 
 %%
 "/*"			{ comment(); }
+"//"			{single_line_comment(); }
 
 "auto"			{ count(); printf("AUTO          ");  return(AUTO); }
 "break"			{ count(); printf("BREAK         ");  return(BREAK); }
@@ -137,6 +138,13 @@ loop:
 	/* if (c != 0)
 		putchar(c1);  */
 }
+
+single_line_comment()
+{
+	char c;
+	while ((c = input()) != '\n' && c != 0) ;
+	
+}	
 
 
 
