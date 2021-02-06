@@ -2375,19 +2375,33 @@ yywrap()
 	return(1);
 }
 
+int column = 0;
+int line=1;
+
+
+
 
 comment()
 {
 	char c, c1;
-
+	column+=2;
 loop:
-	while ((c = input()) != '*' && c != 0) ;
-
+	while ((c = input()) != '*' && c != 0)
+	{
+		if (c == '\n')
+			column = 0,line++;
+		else if (c == '\t')
+			column += 8 - (column % 8);
+		else
+			column++;
+	}
 	 if ((c1 = input()) != '/' && c != 0)
 	{
 		unput(c1);
 		goto loop;
 	}
+	column +=2;
+
 
 	/* if (c != 0)
 		putchar(c1);  */
@@ -2397,14 +2411,14 @@ single_line_comment()
 {
 	char c;
 	while ((c = input()) != '\n' && c != 0) ;
-	
+	column=0;
+	line++;
 }	
 
 
 
 
-int column = 0;
-int line=1;
+
 int col_start = 0;
 void count()
 {
@@ -2450,6 +2464,6 @@ int main(int argc, char *argv[])
 	int val;
 	while((val = yylex())>0)
 	{
-		printf("	    	%s			%d              		%d \n",yytext,line,col_start);							
+		printf("	    	%s			%d                		%d \n",yytext,line,col_start);							
 	}
 }
