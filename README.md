@@ -10,7 +10,7 @@ In this we have constructed a scanner of source language to output tokens in a t
 $ cd /src
 $ make
 $ cd ..
-$ ./bin/lexer /test/test1.c
+$ ./bin/lexer /tests/test1.c
 
 ```
 
