@@ -1,4 +1,4 @@
-//testing data types
+//testing data types and operations
 
 typedef unsigned char BYTE;
 
@@ -8,6 +8,7 @@ struct point{
 };
 
 static int num = 6;
+extern int var;
 int k = 9;
 
 int main(){
@@ -19,4 +20,24 @@ int main(){
     short f = 12;
     long g = 133333;
     int arr[5] = {1,2,3,4,5};
+
+    auto x = 7;
+
+
+    int k = a++;
+    b-=a;
+    a+=b;
+    a*=b;
+    a/=b;
+    a--;
+    --a;
+    ++b;
+
+    //binary operators
+
+
+    int c = a|b;
+    int d = a&b;
+    int e = a^b;
+    int e = ~a;
 }
