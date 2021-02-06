@@ -180,8 +180,9 @@ int check_type()
 	return(IDENTIFIER);
 }
 
-int main()
+int main(int argc, char *argv[])
 {	
+	freopen(argv[1], "r",stdin);
 	printf("Token			Lexeme 			Line#			Column#\n");
 	
 	int val;
