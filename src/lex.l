@@ -17,98 +17,98 @@ void count();
 %%
 "/*"			{ comment(); }
 
-"auto"			{ count(); return(AUTO); }
-"break"			{ count(); return(BREAK); }
-"case"			{ count(); return(CASE); }
-"char"			{ count(); return(CHAR); }
-"const"			{ count(); return(CONST); }
-"continue"		{ count(); return(CONTINUE); }
-"default"		{ count(); return(DEFAULT); }
-"do"			{ count(); return(DO); }
-"double"		{ count(); return(DOUBLE); }
-"else"			{ count(); return(ELSE); }
-"enum"			{ count(); return(ENUM); }
-"extern"		{ count(); return(EXTERN); }
-"float"			{ count(); return(FLOAT); }
-"for"			{ count(); return(FOR); }
-"goto"			{ count(); return(GOTO); }
-"if"			{ count(); return(IF); }
-"int"			{ count(); return(INT); }
-"long"			{ count(); return(LONG); }
-"register"		{ count(); return(REGISTER); }
-"return"		{ count(); return(RETURN); }
-"short"			{ count(); return(SHORT); }
-"signed"		{ count(); return(SIGNED); }
-"sizeof"		{ count(); return(SIZEOF); }
-"static"		{ count(); return(STATIC); }
-"struct"		{ count(); return(STRUCT); }
-"switch"		{ count(); return(SWITCH); }
-"typedef"		{ count(); return(TYPEDEF); }
-"union"			{ count(); return(UNION); }
-"unsigned"		{ count(); return(UNSIGNED); }
-"void"			{ count(); return(VOID); }
-"volatile"		{ count(); return(VOLATILE); }
-"while"			{ count(); return(WHILE); }
+"auto"			{ count(); printf("AUTO          ");  return(AUTO); }
+"break"			{ count(); printf("BREAK         ");  return(BREAK); }
+"case"			{ count(); printf("CASE          ");  return(CASE); }
+"char"			{ count(); printf("CHAR          ");  return(CHAR); }
+"const"			{ count(); printf("CONST         ");  return(CONST); }
+"continue"		{ count(); printf("CONTINUE      ");  return(CONTINUE); }
+"default"		{ count(); printf("DEFAULT       ");  return(DEFAULT); }
+"do"			{ count(); printf("DO            ");  return(DO); }
+"double"		{ count(); printf("DOUBLE        ");  return(DOUBLE); }
+"else"			{ count(); printf("ELSE          ");  return(ELSE); }
+"enum"			{ count(); printf("ENUM          ");  return(ENUM); }
+"extern"		{ count(); printf("EXTERN        ");  return(EXTERN); }
+"float"			{ count(); printf("FLOAT         ");  return(FLOAT); }
+"for"			{ count(); printf("FOR           ");  return(FOR); }
+"goto"			{ count(); printf("GOTO          ");  return(GOTO); }
+"if"			{ count(); printf("IF            ");  return(IF); }
+"int"			{ count(); printf("INT           ");  return(INT); }
+"long"			{ count(); printf("LONG          ");  return(LONG); }
+"register"		{ count(); printf("REGISTER      ");  return(REGISTER); }
+"return"		{ count(); printf("RETURN        ");return(RETURN); }
+"short"			{ count(); printf("SHORT         "); return(SHORT);}
+"signed"		{ count(); printf("SIGNED        "); return(SIGNED);}
+"sizeof"		{ count(); printf("SIZEOF        "); return(SIZEOF);}
+"static"		{ count(); printf("STATIC        "); return(STATIC);}
+"struct"		{ count(); printf("STRUCT        "); return(STRUCT);}
+"switch"		{ count(); printf("SWITCH        "); return(SWITCH);}
+"typedef"		{ count(); printf("TYPEDEF       "); return(TYPEDEF);}
+"union"			{ count(); printf("UNION         "); return(UNION);}
+"unsigned"		{ count(); printf("UNSIGNED      "); return(UNSIGNED);}
+"void"			{ count(); printf("VOID          "); return(VOID);}
+"volatile"		{ count(); printf("VOLATILE      "); return(VOLATILE);}
+"while"			{ count(); printf("WHILE         "); return(WHILE);}
 
-{L}({L}|{D})*		{ count(); return(check_type()); }
+{L}({L}|{D})*	{ count(); printf("ID            "); return(check_type()); }
 
-0[xX]{H}+{IS}?		{ count(); return(CONSTANT); }
-0{D}+{IS}?		{ count(); return(CONSTANT); }
-{D}+{IS}?		{ count(); return(CONSTANT); }
-L?'(\\.|[^\\'])+'	{ count(); return(CONSTANT); }
+0[xX]{H}+{IS}?	{ count(); printf("CONSTANT      "); return(CONSTANT); }
+0{D}+{IS}?		{ count(); printf("CONSTANT      "); return(CONSTANT); }
+{D}+{IS}?		{ count(); printf("CONSTANT      "); return(CONSTANT); }
+L?'(\\.|[^\\'])+'	{ count();printf("CONSTANT      "); return(CONSTANT); }
 
-{D}+{E}{FS}?		{ count(); return(CONSTANT); }
-{D}*"."{D}+({E})?{FS}?	{ count(); return(CONSTANT); }
-{D}+"."{D}*({E})?{FS}?	{ count(); return(CONSTANT); }
+{D}+{E}{FS}?		{ count();printf("CONSTANT      "); return(CONSTANT); }
+{D}*"."{D}+({E})?{FS}?	{ count();printf("CONSTANT      "); return(CONSTANT); }
+{D}+"."{D}*({E})?{FS}?	{ count();printf("CONSTANT      "); return(CONSTANT); }
 
-L?\"(\\.|[^\\"])*\"	{ count(); return(STRING_LITERAL); }
+L?\"(\\.|[^\\"])*\"	{ count();printf("STRING_LITERAL"); return(STRING_LITERAL); }
 
-"..."			{ count(); return(ELLIPSIS); }
-">>="			{ count(); return(RIGHT_ASSIGN); }
-"<<="			{ count(); return(LEFT_ASSIGN); }
-"+="			{ count(); return(ADD_ASSIGN); }
-"-="			{ count(); return(SUB_ASSIGN); }
-"*="			{ count(); return(MUL_ASSIGN); }
-"/="			{ count(); return(DIV_ASSIGN); }
-"%="			{ count(); return(MOD_ASSIGN); }
-"&="			{ count(); return(AND_ASSIGN); }
-"^="			{ count(); return(XOR_ASSIGN); }
-"|="			{ count(); return(OR_ASSIGN); }
-">>"			{ count(); return(RIGHT_OP); }
-"<<"			{ count(); return(LEFT_OP); }
-"++"			{ count(); return(INC_OP); }
-"--"			{ count(); return(DEC_OP); }
-"->"			{ count(); return(PTR_OP); }
-"&&"			{ count(); return(AND_OP); }
-"||"			{ count(); return(OR_OP); }
-"<="			{ count(); return(LE_OP); }
-">="			{ count(); return(GE_OP); }
-"=="			{ count(); return(EQ_OP); }
-"!="			{ count(); return(NE_OP); }
-";"			{ count(); return(';'); }
-("{"|"<%")		{ count(); return('{'); }
-("}"|"%>")		{ count(); return('}'); }
-","			{ count(); return(','); }
-":"			{ count(); return(':'); }
-"="			{ count(); return('='); }
-"("			{ count(); return('('); }
-")"			{ count(); return(')'); }
-("["|"<:")		{ count(); return('['); }
-("]"|":>")		{ count(); return(']'); }
-"."			{ count(); return('.'); }
-"&"			{ count(); return('&'); }
-"!"			{ count(); return('!'); }
-"~"			{ count(); return('~'); }
-"-"			{ count(); return('-'); }
-"+"			{ count(); return('+'); }
-"*"			{ count(); return('*'); }
-"/"			{ count(); return('/'); }
-"%"			{ count(); return('%'); }
-"<"			{ count(); return('<'); }
-">"			{ count(); return('>'); }
-"^"			{ count(); return('^'); }
-"|"			{ count(); return('|'); }
-"?"			{ count(); return('?'); }
+"..."			{ count(); printf("ELLIPSIS      "); return(ELLIPSIS);}
+">>="			{ count(); printf("RIGHT_ASSIGN	 "); return(RIGHT_ASSIGN);}
+"<<="			{ count(); printf("LEFT_ASSIGN   "); return(LEFT_ASSIGN);}
+"+="			{ count(); printf("ADD_ASSIGN    "); return(ADD_ASSIGN);}
+"-="			{ count(); printf("SUB_ASSIGN    "); return(SUB_ASSIGN);}
+"*="			{ count(); printf("MUL_ASSIGN    "); return(MUL_ASSIGN);}
+"/="			{ count(); printf("DIV_ASSIGN    "); return(DIV_ASSIGN);}
+"%="			{ count(); printf("MOD_ASSIGN    "); return(MOD_ASSIGN);}
+"&="			{ count(); printf("AND_ASSIGN    "); return(AND_ASSIGN);}
+"^="			{ count(); printf("XOR_ASSIGN    "); return(XOR_ASSIGN);}
+"|="			{ count(); printf("OR_ASSIGN     "); return(OR_ASSIGN);}
+">>"			{ count(); printf("RIGHT_OP      "); return(RIGHT_OP);}
+"<<"			{ count(); printf("LEFT_OP       "); return(LEFT_OP);}
+"++"			{ count(); printf("INC_OP        "); return(INC_OP);}
+"--"			{ count(); printf("DEC_OP        "); return(DEC_OP);}
+"->"			{ count(); printf("PTR_OP        "); return(PTR_OP);}
+"&&"			{ count(); printf("AND_OP        "); return(AND_OP);}
+"||"			{ count(); printf("OR_OP         "); return(OR_OP);}
+"<="			{ count(); printf("LE_OP         ");return(LE_OP); }
+">="			{ count(); printf("GE_OP         "); return(GE_OP);}
+"=="			{ count(); printf("EQ_OP         "); return(EQ_OP);}
+"!="			{ count(); printf("NE_OP         ");return(NE_OP); }
+";"			{ count();     printf("%s             ",yytext); return(';'); }
+("{"|"<%")	{ count();printf("%s             ",yytext); return('{'); }
+("}"|"%>")	{ count();printf("%s             ",yytext); return('}'); }
+","			{ count();printf("%s             ",yytext); return(','); }
+":"			{ count();printf("%s             ",yytext); return(':'); }
+"="			{ count();printf("%s             ",yytext); return('='); }
+"("			{ count();printf("%s             ",yytext); return('('); }
+")"			{ count();printf("%s             ",yytext); return(')'); }
+("["|"<:")	{ count();printf("%s             ",yytext); return('['); }
+("]"|":>")	{ count();printf("%s             ",yytext); return(']'); }
+"."			{ count();printf("%s             ",yytext); return('.'); }
+"&"			{ count();printf("%s             ",yytext); return('&'); }
+"!"			{ count();printf("%s             ",yytext); return('!'); }
+"~"			{ count();printf("%s             ",yytext); return('~'); }
+"-"			{ count();printf("%s             ",yytext); return('-'); }
+"+"			{ count();printf("%s             ",yytext); return('+'); }
+"*"			{ count();printf("%s             ",yytext); return('*'); }
+"/"			{ count();printf("%s             ",yytext); return('/'); }
+"%"			{ count();printf("%s             ",yytext); return('%'); }
+"<"			{ count();printf("%s             ",yytext); return('<'); }
+">"			{ count();printf("%s             ",yytext); return('>'); }
+"^"			{ count();printf("%s             ",yytext); return('^'); }
+"|"			{ count();printf("%s             ",yytext); return('|'); }
+"?"			{ count();printf("%s             ",yytext); return('?'); }
 
 [ \t\v\n\f]		{ count(); }
 .			{ /* ignore bad characters */ }
@@ -161,7 +161,6 @@ void count()
 	/* ECHO; */
 }
 
-char *token = "ID\nCONSTANT\nSTRING_LITERAL\nSIZEOF\nPTR_OP\nINC_OP";
 
 int check_type()
 {
@@ -188,6 +187,6 @@ int main()
 	int val;
 	while((val = yylex())>0)
 	{
-		printf("%d			%s			%d              		%d \n",val,yytext,line,col_start);							
+		printf("	    	%s			%d              		%d \n",yytext,line,col_start);							
 	}
 }
