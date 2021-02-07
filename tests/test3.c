@@ -15,7 +15,9 @@ int main(){
     int a = 5;
     float b = 5.0000;
     char c = 'c';
-    double d = 7.0000000;
+    double d1 = 7.0000000;
+    double d2 = 7.3e-10;
+    double d3 = 7.3e11;
     unsigned int e = 11;
     short f = 12;
     long g = 133333;

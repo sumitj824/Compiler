@@ -20,14 +20,17 @@ $ ./bin/lexer /tests/test1.c
 
 ### Directory Structure
 ```
-.
 ├── README.md
 ├── src
 │   ├── lex.l
 │   ├── makefile
 │   └── y.tab.h
 └── tests
-    └── test1.c
+    ├── test1.c
+    ├── test2.c
+    ├── test3.c
+    ├── test4.c
+    └── test5.c
 
 ```
 

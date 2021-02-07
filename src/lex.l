@@ -112,7 +112,7 @@ L?\"(\\.|[^\\"])*\"	{ count();printf("STRING_LITERAL"); return(STRING_LITERAL); 
 "?"			{ count();printf("%s             ",yytext); return('?'); }
 
 [ \t\v\n\f]		{ count(); }
-.			{ count(); printf("unknown       "); return yytext[0]; }
+.			{ count(); printf("UNKNOWN       "); return yytext[0]; }
 
 %%
 

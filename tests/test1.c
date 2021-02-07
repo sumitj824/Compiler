@@ -15,7 +15,7 @@ struct ar{
 
 int main() {
  
- /**/int x=0;
+ int x=0;
 
  struct ar instant;
  instant.x = 100;
