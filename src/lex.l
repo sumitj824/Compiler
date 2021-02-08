@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
 
 
 
-	printf("Token			        Lexeme 			   Line#				Column#\n");
+	printf("Token			      Lexeme 			   Line#				Column#\n");
 	
 	int val;
 	while((val = yylex())>0)
