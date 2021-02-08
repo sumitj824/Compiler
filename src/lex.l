@@ -9,7 +9,6 @@ IS			(u|U|l|L)*
 %{
 #include <stdio.h>
 #include "y.tab.h"
-
 void count();
 
 %}
@@ -202,14 +201,87 @@ int check_type()
 	return(IDENTIFIER);
 }
 
+void help(int f)
+{	
+	if(f) printf("Error : \n");
+	printf("Specify input file with -i flag\n");
+	printf("Specify Output file with -o flag\n");
+}
+
+
+
 int main(int argc, char *argv[])
 {	
-	freopen(argv[1], "r",stdin);
-	printf("Token			Lexeme 			Line#			Column#\n");
+	if(argc==1)
+	{
+		help(1);
+		return 0;
+	}
+
+	for(int i=1;i<argc;i++)
+	{
+
+		if(strcmp("-help",argv[i])==0)
+		{
+			help(0);
+			return 0;
+		}
+		else if(strcmp("-i",argv[i])==0)
+		{
+			if(i+1<argc)
+			{
+				FILE *in=freopen(argv[i+1],"r",stdin);
+				i++;
+
+				if(!in)
+				{
+					help(1);
+					return 0;
+				}
+			}
+			else
+			{
+				help(1);
+				return 0;
+			}
+		}
+
+		else if(strcmp("-o",argv[i])==0)
+		{
+			if(i+1<argc)
+			{
+				FILE *out =freopen(argv[i+1],"w",stdout);
+				i++;
+				if(!out)
+				{
+					help(1);
+					return 0;
+				}
+			}
+			else
+			{
+				help(1);
+				return 0;
+			}
+		}
+		else
+		{
+			help(1);
+			return 0;
+		}
+	}
+
+
+
+
+
+
+	printf("Token			        Lexeme 			   Line#				Column#\n");
 	
 	int val;
 	while((val = yylex())>0)
 	{
-		printf("	    	%s			%d                		%d \n",yytext,line,col_start);							
+		printf("	    	%s			          %d                		%d \n",yytext,line,col_start);							
 	}
+	
 }

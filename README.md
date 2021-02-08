@@ -12,9 +12,26 @@ In this we have constructed a scanner of source language to output tokens in a t
 
 ```
 $ make
-$ ./bin/lexer /tests/test1.c
+$ ./bin/lexer -i ./tests/test1.c
 
 ```
+OR
+
+```
+$ make
+$ ./bin/lexer -i ./tests/test1.c -o output.txt 
+
+```
+
+
+### To get help
+
+```
+$ make
+$ ./bin/lexer -help
+
+```
+
 ### Steps to clean
 ```
 $ make clean
@@ -43,6 +60,5 @@ $ make clean
 ```
 
 ##
-
 
 
