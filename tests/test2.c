@@ -1,4 +1,4 @@
-#include<stdio.h>
+// #include<stdio.h>
 
 union xy_z{
     int  *ptr;

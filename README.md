@@ -2,7 +2,7 @@
 
 Source Language: C \
 Implementation Language : C++   \
-Target Language : mips-Assembly
+Target Language : Not-decided (we will decide it)
 
 ## Part 1 : Scanner
 In this we have constructed a scanner of source language to output tokens in a tabular form

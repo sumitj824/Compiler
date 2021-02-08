@@ -1,6 +1,6 @@
-#include<stdio.h>
-#include<math.h>
-#include<stdlib.h>
+// #include<stdio.h>
+// #include<math.h>
+// #include<stdlib.h>
 
 struct ar{
     float x;
