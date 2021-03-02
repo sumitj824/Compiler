@@ -11,47 +11,51 @@ int getNodeId()
 
 void BeginGraph()
 {
-    cout<<"digraph G{\n";
+    printf("digraph G{\n");
 }
 
 void EndGraph()
 {
-    cout<<"}\n";
+    printf("}\n");
 }
 
 
-node* terminal(char *str)
+struct node* terminal(char *str)
 {
-    node *n= new node;
+    struct node *n=(struct node *)malloc(sizeof(struct node));
     n->name=str;
     n->id=getNodeId();
     printf("\t%d [label=\"%s\"];\n",n->id,n->name);
+    return n;
 }
 
 
-node *nonterminal1(char *str,node *x)
+struct node* nonterminal1(char *str,struct node *x)
 {
-    node *n=new node;
+    struct node *n=(struct node *)malloc(sizeof(struct node));
+
     n->name=str;
     n->id=getNodeId();
     printf("\t%d [label=\"%s\"];\n",n->id,n->name);
     printf("\t%d -> %d;\n", n->id, x->id);
     return n;
 }
-node *nonterminal2(char *str,node *x1,node *x2)
+struct node* nonterminal2(char *str,struct node *x1,struct node *x2)
 {
-    node *n=new node;
+    struct node *n=(struct node *)malloc(sizeof(struct node));
     n->name=str;
     n->id=getNodeId();
     printf("\t%d [label=\"%s\"];\n",n->id,n->name);
     printf("\t%d -> %d;\n", n->id, x1->id);
     printf("\t%d -> %d;\n", n->id, x2->id);
     return n;
+   
+
 }
 
-node *nonterminal3(char *str,node *x1,node *x2,node* x3)
+struct node* nonterminal3(char *str,struct node *x1,struct node *x2,struct node* x3)
 {
-    node *n=new node;
+    struct node *n=(struct node *)malloc(sizeof(struct node));
     n->name=str;
     n->id=getNodeId();
     printf("\t%d [label=\"%s\"];\n",n->id,n->name);
@@ -59,12 +63,13 @@ node *nonterminal3(char *str,node *x1,node *x2,node* x3)
     printf("\t%d -> %d;\n", n->id, x2->id);
     printf("\t%d -> %d;\n", n->id, x3->id);
     return n;
+
+
 }
 
-
-node *nonterminal4(char *str,node *x1,node *x2,node* x3,node *x4)
+struct node* nonterminal4(char *str,struct node *x1,struct node *x2,struct node* x3,struct node *x4)
 {
-    node *n=new node;
+    struct node *n=(struct node *)malloc(sizeof(struct node));
     n->name=str;
     n->id=getNodeId();
     printf("\t%d [label=\"%s\"];\n",n->id,n->name);

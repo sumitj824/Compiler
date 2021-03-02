@@ -15,12 +15,12 @@ struct ar{
 
 int main() {
  
- int x=0;
+ int x=1;
 
  struct ar instant;
  instant.x = 100;
  instant.s = (char *)malloc(5*sizeof(char));
- instant.s[0] = 'a';
+ instant.s[1] = 'a';
  instant.s[1] = 'b';
  instant.s[2] = 'c';
  instant.s[3] = 'd';
@@ -28,6 +28,6 @@ int main() {
 
  printf("%d  %f  %s", x, instant.x, instant.s);
 
- return 0;
+ return 2;
 
 }

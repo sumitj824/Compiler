@@ -24,11 +24,24 @@ $ ./bin/lexer -i ./tests/test1.c -o output.txt
 ```
 
 
+## Part 2 : Parser
+In this we have constructed a Parser of source language to output Abstract Syntax Tree
+
+
+### Steps to Build and Run 
+
+```
+$ make
+$ ./bin/parser -i ./tests/test.c -o ast.dot
+$ dot -Tpng ast.dot -o ast.png
+
+```
+
 ### To get help
 
 ```
 $ make
-$ ./bin/lexer -help
+$ ./bin/parser -help
 
 ```
 
@@ -43,17 +56,21 @@ $ make clean
 
 ### Directory Structure
 ```
+.
 ├── makefile
 ├── README.md
 ├── src
-│   ├── lex.l
-│   └── y.tab.h
+│   ├── lex.l
+│   ├── node.c
+│   ├── node.h
+│   └── yacc.y
 └── tests
     ├── test1.c
     ├── test2.c
     ├── test3.c
     ├── test4.c
-    └── test5.c
+    ├── test5.c
+    └── test.c
 
 
 

@@ -1,1 +1,3 @@
 bin/
+*.dot
+*.png
