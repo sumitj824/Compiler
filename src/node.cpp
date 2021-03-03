@@ -20,9 +20,14 @@ void EndGraph()
 }
 
 
-struct node* terminal(char *str)
-{
-    struct node *n=(struct node *)malloc(sizeof(struct node));
+node* terminal(char *str)
+{   
+    node *n=new node;
+    string s(str);
+    if(str[0] == '"'){
+        s="\\\""+s.substr(1,s.size()-2)+"\\\"";
+        strcpy(str,s.c_str());
+    }
     n->name=str;
     n->id=getNodeId();
     printf("\t%d [label=\"%s\"];\n",n->id,n->name);
@@ -30,19 +35,18 @@ struct node* terminal(char *str)
 }
 
 
-struct node* nonterminal1(char *str,struct node *x)
+node* nonterminal1(char *str,node *x)
 {
-    struct node *n=(struct node *)malloc(sizeof(struct node));
-
+    node *n=new node;
     n->name=str;
     n->id=getNodeId();
     printf("\t%d [label=\"%s\"];\n",n->id,n->name);
     printf("\t%d -> %d;\n", n->id, x->id);
     return n;
 }
-struct node* nonterminal2(char *str,struct node *x1,struct node *x2)
+node* nonterminal2(char *str,node *x1,node *x2)
 {
-    struct node *n=(struct node *)malloc(sizeof(struct node));
+    node *n=new node;
     n->name=str;
     n->id=getNodeId();
     printf("\t%d [label=\"%s\"];\n",n->id,n->name);
@@ -53,9 +57,9 @@ struct node* nonterminal2(char *str,struct node *x1,struct node *x2)
 
 }
 
-struct node* nonterminal3(char *str,struct node *x1,struct node *x2,struct node* x3)
+node* nonterminal3(char *str,node *x1,node *x2,node* x3)
 {
-    struct node *n=(struct node *)malloc(sizeof(struct node));
+    node *n=new node;
     n->name=str;
     n->id=getNodeId();
     printf("\t%d [label=\"%s\"];\n",n->id,n->name);
@@ -67,9 +71,9 @@ struct node* nonterminal3(char *str,struct node *x1,struct node *x2,struct node*
 
 }
 
-struct node* nonterminal4(char *str,struct node *x1,struct node *x2,struct node* x3,struct node *x4)
+node* nonterminal4(char *str,node *x1,node *x2,node* x3,node *x4)
 {
-    struct node *n=(struct node *)malloc(sizeof(struct node));
+    node *n=new node;
     n->name=str;
     n->id=getNodeId();
     printf("\t%d [label=\"%s\"];\n",n->id,n->name);

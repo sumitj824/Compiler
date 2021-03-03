@@ -1,8 +1,14 @@
 %{
-	#include"node.h"
+#include <iostream>
+#include <cstring>
+#include "node.h"
+using namespace std;
+void yyerror(char *s);
+int yylex();
+
 %}
 %union{
-	struct node *ptr;
+	node *ptr;
 	char *str;
 }
 
@@ -358,7 +364,7 @@ direct_abstract_declarator
 initializer
 	: assignment_expression											{$$=$1;}
 	| '{' initializer_list '}'										{$$=$2;}
-	| '{' initializer_list ',' '}'								{$$=nonterminal2("initializer",$2,$3);}
+	| '{' initializer_list ',' '}'								{$$=nonterminal2("initializer",$2,terminal($3));}
 	;
 
 initializer_list
@@ -377,7 +383,7 @@ statement
 
 labeled_statement
 	: IDENTIFIER ':' statement			   {$$=nonterminal2("labeled_statement",terminal($1),$3);}
-	| CASE constant_expression ':' statement    {$$=nonterminal3("labeled_statement",terminal("case"),$1,$3);}
+	| CASE constant_expression ':' statement    {$$=nonterminal3("labeled_statement",terminal("case"),$2,$4);}
 	| DEFAULT ':' statement   			   {$$=nonterminal2("labeled_statement",terminal("default"),$3);}
 	;
 
@@ -446,8 +452,7 @@ function_definition
 extern char yytext[];
 extern int column;
 
-yyerror(s)
-char *s;
+void yyerror(char *s)
 {
 	fflush(stdout);
 	printf("\n%*s\n%*s\n", column, "^", column, s);

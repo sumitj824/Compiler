@@ -7,11 +7,14 @@ FS			(f|F|l|L)
 IS			(u|U|l|L)*
 
 %{
+#include<iostream>
 #include <stdio.h>
-#include "y.tab.h"
 #include "node.h"
+#include "y.tab.h"
 void count();
-
+void comment();
+void single_line_comment();
+int check_type();
 %}
 
 %%
@@ -116,7 +119,7 @@ L?\"(\\.|[^\\"])*\"	{ count();yylval.str=strdup(yytext); return(STRING_LITERAL);
 
 %%
 
-yywrap()
+int yywrap()
 {
 	return(1);
 }
@@ -127,12 +130,12 @@ int line=1;
 
 
 
-comment()
+void comment()
 {
 	char c, c1;
 	column+=2;
 loop:
-	while ((c = input()) != '*' && c != 0)
+	while ((c = yyinput()) != '*' && c != 0)
 	{
 		if (c == '\n')
 			column = 0,line++;
@@ -141,7 +144,7 @@ loop:
 		else
 			column++;
 	}
-	 if ((c1 = input()) != '/' && c != 0)
+	 if ((c1 = yyinput()) != '/' && c != 0)
 	{
 		unput(c1);
 		goto loop;
@@ -153,10 +156,10 @@ loop:
 		putchar(c1);  */
 }
 
-single_line_comment()
+void single_line_comment()
 {
 	char c;
-	while ((c = input()) != '\n' && c != 0) ;
+	while ((c = yyinput()) != '\n' && c != 0) ;
 	column=0;
 	line++;
 }	

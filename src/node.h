@@ -1,20 +1,23 @@
+#include<iostream>
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 
-struct node
+using namespace std;
+
+typedef struct 
 {
     int id;
     char * name;
-};
+}node;
 
 
 int getNodeId();
 void BeginGraph();
 void EndGraph();
-struct node* terminal(char *str);
-struct node* nonterminal1(char *str,struct node *x);
-struct node* nonterminal2(char *str,struct node *x1,struct node *x2);
-struct node* nonterminal3(char *str,struct node *x1,struct node *x2,struct node* x3);
-struct node* nonterminal4(char *str,struct node *x1,struct node *x2,struct node* x3,struct node *x4);
+node* terminal(char *str);
+node* nonterminal1(char *str,node *x);
+node* nonterminal2(char *str,node *x1,node *x2);
+node* nonterminal3(char *str,node *x1,node *x2,node* x3);
+node* nonterminal4(char *str,node *x1,node *x2,node* x3,node *x4);
 
