@@ -38,8 +38,8 @@ int main(){
     //binary operators
 
 
-    int c = a|b;
-    int d = a&b;
-    int e = a^b;
-    int e = ~a;
+    a = a|b;
+    b = a&b;
+    e = a^b;
+    e = ~a;
 }

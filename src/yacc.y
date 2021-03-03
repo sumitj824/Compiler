@@ -58,9 +58,9 @@ postfix_expression
 	| postfix_expression '(' ')'							{$$=$1;}
 	| postfix_expression '(' argument_expression_list ')'   {$$=add("postfix_expression", $1, $3);}
 	| postfix_expression '.' IDENTIFIER						{$$=add("postfix_expression.IDENTIFIER", $1, add($3));}
-	| postfix_expression PTR_OP IDENTIFIER					{$$=add("postfix_expression",$1,add($2),add($3));}
-	| postfix_expression INC_OP							   {$$=add("postfix_expression", $1, add($2));}
-	| postfix_expression DEC_OP								 {$$=add("postfix_expression", $1, add($2));}
+	| postfix_expression PTR_OP IDENTIFIER					{$$=add($2,$1,add($3));}
+	| postfix_expression INC_OP							    {$$=add($2, $1);}
+	| postfix_expression DEC_OP								{$$=add($2, $1);}
 	;
 
 argument_expression_list									
@@ -70,11 +70,11 @@ argument_expression_list
 
 unary_expression
 	: postfix_expression									{$$=$1;}
-	| INC_OP unary_expression								{$$=add("unary_expression",add($1),$2);}
-	| DEC_OP unary_expression								{$$=add("unary_expression",add($1),$2);}
+	| INC_OP unary_expression								{$$=add($1,$2);}
+	| DEC_OP unary_expression								{$$=add($1,$2);}
 	| unary_operator cast_expression						{$$=add("unary_expression",$1,$2);}
-	| SIZEOF unary_expression								{$$=add("unary_expression",add($1),$2);}
-	| SIZEOF '(' type_name ')'								{$$=add("unary_expression",add($1),$3);}
+	| SIZEOF unary_expression								{$$=add($1,$2);}
+	| SIZEOF '(' type_name ')'								{$$=add($1,$3);}
 	;
 
 unary_operator
@@ -112,8 +112,8 @@ shift_expression
 
 relational_expression	
 	: shift_expression										{$$=$1;}
-	| relational_expression '<' shift_expression   {$$=add(">",$1,$3);}
-	| relational_expression '>' shift_expression   {$$=add("<",$1,$3);}
+	| relational_expression '<' shift_expression   {$$=add("<",$1,$3);}
+	| relational_expression '>' shift_expression   {$$=add(">",$1,$3);}
 	| relational_expression LE_OP shift_expression {$$=add("<=",$1,$3);}
 	| relational_expression GE_OP shift_expression {$$=add(">=",$1,$3);}
 	;
@@ -270,13 +270,13 @@ struct_declarator
 
 enum_specifier
 	: ENUM '{' enumerator_list '}'					{$$=add("enum_specifier",add($1),$3);}
-	| ENUM IDENTIFIER '{' enumerator_list '}'	   {$$=add("enum_specifier",add($1),add($2),$4);}
+	| ENUM IDENTIFIER '{' enumerator_list '}'	   	{$$=add("enum_specifier",add($1),add($2),$4);}
 	| ENUM IDENTIFIER								{$$=add("enum_specifier",add($1),add($2));}
 	;
 
 enumerator_list
 	: enumerator											{$$=$1;}
-	| enumerator_list ',' enumerator					{$$=add("enumerator_list",$1,$3);}
+	| enumerator_list ',' enumerator						{$$=add("enumerator_list",$1,$3);}
 	;
 
 enumerator
@@ -295,20 +295,20 @@ declarator
 	;
 
 direct_declarator
-	: IDENTIFIER										    {$$=add($1);}
+	: IDENTIFIER										    	{$$=add($1);}
 	| '(' declarator ')'										{$$=$2;}
-	| direct_declarator '[' constant_expression ']'        {$$=add("direct_declarator",$1,$3);}
-	| direct_declarator '[' ']'							  {$$=add("direct_declarator",$1,add("[]"));}
-	| direct_declarator '(' parameter_type_list ')'        {$$=add("direct_declarator",$1,$3);}
-	| direct_declarator '(' identifier_list ')'        {$$=add("direct_declarator",$1,$3);}
-	| direct_declarator '(' ')'							{$$=add("direct_declarator",$1,add("()"));}
+	| direct_declarator '[' constant_expression ']'        		{$$=add("direct_declarator",$1,$3);}
+	| direct_declarator '[' ']'							  		{$$=add("direct_declarator",$1,add("[]"));}
+	| direct_declarator '(' parameter_type_list ')'        		{$$=add("direct_declarator",$1,$3);}
+	| direct_declarator '(' identifier_list ')'       		    {$$=add("direct_declarator",$1,$3);}
+	| direct_declarator '(' ')'									{$$=add("direct_declarator",$1,add("()"));}
 	;
 
 pointer
-	: '*'										{$$=add("*");}
-	| '*' type_qualifier_list					{$$=add("*",$2);}
-	| '*' pointer								{$$=add("*",$2);}
-	| '*' type_qualifier_list pointer		    {$$=add("*",$2,$3);}
+	: '*'														{$$=add("*");}
+	| '*' type_qualifier_list									{$$=add("*",$2);}
+	| '*' pointer												{$$=add("*",$2);}
+	| '*' type_qualifier_list pointer		    				{$$=add("*",$2,$3);}
 	;
 
 type_qualifier_list
@@ -323,48 +323,48 @@ parameter_type_list
 	;
 
 parameter_list
-	: parameter_declaration											{$$=$1;}
-	| parameter_list ',' parameter_declaration                 {$$=add("parameter_list",$1,$3);}
+	: parameter_declaration										{$$=$1;}
+	| parameter_list ',' parameter_declaration                 	{$$=add("parameter_list",$1,$3);}
 	;
 
 parameter_declaration
-	: declaration_specifiers declarator                 {$$=add("parameter_declaration",$1,$2);}
-	| declaration_specifiers abstract_declarator                 {$$=add("parameter_declaration",$1,$2);}
-	| declaration_specifiers											{$$=$1;}
+	: declaration_specifiers declarator                 		{$$=add("parameter_declaration",$1,$2);}
+	| declaration_specifiers abstract_declarator                {$$=add("parameter_declaration",$1,$2);}
+	| declaration_specifiers									{$$=$1;}
 	;
 
 identifier_list
-	: IDENTIFIER										{$$=add($1);}
-	| identifier_list ',' IDENTIFIER					{$$=add("identifier_list",$1,add($3));}
+	: IDENTIFIER												{$$=add($1);}
+	| identifier_list ',' IDENTIFIER							{$$=add("identifier_list",$1,add($3));}
 	;
 
 type_name
-	: specifier_qualifier_list											{$$=$1;}
-	| specifier_qualifier_list abstract_declarator		 {$$=add("type_name",$1,$2);}
+	: specifier_qualifier_list									{$$=$1;}
+	| specifier_qualifier_list abstract_declarator		 		{$$=add("type_name",$1,$2);}
 	;
 
 abstract_declarator
-	: pointer											{$$=$1;}
-	| direct_abstract_declarator											{$$=$1;}
-	| pointer direct_abstract_declarator {$$=add("abstract_declarator",$1,$2);}
+	: pointer													{$$=$1;}
+	| direct_abstract_declarator								{$$=$1;}
+	| pointer direct_abstract_declarator 						{$$=add("abstract_declarator",$1,$2);}
 	;
 
 direct_abstract_declarator
-	: '(' abstract_declarator ')'		{$$=$2;}
-	| '[' ']'							{$$=add("[ ]");}
-	| '[' constant_expression ']'		{$$=$2;}
-	| direct_abstract_declarator '[' ']'			{$$=add("direct_abstract_declarator",$1,add("[]"));}
-	| direct_abstract_declarator '[' constant_expression ']'  {$$ = add("direct_abstract_declarator", $1, $3);;}
-	| '(' ')'							{$$ = add("( )");}
-	| '(' parameter_type_list ')'		{$$=$2;}
-	| direct_abstract_declarator '(' ')'				{$$=add("direct_abstract_declarator",$1,add("()"));}
+	: '(' abstract_declarator ')'								{$$=$2;}
+	| '[' ']'													{$$=add("[ ]");}
+	| '[' constant_expression ']'								{$$=$2;}
+	| direct_abstract_declarator '[' ']'						{$$=add("direct_abstract_declarator",$1,add("[]"));}
+	| direct_abstract_declarator '[' constant_expression ']'  	{$$ = add("direct_abstract_declarator", $1, $3);;}
+	| '(' ')'													{$$ = add("( )");}
+	| '(' parameter_type_list ')'								{$$=$2;}
+	| direct_abstract_declarator '(' ')'						{$$=add("direct_abstract_declarator",$1,add("()"));}
 	| direct_abstract_declarator '(' parameter_type_list ')'    {$$=add("direct_abstract_declarator",$1,$3);}
 	;
 
 initializer
 	: assignment_expression											{$$=$1;}
 	| '{' initializer_list '}'										{$$=$2;}
-	| '{' initializer_list ',' '}'								{$$=add("initializer",$2,add($3));}
+	| '{' initializer_list ',' '}'									{$$=add("initializer",$2,add($3));}
 	;
 
 initializer_list
@@ -373,65 +373,65 @@ initializer_list
 	;
 
 statement
-	: labeled_statement											{$$=$1;}
+	: labeled_statement												{$$=$1;}
 	| compound_statement											{$$=$1;}
 	| expression_statement											{$$=$1;}
 	| selection_statement											{$$=$1;}
 	| iteration_statement											{$$=$1;}
-	| jump_statement											{$$=$1;}
+	| jump_statement												{$$=$1;}
 	;
 
 labeled_statement
-	: IDENTIFIER ':' statement			   {$$=add("labeled_statement",add($1),$3);}
-	| CASE constant_expression ':' statement    {$$=add("labeled_statement",add("case"),$2,$4);}
-	| DEFAULT ':' statement   			   {$$=add("labeled_statement",add("default"),$3);}
+	: IDENTIFIER ':' statement			 		 {$$=add("labeled_statement",add($1),$3);}
+	| CASE constant_expression ':' statement   	 {$$=add("labeled_statement",add("case"),$2,$4);}
+	| DEFAULT ':' statement   			  		 {$$=add("labeled_statement",add("default"),$3);}
 	;
 
 compound_statement
-	: '{' '}'    					{$$=add("{ }");}
-	| '{' statement_list '}'		{$$=add("compound_statement",$2);}
-	| '{' declaration_list '}'		{$$=add("compound_statement",$2);}
+	: '{' '}'    								{$$=add("{ }");}
+	| '{' statement_list '}'					{$$=add("compound_statement",$2);}
+	| '{' declaration_list '}'					{$$=add("compound_statement",$2);}
 	| '{' declaration_list statement_list '}'   {$$=add("compound_statement",$2,$3);}
 	;
 
 declaration_list
 	: declaration											{$$=$1;}
-	| declaration_list declaration                        {$$=add("declaration_list",$1,$2);}
+	| declaration_list declaration                        	{$$=add("declaration_list",$1,$2);}
 	;
 
 statement_list
-	: statement											{$$=$1;}
-	| statement_list statement							{$$=add("statement_list",$1,$2);}
+	: statement												{$$=$1;}
+	| statement_list statement								{$$=add("statement_list",$1,$2);}
 	;
 
 expression_statement
-	: ';'													{$$=add(";");}
+	: ';'														{$$=add(";");}
 	| expression ';'											{$$=$1;}
 	;
 
 selection_statement
-	: IF '(' expression ')' statement               	{$$=add("IF (expr) stmt",$3,$5);}
-	| IF '(' expression ')' statement ELSE statement      {$$=add("IF (expr) stmt ELSE stmt",$3,$5,$7);}
-	| SWITCH '(' expression ')' statement               {$$=add("SWITCH (expr) stmt",$3,$5);}
+	: IF '(' expression ')' statement               		{$$=add("IF (expr) stmt",$3,$5);}
+	| IF '(' expression ')' statement ELSE statement     	{$$=add("IF (expr) stmt ELSE stmt",$3,$5,$7);}
+	| SWITCH '(' expression ')' statement              	 	{$$=add("SWITCH (expr) stmt",$3,$5);}
 	;
 
 iteration_statement
-	: WHILE '(' expression ')' statement              	{$$=add("WHILE (expr) stmt",$3,$5);}
-	| DO statement WHILE '(' expression ')' ';'			{$$=add("DO stmt WHILE (expr)",$2,$5);}
-	| FOR '(' expression_statement expression_statement ')' statement   {$$=add("FOR (expr_stmt expr_stmt) stmt",$3,$4,$6);}
+	: WHILE '(' expression ')' statement                                        	{$$=add("WHILE (expr) stmt",$3,$5);}
+	| DO statement WHILE '(' expression ')' ';'			                            {$$=add("DO stmt WHILE (expr)",$2,$5);}
+	| FOR '(' expression_statement expression_statement ')' statement               {$$=add("FOR (expr_stmt expr_stmt) stmt",$3,$4,$6);}
 	| FOR '(' expression_statement expression_statement expression ')' statement    {$$=add("FOR (expr_stmt expr_stmt expr) stmt",$3,$4,$5,$7);}
 	;
 
 jump_statement
 	: GOTO IDENTIFIER ';'						{$$=add("jump_statement",add($1),add($2));}
-	| CONTINUE ';'						{$$=add("jump_statement",add("continue"));}
-	| BREAK ';'						{$$=add("jump_statement",add("break"));}
-	| RETURN ';'						{$$=add("jump_statement",add("return"));}
+	| CONTINUE ';'						        {$$=add("continue");}
+	| BREAK ';'						            {$$=add("break");}
+	| RETURN ';'						        {$$=add("return");}
 	| RETURN expression ';'						{$$=add("jump_statement",add("return"),$2);}
 	;
 
 translation_unit
-	: external_declaration											{$$=$1;}
+	: external_declaration										   {$$=$1;}
 	| translation_unit external_declaration                        {$$=add("translation_unit",$1,$2);}
 	;
 
@@ -444,7 +444,7 @@ function_definition
 	: declaration_specifiers declarator declaration_list compound_statement       {$$=add("function_definition",$1,$2,$3,$4);}
 	| declaration_specifiers declarator compound_statement                        {$$=add("function_definition",$1,$2,$3);}
 	| declarator declaration_list compound_statement                              {$$=add("function_definition",$1,$2,$3);}
-	| declarator compound_statement                                              {$$=add("function_definition",$1,$2);}
+	| declarator compound_statement                                               {$$=add("function_definition",$1,$2);}
 	;
 
 %%
@@ -452,10 +452,11 @@ function_definition
 extern char yytext[];
 extern int column;
 extern int line;
+extern int col_start;
 void yyerror(char *s)
 {
 	fflush(stdout);
-	printf("Error: On Line %d  and Column %d\n",line,column);
+	printf("Error: On Line %d  and Column %d\n",line,col_start);
 	printf("\n%*s\n%*s\n", column, "^", column, s);
 }
 

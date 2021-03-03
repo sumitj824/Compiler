@@ -6,14 +6,14 @@ int func(int a){
 
 int main(){
     //for loop
-    for (int i=0;i<5;i++){
+    int i,b;
+    for (i=0;i<5;i++){
         printf("%d\n",i);
     }
 
     //while loop
 
-    int i = 0;
-    int b = 11;
+    i = 0;
     while(i<5 || b<22){
         i++;
         b--;

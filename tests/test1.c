@@ -15,8 +15,7 @@ struct ar{
 
 int main() {
  
- int x=1;
-
+ int x;
  struct ar instant;
  instant.x = 100;
  instant.s = (char *)malloc(5*sizeof(char));
@@ -25,7 +24,6 @@ int main() {
  instant.s[2] = 'c';
  instant.s[3] = 'd';
  instant.s[4] = '\0';
-
  printf("%d  %f  %s", x, instant.x, instant.s);
 
  return 2;

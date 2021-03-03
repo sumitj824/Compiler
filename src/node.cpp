@@ -24,6 +24,21 @@ node* add(char *str,node* x1, node* x2,node* x3,node* x4)
 {   
     node *n=new node;
     string s(str);
+    stringstream ss;
+    if(!x1)
+    {
+        for(int i=0; i <s.size(); i++)
+        {
+            if(s[i]=='\\')
+            { 
+                char t = '\\';
+                ss << t;
+            }
+            ss <<s[i];
+        }
+        s = ss.str();
+    }
+
     if(str[0] == '"'){
         s="\\\""+s.substr(1,s.size()-2)+"\\\"";
         strcpy(str,s.c_str());
