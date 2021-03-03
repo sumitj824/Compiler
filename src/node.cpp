@@ -45,7 +45,7 @@ node* add(char *str,node* x1, node* x2,node* x3,node* x4)
     }
     n->name=str;
     n->id=getNodeId();
-    printf("\t%d [label=\"%s\"];\n",n->id,n->name);
+    printf("\t%d [label=\"%s\"; style=filled; color=\"#cfe2f3\"];\n",n->id,n->name);
     if(x1)printf("\t%d -> %d;\n", n->id, x1->id);
     if(x2)printf("\t%d -> %d;\n", n->id, x2->id);
     if(x3)printf("\t%d -> %d;\n", n->id, x3->id);
