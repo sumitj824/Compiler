@@ -451,10 +451,11 @@ function_definition
 #include <stdio.h>
 extern char yytext[];
 extern int column;
-
+extern int line;
 void yyerror(char *s)
 {
 	fflush(stdout);
+	printf("Error: On Line %d  and Column %d\n",line,column);
 	printf("\n%*s\n%*s\n", column, "^", column, s);
 }
 

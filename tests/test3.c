@@ -13,7 +13,7 @@ int k = 9;
 
 int main(){
     int a = 5;
-    float b = 5.0000;
+    int b = 5;
     char c = 'c';
     double d1 = 7.0000000;
     double d2 = 7.3e-10;

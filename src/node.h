@@ -15,10 +15,4 @@ typedef struct
 int getNodeId();
 void BeginGraph();
 void EndGraph();
-node* terminal(char *str);
-node* nonterminal1(char *str,node *x);
-node* nonterminal2(char *str,node *x1,node *x2);
-node* nonterminal3(char *str,node *x1,node *x2,node* x3);
-node* nonterminal4(char *str,node *x1,node *x2,node* x3,node *x4);
-
 node* add(char *str,node* x1=NULL, node* x2=NULL,node* x3=NULL,node* x4=NULL);

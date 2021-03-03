@@ -14,3 +14,4 @@ $(SRC)/compile:
 
 clean: 
 		rm -rf $(BIN)
+		rm *.dot *.png

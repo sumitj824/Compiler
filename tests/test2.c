@@ -10,7 +10,7 @@ int main(){
     curr.x = 15/5;
     printf("%ld \n",sizeof(curr));
     for(int i = 0; i < 5; i++){
-        if(i %2!=0)
+        if(i%2!=0)
         {
             printf("%ld \n", sizeof(curr.ptr));
         }
