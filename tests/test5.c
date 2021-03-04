@@ -1,30 +1,26 @@
-//for loops and functions
+// Binary Search 
 
-int func(int a){
-    return 2*a;
-}
-
-int main(){
-    //for loop
-    int i,b;
-    for (i=0;i<5;i++){
-        printf("%d\n",i);
-    }
-
-    //while loop
-
-    i = 0;
-    while(i<5 || b<22){
-        i++;
-        b--;
-    }
-
-    //do while loop and usage of function.
-
-    do{
-        
-        i = func(i);
-    }while(i<= 200);
-
-
-}
+int binarySearch(int arr[], int l, int r, int x) 
+{ 
+    if (r >= l) { 
+        int mid = l + (r - l) / 2; 
+        if (arr[mid] == x) 
+            return mid; 
+        if (arr[mid] > x) 
+            return binarySearch(arr, l, mid - 1, x); 
+        return binarySearch(arr, mid + 1, r, x); 
+    } 
+    return -1; 
+} 
+  
+int main(void) 
+{ 
+    int arr[] = { 2, 3, 4, 10, 40 }; 
+    int n = sizeof(arr) / sizeof(arr[0]); 
+    int x = 10; 
+    int result = binarySearch(arr, 0, n - 1, x); 
+    (result == -1) ? printf("Element is not present in array") 
+                   : printf("Element is present at index %d", 
+                            result); 
+    return 0; 
+} 

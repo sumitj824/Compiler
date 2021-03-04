@@ -11,6 +11,7 @@ $(SRC)/compile:
 	   g++  -w -c $(SRC)/node.cpp -o $(BIN)/node.o -I$(SRC)
 	   g++ $(BIN)/lex.yy.c $(BIN)/y.tab.c $(BIN)/node.o -I$(SRC) -lfl -w  -o $(BIN)/parser
 
+
 clean: 
 		rm -rf $(BIN)
-		rm *.dot *.png
+		rm -f *.dot *.png

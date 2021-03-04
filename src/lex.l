@@ -11,6 +11,7 @@ IS			(u|U|l|L)*
 #include <stdio.h>
 #include "node.h"
 #include "y.tab.h"
+void yyerror(char *s);
 void count();
 void comment();
 void single_line_comment();
@@ -115,7 +116,7 @@ L?\"(\\.|[^\\"])*\"	{ count();yylval.str=strdup(yytext); return(STRING_LITERAL);
 "?"			{ count();yylval.str=strdup(yytext); return('?'); }
 
 [ \t\v\n\f]		{ count(); }
-.			{ count();  return yytext[0]; }
+.			{ count();return yytext[0]; }
 
 %%
 

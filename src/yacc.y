@@ -1,7 +1,10 @@
 %{
 #include <iostream>
-#include <cstring>
+#include <string>
 #include "node.h"
+#include <fstream>
+
+
 using namespace std;
 void yyerror(char *s);
 int yylex();
@@ -449,22 +452,37 @@ function_definition
 
 %%
 #include <stdio.h>
+#define red   "\033[31;1m"
+#define reset   "\033[0m"
 extern char yytext[];
 extern int column;
 extern int line;
-extern int col_start;
+char *filename;
+FILE *in=NULL;
+FILE *out=NULL;
+
 void yyerror(char *s)
-{
+{	
 	fflush(stdout);
-	printf("Error: On Line %d  and Column %d\n",line,col_start);
-	printf("\n%*s\n%*s\n", column, "^", column, s);
+	fprintf(stderr,"%s:%d:%d:%s Error: %s\n",filename,line,column,red,reset);
+	fclose(in);
+	in=freopen(filename,"r",stdin);
+	string str;
+	for(int i=0;i<line;i++)
+	{
+		getline(cin,str);
+	}
+	
+	cerr<<str;
+
+	fprintf(stderr,"\n%*s\n%s%*s%s\n", column, "^", red,column,s,reset);
 }
 
 void help(int f)
 {	
-	if(f) printf("Error : \n");
-	printf("Specify input file with -i flag\n");
-	printf("Specify Output file with -o flag\n");
+	if(f) printf("%sError: %s\n",red,reset);
+	printf("Give Input file with -i flag\n");
+	printf("Give Output file with -o flag\n");
 }
 
 
@@ -475,7 +493,7 @@ int main(int argc, char *argv[])
 		help(1);
 		return 0;
 	}
-
+	
 	for(int i=1;i<argc;i++)
 	{
 
@@ -488,7 +506,8 @@ int main(int argc, char *argv[])
 		{
 			if(i+1<argc)
 			{
-				FILE *in=freopen(argv[i+1],"r",stdin);
+				in=freopen(argv[i+1],"r",stdin);
+				filename=argv[i+1];
 				i++;
 
 				if(!in)
@@ -508,7 +527,7 @@ int main(int argc, char *argv[])
 		{
 			if(i+1<argc)
 			{
-				FILE *out =freopen(argv[i+1],"w",stdout);
+				out =freopen(argv[i+1],"w",stdout);
 				i++;
 				if(!out)
 				{
@@ -528,6 +547,8 @@ int main(int argc, char *argv[])
 			return 0;
 		}
 	}
+	if(!in)help(1);
+	if(!out)freopen("ast.dot","w",stdout);
 	BeginGraph();
 	yyparse();
 	EndGraph();
