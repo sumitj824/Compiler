@@ -32,7 +32,7 @@ In this we have constructed a Parser of source language to output Abstract Synta
 
 ```
 $ make
-$ ./bin/parser -i ./tests/test.c -o ast.dot
+$ ./bin/parser -i ./tests/test1.c -o ast.dot
 $ dot -Tpng ast.dot -o ast.png
 
 ```
