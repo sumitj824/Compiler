@@ -61,7 +61,7 @@ $ make clean
 ├── README.md
 ├── src
 │   ├── lex.l
-│   ├── node.c
+│   ├── node.cpp
 │   ├── node.h
 │   └── yacc.y
 └── tests
@@ -70,7 +70,8 @@ $ make clean
     ├── test3.c
     ├── test4.c
     ├── test5.c
-    └── test.c
+    ├── test6.c
+    └── test7.c
 
 
 
