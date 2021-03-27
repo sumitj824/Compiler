@@ -20,7 +20,7 @@ void EndGraph()
 }
 
 
-node* add(char *str,node* x1, node* x2,node* x3,node* x4)
+node* make_node(char *str,node* x1, node* x2,node* x3,node* x4)
 {   
     node *n=new node;
     string s(str);

@@ -37,7 +37,7 @@ int yylex();
 
 
 
-%type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression
+%type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression make_nodeitive_expression
 %type <ptr> shift_expression relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
 %type <ptr> conditional_expression assignment_expression assignment_operator expression constant_expression declaration declaration_specifiers init_declarator_list init_declarator
 %type <ptr> storage_class_specifier type_specifier struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
@@ -49,137 +49,137 @@ int yylex();
 %%
 
 primary_expression
-	: IDENTIFIER											{$$=add($1);}				
-	| CONSTANT												{$$=add($1);}
-	| STRING_LITERAL										{$$=add($1);}
+	: IDENTIFIER											{$$=make_node($1);}				
+	| CONSTANT												{$$=make_node($1);}
+	| STRING_LITERAL										{$$=make_node($1);}
 	| '(' expression ')'									{$$=$2;}
 	;
 
 postfix_expression
 	: primary_expression       								{$$=$1;}
-	| postfix_expression '[' expression ']'					{$$=add("postfix_expression", $1, $3);}
+	| postfix_expression '[' expression ']'					{$$=make_node("postfix_expression", $1, $3);}
 	| postfix_expression '(' ')'							{$$=$1;}
-	| postfix_expression '(' argument_expression_list ')'   {$$=add("postfix_expression", $1, $3);}
-	| postfix_expression '.' IDENTIFIER						{$$=add("postfix_expression.IDENTIFIER", $1, add($3));}
-	| postfix_expression PTR_OP IDENTIFIER					{$$=add($2,$1,add($3));}
-	| postfix_expression INC_OP							    {$$=add($2, $1);}
-	| postfix_expression DEC_OP								{$$=add($2, $1);}
+	| postfix_expression '(' argument_expression_list ')'   {$$=make_node("postfix_expression", $1, $3);}
+	| postfix_expression '.' IDENTIFIER						{$$=make_node("postfix_expression.IDENTIFIER", $1, make_node($3));}
+	| postfix_expression PTR_OP IDENTIFIER					{$$=make_node($2,$1,make_node($3));}
+	| postfix_expression INC_OP							    {$$=make_node($2, $1);}
+	| postfix_expression DEC_OP								{$$=make_node($2, $1);}
 	;
 
 argument_expression_list									
 	: assignment_expression									{$$=$1;}
-	| argument_expression_list ',' assignment_expression    {$$=add("argument_expression_list", $1, $3);}
+	| argument_expression_list ',' assignment_expression    {$$=make_node("argument_expression_list", $1, $3);}
 	;
 
 unary_expression
 	: postfix_expression									{$$=$1;}
-	| INC_OP unary_expression								{$$=add($1,$2);}
-	| DEC_OP unary_expression								{$$=add($1,$2);}
-	| unary_operator cast_expression						{$$=add("unary_expression",$1,$2);}
-	| SIZEOF unary_expression								{$$=add($1,$2);}
-	| SIZEOF '(' type_name ')'								{$$=add($1,$3);}
+	| INC_OP unary_expression								{$$=make_node($1,$2);}
+	| DEC_OP unary_expression								{$$=make_node($1,$2);}
+	| unary_operator cast_expression						{$$=make_node("unary_expression",$1,$2);}
+	| SIZEOF unary_expression								{$$=make_node($1,$2);}
+	| SIZEOF '(' type_name ')'								{$$=make_node($1,$3);}
 	;
 
 unary_operator
-	: '&'		{$$=add("&");}
-	| '*'		{$$=add("*");}
-	| '+'		{$$=add("+");}
-	| '-'		{$$=add("-");}
-	| '~'		{$$=add("~");}
-	| '!'		{$$=add("!");}
+	: '&'		{$$=make_node("&");}
+	| '*'		{$$=make_node("*");}
+	| '+'		{$$=make_node("+");}
+	| '-'		{$$=make_node("-");}
+	| '~'		{$$=make_node("~");}
+	| '!'		{$$=make_node("!");}
 	;
 
 cast_expression
 	: unary_expression									   {$$=$1;}
-	| '(' type_name ')' cast_expression                    {$$=add("cast_expression", $2, $4);}
+	| '(' type_name ')' cast_expression                    {$$=make_node("cast_expression", $2, $4);}
 	;
 
 multiplicative_expression
 	: cast_expression									   {$$=$1;}
-	| multiplicative_expression '*' cast_expression        {$$=add("*", $1, $3);}
-	| multiplicative_expression '/' cast_expression        {$$=add("/", $1, $3);}
-	| multiplicative_expression '%' cast_expression        {$$=add("%", $1, $3);}
+	| multiplicative_expression '*' cast_expression        {$$=make_node("*", $1, $3);}
+	| multiplicative_expression '/' cast_expression        {$$=make_node("/", $1, $3);}
+	| multiplicative_expression '%' cast_expression        {$$=make_node("%", $1, $3);}
 	;
 
-additive_expression
+make_nodeitive_expression
 	: multiplicative_expression								{$$=$1;}
-	| additive_expression '+' multiplicative_expression     {$$=add("+", $1, $3);}
-	| additive_expression '-' multiplicative_expression     {$$=add("-", $1, $3);}
+	| make_nodeitive_expression '+' multiplicative_expression     {$$=make_node("+", $1, $3);}
+	| make_nodeitive_expression '-' multiplicative_expression     {$$=make_node("-", $1, $3);}
 	;
 
 shift_expression
-	: additive_expression									{$$=$1;}
-	| shift_expression LEFT_OP additive_expression		{$$=add("<<",$1,$3);}
-	| shift_expression RIGHT_OP additive_expression     {$$=add(">>",$1,$3);}
+	: make_nodeitive_expression									{$$=$1;}
+	| shift_expression LEFT_OP make_nodeitive_expression		{$$=make_node("<<",$1,$3);}
+	| shift_expression RIGHT_OP make_nodeitive_expression     {$$=make_node(">>",$1,$3);}
 	;
 
 relational_expression	
 	: shift_expression										{$$=$1;}
-	| relational_expression '<' shift_expression   {$$=add("<",$1,$3);}
-	| relational_expression '>' shift_expression   {$$=add(">",$1,$3);}
-	| relational_expression LE_OP shift_expression {$$=add("<=",$1,$3);}
-	| relational_expression GE_OP shift_expression {$$=add(">=",$1,$3);}
+	| relational_expression '<' shift_expression   {$$=make_node("<",$1,$3);}
+	| relational_expression '>' shift_expression   {$$=make_node(">",$1,$3);}
+	| relational_expression LE_OP shift_expression {$$=make_node("<=",$1,$3);}
+	| relational_expression GE_OP shift_expression {$$=make_node(">=",$1,$3);}
 	;
 
 equality_expression
 	: relational_expression									{$$=$1;}
-	| equality_expression EQ_OP relational_expression       {$$=add("==",$1,$3);}
-	| equality_expression NE_OP relational_expression       {$$=add("!=",$1,$3);}
+	| equality_expression EQ_OP relational_expression       {$$=make_node("==",$1,$3);}
+	| equality_expression NE_OP relational_expression       {$$=make_node("!=",$1,$3);}
 	;
 
 and_expression
 	: equality_expression									       {$$=$1;}
-	| and_expression '&' equality_expression                       {$$=add("&",$1,$3);}
+	| and_expression '&' equality_expression                       {$$=make_node("&",$1,$3);}
 	;
 
 exclusive_or_expression
 	: and_expression											    {$$=$1;}
-	| exclusive_or_expression '^' and_expression			{$$=add("^",$1,$3);}
+	| exclusive_or_expression '^' and_expression			{$$=make_node("^",$1,$3);}
 	;
 
 inclusive_or_expression
 	: exclusive_or_expression										{$$=$1;}
-	| inclusive_or_expression '|' exclusive_or_expression			{$$=add("|",$1,$3);}
+	| inclusive_or_expression '|' exclusive_or_expression			{$$=make_node("|",$1,$3);}
 	;
 
 logical_and_expression
 	: inclusive_or_expression										{$$=$1;}
-	| logical_and_expression AND_OP inclusive_or_expression			{$$=add("&&",$1,$3);}
+	| logical_and_expression AND_OP inclusive_or_expression			{$$=make_node("&&",$1,$3);}
 	;
 
 logical_or_expression
 	: logical_and_expression										{$$=$1;}
-	| logical_or_expression OR_OP logical_and_expression			{$$=add("||",$1,$3);}
+	| logical_or_expression OR_OP logical_and_expression			{$$=make_node("||",$1,$3);}
 	;
 
 /*check & vs && */
 conditional_expression
 	: logical_or_expression												{$$=$1;}
-	| logical_or_expression '?' expression ':' conditional_expression    {$$=add("conditional_expression",$1,$3,$5);}
+	| logical_or_expression '?' expression ':' conditional_expression    {$$=make_node("conditional_expression",$1,$3,$5);}
 	;
 
 assignment_expression
 	: conditional_expression													{$$=$1;}
-	| unary_expression assignment_operator assignment_expression		    {$$=add("assignment_expression",$1,$2,$3);}
+	| unary_expression assignment_operator assignment_expression		    {$$=make_node("assignment_expression",$1,$2,$3);}
 	;
 
 assignment_operator
-	: '='				{$$=add("=");}
-	| MUL_ASSIGN		{$$=add("*=");}
-	| DIV_ASSIGN		{$$=add("/=");}
-	| MOD_ASSIGN		{$$=add("%=");}
-	| ADD_ASSIGN		{$$=add("+=");}
-	| SUB_ASSIGN		{$$=add("-=");}
-	| LEFT_ASSIGN		{$$=add("<<=");}
-	| RIGHT_ASSIGN		{$$=add(">>=");}
-	| AND_ASSIGN		{$$=add("&=");}
-	| XOR_ASSIGN		{$$=add("^=");}
-	| OR_ASSIGN		   {$$=add("|=");}
+	: '='				{$$=make_node("=");}
+	| MUL_ASSIGN		{$$=make_node("*=");}
+	| DIV_ASSIGN		{$$=make_node("/=");}
+	| MOD_ASSIGN		{$$=make_node("%=");}
+	| ADD_ASSIGN		{$$=make_node("+=");}
+	| SUB_ASSIGN		{$$=make_node("-=");}
+	| LEFT_ASSIGN		{$$=make_node("<<=");}
+	| RIGHT_ASSIGN		{$$=make_node(">>=");}
+	| AND_ASSIGN		{$$=make_node("&=");}
+	| XOR_ASSIGN		{$$=make_node("^=");}
+	| OR_ASSIGN		   {$$=make_node("|=");}
 	;
 /*check here for error*/
 expression
 	: assignment_expression										{$$=$1;}
-	| expression ',' assignment_expression						{$$=add("expression",$1,$3);}
+	| expression ',' assignment_expression						{$$=make_node("expression",$1,$3);}
 	;
 
 constant_expression
@@ -188,191 +188,191 @@ constant_expression
 
 declaration
 	: declaration_specifiers ';'								{$$=$1;}					
-	| declaration_specifiers init_declarator_list ';'			{$$=add("declaration",$1,$2);}
+	| declaration_specifiers init_declarator_list ';'			{$$=make_node("declaration",$1,$2);}
 	;
 
 declaration_specifiers
 	: storage_class_specifier									{$$=$1;}
-	| storage_class_specifier declaration_specifiers			{$$=add("declaration_specifiers",$1,$2);}
+	| storage_class_specifier declaration_specifiers			{$$=make_node("declaration_specifiers",$1,$2);}
 	| type_specifier											{$$=$1;}
-	| type_specifier declaration_specifiers						{$$=add("declaration_specifiers",$1,$2);}
+	| type_specifier declaration_specifiers						{$$=make_node("declaration_specifiers",$1,$2);}
 	| type_qualifier											{$$=$1;}
-	| type_qualifier declaration_specifiers						{$$=add("declaration_specifiers",$1,$2);}
+	| type_qualifier declaration_specifiers						{$$=make_node("declaration_specifiers",$1,$2);}
 	;
 
 init_declarator_list
 	: init_declarator											{$$=$1;}
-	| init_declarator_list ',' init_declarator					{$$=add("init_declarator_list",$1,$3);}	
+	| init_declarator_list ',' init_declarator					{$$=make_node("init_declarator_list",$1,$3);}	
 	;
 
 init_declarator
 	: declarator											{$$=$1;}
-	| declarator '=' initializer							{$$=add("init_declarator",$1,$3);}
+	| declarator '=' initializer							{$$=make_node("init_declarator",$1,$3);}
 	;
 
 storage_class_specifier
-	: TYPEDEF												{$$=add($1);}
-	| EXTERN												{$$=add($1);}
-	| STATIC												{$$=add($1);}
-	| AUTO												    {$$=add($1);}
-	| REGISTER												{$$=add($1);}
+	: TYPEDEF												{$$=make_node($1);}
+	| EXTERN												{$$=make_node($1);}
+	| STATIC												{$$=make_node($1);}
+	| AUTO												    {$$=make_node($1);}
+	| REGISTER												{$$=make_node($1);}
 	;
 
 type_specifier
-	: VOID												{$$=add($1);}
-	| CHAR												{$$=add($1);}
-	| SHORT												{$$=add($1);}
-	| INT												{$$=add($1);}
-	| LONG												{$$=add($1);}
-	| FLOAT												{$$=add($1);}
-	| DOUBLE										    {$$=add($1);}
-	| SIGNED											{$$=add($1);}
-	| UNSIGNED										    {$$=add($1);}
+	: VOID												{$$=make_node($1);}
+	| CHAR												{$$=make_node($1);}
+	| SHORT												{$$=make_node($1);}
+	| INT												{$$=make_node($1);}
+	| LONG												{$$=make_node($1);}
+	| FLOAT												{$$=make_node($1);}
+	| DOUBLE										    {$$=make_node($1);}
+	| SIGNED											{$$=make_node($1);}
+	| UNSIGNED										    {$$=make_node($1);}
 	| struct_or_union_specifier							{$$=$1;}
 	| enum_specifier								    {$$=$1;}
-	| TYPE_NAME											{$$=add($1);}
+	| TYPE_NAME											{$$=make_node($1);}
 	;
 
 struct_or_union_specifier
-	: struct_or_union IDENTIFIER '{' struct_declaration_list '}'  {$$=add("struct_or_union_specifier",$1,add($2),$4);}
-	| struct_or_union '{' struct_declaration_list '}'             {$$=add("struct_or_union_specifier",$1,$3);}
-	| struct_or_union IDENTIFIER								  {$$=add("struct_or_union_specifier",$1,add($2));}
+	: struct_or_union IDENTIFIER '{' struct_declaration_list '}'  {$$=make_node("struct_or_union_specifier",$1,make_node($2),$4);}
+	| struct_or_union '{' struct_declaration_list '}'             {$$=make_node("struct_or_union_specifier",$1,$3);}
+	| struct_or_union IDENTIFIER								  {$$=make_node("struct_or_union_specifier",$1,make_node($2));}
 	;
 
 struct_or_union
-	: STRUCT										    {$$=add($1);}
-	| UNION										        {$$=add($1);}
+	: STRUCT										    {$$=make_node($1);}
+	| UNION										        {$$=make_node($1);}
 	;
 
 struct_declaration_list
 	: struct_declaration											{$$=$1;}
-	| struct_declaration_list struct_declaration					{$$=add("struct_declaration_list",$1,$2);}
+	| struct_declaration_list struct_declaration					{$$=make_node("struct_declaration_list",$1,$2);}
 	;
 
 struct_declaration
-	: specifier_qualifier_list struct_declarator_list ';'          {$$=add("struct_declaration",$1,$2);}
+	: specifier_qualifier_list struct_declarator_list ';'          {$$=make_node("struct_declaration",$1,$2);}
 	;
 
 specifier_qualifier_list
-	: type_specifier specifier_qualifier_list					{$$=add("specifier_qualifier_list",$1,$2);}
+	: type_specifier specifier_qualifier_list					{$$=make_node("specifier_qualifier_list",$1,$2);}
 	| type_specifier											{$$=$1;}
-	| type_qualifier specifier_qualifier_list					{$$=add("specifier_qualifier_list",$1,$2);}
+	| type_qualifier specifier_qualifier_list					{$$=make_node("specifier_qualifier_list",$1,$2);}
 	| type_qualifier											{$$=$1;}
 	;
 
 struct_declarator_list
 	: struct_declarator											{$$=$1;}
-	| struct_declarator_list ',' struct_declarator				{$$=add("struct_declarator_list",$1,$3);}              
+	| struct_declarator_list ',' struct_declarator				{$$=make_node("struct_declarator_list",$1,$3);}              
 	;
 
 struct_declarator
 	: declarator											{$$=$1;}
 	| ':' constant_expression								{$$=$2;}
-	| declarator ':' constant_expression					{$$=add("struct_declarator",$1,$3);}
+	| declarator ':' constant_expression					{$$=make_node("struct_declarator",$1,$3);}
 	;
 
 enum_specifier
-	: ENUM '{' enumerator_list '}'					{$$=add("enum_specifier",add($1),$3);}
-	| ENUM IDENTIFIER '{' enumerator_list '}'	   	{$$=add("enum_specifier",add($1),add($2),$4);}
-	| ENUM IDENTIFIER								{$$=add("enum_specifier",add($1),add($2));}
+	: ENUM '{' enumerator_list '}'					{$$=make_node("enum_specifier",make_node($1),$3);}
+	| ENUM IDENTIFIER '{' enumerator_list '}'	   	{$$=make_node("enum_specifier",make_node($1),make_node($2),$4);}
+	| ENUM IDENTIFIER								{$$=make_node("enum_specifier",make_node($1),make_node($2));}
 	;
 
 enumerator_list
 	: enumerator											{$$=$1;}
-	| enumerator_list ',' enumerator						{$$=add("enumerator_list",$1,$3);}
+	| enumerator_list ',' enumerator						{$$=make_node("enumerator_list",$1,$3);}
 	;
 
 enumerator
-	: IDENTIFIER										{$$=add($1);}
-	| IDENTIFIER '=' constant_expression                {$$=add("=",add($1),$3);}
+	: IDENTIFIER										{$$=make_node($1);}
+	| IDENTIFIER '=' constant_expression                {$$=make_node("=",make_node($1),$3);}
 	;
 
 type_qualifier	
-	: CONST										    {$$=add($1);}
-	| VOLATILE										{$$=add($1);}
+	: CONST										    {$$=make_node($1);}
+	| VOLATILE										{$$=make_node($1);}
 	;
 
 declarator
-	: pointer direct_declarator	               					{$$=add("declarator",$1,$2);}
+	: pointer direct_declarator	               					{$$=make_node("declarator",$1,$2);}
 	| direct_declarator											{$$=$1;}
 	;
 
 direct_declarator
-	: IDENTIFIER										    	{$$=add($1);}
+	: IDENTIFIER										    	{$$=make_node($1);}
 	| '(' declarator ')'										{$$=$2;}
-	| direct_declarator '[' constant_expression ']'        		{$$=add("direct_declarator",$1,$3);}
-	| direct_declarator '[' ']'							  		{$$=add("direct_declarator",$1,add("[]"));}
-	| direct_declarator '(' parameter_type_list ')'        		{$$=add("direct_declarator",$1,$3);}
-	| direct_declarator '(' identifier_list ')'       		    {$$=add("direct_declarator",$1,$3);}
-	| direct_declarator '(' ')'									{$$=add("direct_declarator",$1,add("()"));}
+	| direct_declarator '[' constant_expression ']'        		{$$=make_node("direct_declarator",$1,$3);}
+	| direct_declarator '[' ']'							  		{$$=make_node("direct_declarator",$1,make_node("[]"));}
+	| direct_declarator '(' parameter_type_list ')'        		{$$=make_node("direct_declarator",$1,$3);}
+	| direct_declarator '(' identifier_list ')'       		    {$$=make_node("direct_declarator",$1,$3);}
+	| direct_declarator '(' ')'									{$$=make_node("direct_declarator",$1,make_node("()"));}
 	;
 
 pointer
-	: '*'														{$$=add("*");}
-	| '*' type_qualifier_list									{$$=add("*",$2);}
-	| '*' pointer												{$$=add("*",$2);}
-	| '*' type_qualifier_list pointer		    				{$$=add("*",$2,$3);}
+	: '*'														{$$=make_node("*");}
+	| '*' type_qualifier_list									{$$=make_node("*",$2);}
+	| '*' pointer												{$$=make_node("*",$2);}
+	| '*' type_qualifier_list pointer		    				{$$=make_node("*",$2,$3);}
 	;
 
 type_qualifier_list
 	: type_qualifier											{$$=$1;}
-	| type_qualifier_list type_qualifier						{$$=add("type_qualifier_list",$1,$2);}
+	| type_qualifier_list type_qualifier						{$$=make_node("type_qualifier_list",$1,$2);}
 	;
 
 
 parameter_type_list
 	: parameter_list											{$$=$1;}
-	| parameter_list ',' ELLIPSIS								{$$=add("parameter_type_list",$1,add($3));}
+	| parameter_list ',' ELLIPSIS								{$$=make_node("parameter_type_list",$1,make_node($3));}
 	;
 
 parameter_list
 	: parameter_declaration										{$$=$1;}
-	| parameter_list ',' parameter_declaration                 	{$$=add("parameter_list",$1,$3);}
+	| parameter_list ',' parameter_declaration                 	{$$=make_node("parameter_list",$1,$3);}
 	;
 
 parameter_declaration
-	: declaration_specifiers declarator                 		{$$=add("parameter_declaration",$1,$2);}
-	| declaration_specifiers abstract_declarator                {$$=add("parameter_declaration",$1,$2);}
+	: declaration_specifiers declarator                 		{$$=make_node("parameter_declaration",$1,$2);}
+	| declaration_specifiers abstract_declarator                {$$=make_node("parameter_declaration",$1,$2);}
 	| declaration_specifiers									{$$=$1;}
 	;
 
 identifier_list
-	: IDENTIFIER												{$$=add($1);}
-	| identifier_list ',' IDENTIFIER							{$$=add("identifier_list",$1,add($3));}
+	: IDENTIFIER												{$$=make_node($1);}
+	| identifier_list ',' IDENTIFIER							{$$=make_node("identifier_list",$1,make_node($3));}
 	;
 
 type_name
 	: specifier_qualifier_list									{$$=$1;}
-	| specifier_qualifier_list abstract_declarator		 		{$$=add("type_name",$1,$2);}
+	| specifier_qualifier_list abstract_declarator		 		{$$=make_node("type_name",$1,$2);}
 	;
 
 abstract_declarator
 	: pointer													{$$=$1;}
 	| direct_abstract_declarator								{$$=$1;}
-	| pointer direct_abstract_declarator 						{$$=add("abstract_declarator",$1,$2);}
+	| pointer direct_abstract_declarator 						{$$=make_node("abstract_declarator",$1,$2);}
 	;
 
 direct_abstract_declarator
 	: '(' abstract_declarator ')'								{$$=$2;}
-	| '[' ']'													{$$=add("[ ]");}
+	| '[' ']'													{$$=make_node("[ ]");}
 	| '[' constant_expression ']'								{$$=$2;}
-	| direct_abstract_declarator '[' ']'						{$$=add("direct_abstract_declarator",$1,add("[]"));}
-	| direct_abstract_declarator '[' constant_expression ']'  	{$$ = add("direct_abstract_declarator", $1, $3);;}
-	| '(' ')'													{$$ = add("( )");}
+	| direct_abstract_declarator '[' ']'						{$$=make_node("direct_abstract_declarator",$1,make_node("[]"));}
+	| direct_abstract_declarator '[' constant_expression ']'  	{$$ = make_node("direct_abstract_declarator", $1, $3);;}
+	| '(' ')'													{$$ = make_node("( )");}
 	| '(' parameter_type_list ')'								{$$=$2;}
-	| direct_abstract_declarator '(' ')'						{$$=add("direct_abstract_declarator",$1,add("()"));}
-	| direct_abstract_declarator '(' parameter_type_list ')'    {$$=add("direct_abstract_declarator",$1,$3);}
+	| direct_abstract_declarator '(' ')'						{$$=make_node("direct_abstract_declarator",$1,make_node("()"));}
+	| direct_abstract_declarator '(' parameter_type_list ')'    {$$=make_node("direct_abstract_declarator",$1,$3);}
 	;
 
 initializer
 	: assignment_expression											{$$=$1;}
 	| '{' initializer_list '}'										{$$=$2;}
-	| '{' initializer_list ',' '}'									{$$=add("initializer",$2,add($3));}
+	| '{' initializer_list ',' '}'									{$$=make_node("initializer",$2,make_node($3));}
 	;
 
 initializer_list
 	: initializer											{$$=$1;}
-	| initializer_list ',' initializer						{$$=add("initializer_list",$1,$3);}
+	| initializer_list ',' initializer						{$$=make_node("initializer_list",$1,$3);}
 	;
 
 statement
@@ -385,57 +385,57 @@ statement
 	;
 
 labeled_statement
-	: IDENTIFIER ':' statement			 		 {$$=add("labeled_statement",add($1),$3);}
-	| CASE constant_expression ':' statement   	 {$$=add("labeled_statement",add("case"),$2,$4);}
-	| DEFAULT ':' statement   			  		 {$$=add("labeled_statement",add("default"),$3);}
+	: IDENTIFIER ':' statement			 		 {$$=make_node("labeled_statement",make_node($1),$3);}
+	| CASE constant_expression ':' statement   	 {$$=make_node("labeled_statement",make_node("case"),$2,$4);}
+	| DEFAULT ':' statement   			  		 {$$=make_node("labeled_statement",make_node("default"),$3);}
 	;
 
 compound_statement
-	: '{' '}'    								{$$=add("{ }");}
-	| '{' statement_list '}'					{$$=add("compound_statement",$2);}
-	| '{' declaration_list '}'					{$$=add("compound_statement",$2);}
-	| '{' declaration_list statement_list '}'   {$$=add("compound_statement",$2,$3);}
+	: '{' '}'    								{$$=make_node("{ }");}
+	| '{' statement_list '}'					{$$=make_node("compound_statement",$2);}
+	| '{' declaration_list '}'					{$$=make_node("compound_statement",$2);}
+	| '{' declaration_list statement_list '}'   {$$=make_node("compound_statement",$2,$3);}
 	;
 
 declaration_list
 	: declaration											{$$=$1;}
-	| declaration_list declaration                        	{$$=add("declaration_list",$1,$2);}
+	| declaration_list declaration                        	{$$=make_node("declaration_list",$1,$2);}
 	;
 
 statement_list
 	: statement												{$$=$1;}
-	| statement_list statement								{$$=add("statement_list",$1,$2);}
+	| statement_list statement								{$$=make_node("statement_list",$1,$2);}
 	;
 
 expression_statement
-	: ';'														{$$=add(";");}
+	: ';'														{$$=make_node(";");}
 	| expression ';'											{$$=$1;}
 	;
 
 selection_statement
-	: IF '(' expression ')' statement               		{$$=add("IF (expr) stmt",$3,$5);}
-	| IF '(' expression ')' statement ELSE statement     	{$$=add("IF (expr) stmt ELSE stmt",$3,$5,$7);}
-	| SWITCH '(' expression ')' statement              	 	{$$=add("SWITCH (expr) stmt",$3,$5);}
+	: IF '(' expression ')' statement               		{$$=make_node("IF (expr) stmt",$3,$5);}
+	| IF '(' expression ')' statement ELSE statement     	{$$=make_node("IF (expr) stmt ELSE stmt",$3,$5,$7);}
+	| SWITCH '(' expression ')' statement              	 	{$$=make_node("SWITCH (expr) stmt",$3,$5);}
 	;
 
 iteration_statement
-	: WHILE '(' expression ')' statement                                        	{$$=add("WHILE (expr) stmt",$3,$5);}
-	| DO statement WHILE '(' expression ')' ';'			                            {$$=add("DO stmt WHILE (expr)",$2,$5);}
-	| FOR '(' expression_statement expression_statement ')' statement               {$$=add("FOR (expr_stmt expr_stmt) stmt",$3,$4,$6);}
-	| FOR '(' expression_statement expression_statement expression ')' statement    {$$=add("FOR (expr_stmt expr_stmt expr) stmt",$3,$4,$5,$7);}
+	: WHILE '(' expression ')' statement                                        	{$$=make_node("WHILE (expr) stmt",$3,$5);}
+	| DO statement WHILE '(' expression ')' ';'			                            {$$=make_node("DO stmt WHILE (expr)",$2,$5);}
+	| FOR '(' expression_statement expression_statement ')' statement               {$$=make_node("FOR (expr_stmt expr_stmt) stmt",$3,$4,$6);}
+	| FOR '(' expression_statement expression_statement expression ')' statement    {$$=make_node("FOR (expr_stmt expr_stmt expr) stmt",$3,$4,$5,$7);}
 	;
 
 jump_statement
-	: GOTO IDENTIFIER ';'						{$$=add("jump_statement",add($1),add($2));}
-	| CONTINUE ';'						        {$$=add("continue");}
-	| BREAK ';'						            {$$=add("break");}
-	| RETURN ';'						        {$$=add("return");}
-	| RETURN expression ';'						{$$=add("jump_statement",add("return"),$2);}
+	: GOTO IDENTIFIER ';'						{$$=make_node("jump_statement",make_node($1),make_node($2));}
+	| CONTINUE ';'						        {$$=make_node("continue");}
+	| BREAK ';'						            {$$=make_node("break");}
+	| RETURN ';'						        {$$=make_node("return");}
+	| RETURN expression ';'						{$$=make_node("jump_statement",make_node("return"),$2);}
 	;
 
 translation_unit
 	: external_declaration										   {$$=$1;}
-	| translation_unit external_declaration                        {$$=add("translation_unit",$1,$2);}
+	| translation_unit external_declaration                        {$$=make_node("translation_unit",$1,$2);}
 	;
 
 external_declaration
@@ -444,10 +444,10 @@ external_declaration
 	;
 
 function_definition
-	: declaration_specifiers declarator declaration_list compound_statement       {$$=add("function_definition",$1,$2,$3,$4);}
-	| declaration_specifiers declarator compound_statement                        {$$=add("function_definition",$1,$2,$3);}
-	| declarator declaration_list compound_statement                              {$$=add("function_definition",$1,$2,$3);}
-	| declarator compound_statement                                               {$$=add("function_definition",$1,$2);}
+	: declaration_specifiers declarator declaration_list compound_statement       {$$=make_node("function_definition",$1,$2,$3,$4);}
+	| declaration_specifiers declarator compound_statement                        {$$=make_node("function_definition",$1,$2,$3);}
+	| declarator declaration_list compound_statement                              {$$=make_node("function_definition",$1,$2,$3);}
+	| declarator compound_statement                                               {$$=make_node("function_definition",$1,$2);}
 	;
 
 %%
