@@ -10,6 +10,12 @@ typedef struct
 {
     int id;
     char * name;
+    long long int ival;
+    long double dval;
+    char cval;
+    string nodetype;
+    
+
 }node;
 
 

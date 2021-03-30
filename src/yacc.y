@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include "node.h"
+#include "symtable.h"
 #include <fstream>
 
 
@@ -49,7 +50,22 @@ int yylex();
 %%
 
 primary_expression
-	: IDENTIFIER											{$$=make_node($1);}				
+	: IDENTIFIER											{$$=make_node($1);
+					st_node* t=lookup($1);
+					if(t)
+					{
+						$$->init=t->init;
+						$$->nodetype=t->nodetype;
+
+					}
+					else 
+					{
+						yyerror("Error: %s is not declared in this scope",$1);
+						$$->nodetype="";
+	
+					}
+	
+	}				
 	| CONSTANT												{$$=make_node($1);}
 	| STRING_LITERAL										{$$=make_node($1);}
 	| '(' expression ')'									{$$=$2;}
