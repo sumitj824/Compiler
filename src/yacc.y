@@ -38,7 +38,7 @@ int yylex();
 
 
 
-%type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression make_nodeitive_expression
+%type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression
 %type <ptr> shift_expression relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
 %type <ptr> conditional_expression assignment_expression assignment_operator expression constant_expression declaration declaration_specifiers init_declarator_list init_declarator
 %type <ptr> storage_class_specifier type_specifier struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
@@ -51,7 +51,8 @@ int yylex();
 
 primary_expression
 	: IDENTIFIER											{$$=make_node($1);
-					st_node* t=lookup($1);
+					string s($1);
+					st_node* t=lookup(s);
 					if(t)
 					{
 						$$->init=t->init;
@@ -73,13 +74,69 @@ primary_expression
 
 postfix_expression
 	: primary_expression       								{$$=$1;}
-	| postfix_expression '[' expression ']'					{$$=make_node("postfix_expression", $1, $3);}
-	| postfix_expression '(' ')'							{$$=$1;}
-	| postfix_expression '(' argument_expression_list ')'   {$$=make_node("postfix_expression", $1, $3);}
+	| postfix_expression '[' expression ']'					{$$=make_node("postfix_expression", $1, $3);
+				$$->init = ($1->init && $2->init);
+				string s=postfix($1->nodetype,1);
+				if(s) $$->nodetype=s;
+				else{
+					yyerror("Error: array index out of bound");
+				}
+	
+	
+	}
+	| postfix_expression '(' ')'							{$$=$1;
+				$$->init=1;
+				string s=postfix($1->nodetype,2);
+				if(s)
+				{
+					$$->nodeType =as;
+					//TODO : something
+				}
+				else{
+					yyerror("Error: Invalid Function call");
+				}
+				//TODO : something
+	}
+	| postfix_expression '(' argument_expression_list ')'   {$$=make_node("postfix_expression", $1, $3);
+		 $$->init=$3->init;
+		 string s=postfix($1->nodetype,2);
+		 if(s)
+		 {
+			 $$->nodetype=s;
+			 //TODO: something
+		 }
+		 else{
+			yyerror("Error: Invalid Function call");
+		 }
+		//TODO : something
+
+		 
+	
+	}
 	| postfix_expression '.' IDENTIFIER						{$$=make_node("postfix_expression.IDENTIFIER", $1, make_node($3));}
 	| postfix_expression PTR_OP IDENTIFIER					{$$=make_node($2,$1,make_node($3));}
-	| postfix_expression INC_OP							    {$$=make_node($2, $1);}
-	| postfix_expression DEC_OP								{$$=make_node($2, $1);}
+	| postfix_expression INC_OP							    {$$=make_node($2, $1);
+			$$->init=$1->init;
+		    string s=postfix($1->nodetype,3);
+			if(s)
+			{
+				$$->nodetype=s;
+			}
+			else{
+				yyerror("Error: Increment operator not defined for this type");
+			}
+	}
+	| postfix_expression DEC_OP								{$$=make_node($2, $1);
+			$$->init=$1->init;
+		    string s=postfix($1->nodetype,3);
+			if(s)
+			{
+				$$->nodetype=s;
+			}
+			else{
+				yyerror("Error: Decrement operator not defined for this type");
+			}
+	}
 	;
 
 argument_expression_list									
@@ -89,11 +146,54 @@ argument_expression_list
 
 unary_expression
 	: postfix_expression									{$$=$1;}
-	| INC_OP unary_expression								{$$=make_node($1,$2);}
-	| DEC_OP unary_expression								{$$=make_node($1,$2);}
-	| unary_operator cast_expression						{$$=make_node("unary_expression",$1,$2);}
-	| SIZEOF unary_expression								{$$=make_node($1,$2);}
-	| SIZEOF '(' type_name ')'								{$$=make_node($1,$3);}
+	| INC_OP unary_expression								{$$=make_node($1,$2);
+			$$->init=$2->init;
+		    string s=postfix($1->nodetype,3);
+			if(s)
+			{
+				$$->nodetype=s;
+			}
+			else{
+				yyerror("Error: Increment operator not defined for this type");
+			}
+	
+	}
+	| DEC_OP unary_expression								{$$=make_node($1,$2);
+			$$->init=$2->init;
+		    string s=postfix($1->nodetype,3);
+			if(s)
+			{
+				$$->nodetype=s;
+			}
+			else{
+				yyerror("Error: Decrement operator not defined for this type");
+			}
+	
+	
+	}
+	| unary_operator cast_expression						{$$=make_node("unary_expression",$1,$2);
+			$$->init=$2->init;
+			//TODO :
+		    // string s=unary($1->nodetype,3);
+			// if(s)
+			// {
+			// 	$$->nodetype=s;
+			// }
+			// else{
+			// 	yyerror("Error: Decrement operator not defined for this type");
+			// }
+	
+	
+	}
+	| SIZEOF unary_expression								{$$=make_node($1,$2);
+			$$->nodeType="int";
+			$$->init=1;
+	
+	}
+	| SIZEOF '(' type_name ')'								{$$=make_node($1,$3);
+			$$->nodeType="int";
+			$$->init=1;
+	}
 	;
 
 unary_operator
@@ -107,26 +207,56 @@ unary_operator
 
 cast_expression
 	: unary_expression									   {$$=$1;}
-	| '(' type_name ')' cast_expression                    {$$=make_node("cast_expression", $2, $4);}
+	| '(' type_name ')' cast_expression                    {$$=make_node("cast_expression", $2, $4);
+			  $$->nodeType=$2->nodeType;
+			  $$->init=$4->init;
+	
+	}
 	;
 
 multiplicative_expression
 	: cast_expression									   {$$=$1;}
-	| multiplicative_expression '*' cast_expression        {$$=make_node("*", $1, $3);}
-	| multiplicative_expression '/' cast_expression        {$$=make_node("/", $1, $3);}
-	| multiplicative_expression '%' cast_expression        {$$=make_node("%", $1, $3);}
+	| multiplicative_expression '*' cast_expression        {$$=make_node("*", $1, $3);
+			string s=multiply($1->nodeType, $3->nodeType,'*');
+			if(a=="int")$$->nodetype="long long";
+			else if(a=="float")$$->nodetype="long double";
+			else{
+				yyerror("Error:  Incompatible type for * operator");
+			} 
+
+			$$->init= ($1->init&& $3->init);
+	}
+	| multiplicative_expression '/' cast_expression        {$$=make_node("/", $1, $3);
+			string s=multiply($1->nodeType, $3->nodeType,'/');
+			if(a=="int")$$->nodetype="long long";
+			else if(a=="float")$$->nodetype="long double";
+			else{
+				yyerror("Error:  Incompatible type for / operator");
+			} 
+
+			$$->init= ($1->init&& $3->init);
+	}
+	| multiplicative_expression '%' cast_expression        {$$=make_node("%", $1, $3);
+			string s=multiply($1->nodeType, $3->nodeType,'%');
+			if(a=="int")$$->nodetype="long long";
+			else{
+				yyerror("Error:  Incompatible type for % operator");
+			} 
+
+			$$->init= ($1->init&& $3->init);
+	}
 	;
 
-make_nodeitive_expression
+additive_expression
 	: multiplicative_expression								{$$=$1;}
-	| make_nodeitive_expression '+' multiplicative_expression     {$$=make_node("+", $1, $3);}
-	| make_nodeitive_expression '-' multiplicative_expression     {$$=make_node("-", $1, $3);}
+	| additive_expression '+' multiplicative_expression     {$$=make_node("+", $1, $3);}
+	| additive_expression '-' multiplicative_expression     {$$=make_node("-", $1, $3);}
 	;
 
 shift_expression
-	: make_nodeitive_expression									{$$=$1;}
-	| shift_expression LEFT_OP make_nodeitive_expression		{$$=make_node("<<",$1,$3);}
-	| shift_expression RIGHT_OP make_nodeitive_expression     {$$=make_node(">>",$1,$3);}
+	: additive_expression									{$$=$1;}
+	| shift_expression LEFT_OP additive_expression		{$$=make_node("<<",$1,$3);}
+	| shift_expression RIGHT_OP additive_expression     {$$=make_node(">>",$1,$3);}
 	;
 
 relational_expression	
