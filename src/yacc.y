@@ -254,64 +254,272 @@ multiplicative_expression
 
 additive_expression
 	: multiplicative_expression								{$$=$1;}
-	| additive_expression '+' multiplicative_expression     {$$=make_node("+", $1, $3);}
-	| additive_expression '-' multiplicative_expression     {$$=make_node("-", $1, $3);}
+	| additive_expression '+' multiplicative_expression     {$$=make_node("+", $1, $3);
+		string s= addition($1->nodeType, $3->nodeType);
+		if(s){
+			if(s=="int")$$->nodetype="long long";
+			else if(s=="float")$$->nodetype="long double";
+			else if $$->nodetype=s;
+		}
+		else{
+			yyerror("Error: Incompatible type for + operator");
+		}
+		$$->init= ($1->init&& $3->init);
+	}
+
+
+	| additive_expression '-' multiplicative_expression     {$$=make_node("-", $1, $3);
+		string s= addition($1->nodeType, $3->nodeType);
+		if(s){
+			if(s=="int")$$->nodetype="long long";
+			else if(s=="float")$$->nodetype="long double";
+			else if $$->nodetype=s;
+		}
+		else{
+			yyerror("Error: Incompatible type for - operator");
+		}
+		$$->init= ($1->init&& $3->init);
+	
+	}
 	;
 
 shift_expression
 	: additive_expression									{$$=$1;}
-	| shift_expression LEFT_OP additive_expression		{$$=make_node("<<",$1,$3);}
-	| shift_expression RIGHT_OP additive_expression     {$$=make_node(">>",$1,$3);}
+	| shift_expression LEFT_OP additive_expression		{$$=make_node("<<",$1,$3);
+		if(isInt($1->nodeType) && isInt($3->nodeType)) 
+			$$->nodetype= $1->nodetype;
+		else{
+			yyerror("Error: Invalid operands to binary <<");
+		}
+		$$->init= ($1->init&& $3->init);
+
+	}
+
+
+
+	| shift_expression RIGHT_OP additive_expression     {$$=make_node(">>",$1,$3);
+		if(isInt($1->nodeType) && isInt($3->nodeType)) 
+			$$->nodetype= $1->nodetype;
+		else{
+			yyerror("Error: Invalid operands to binary >>");
+		}
+		$$->init= ($1->init&& $3->init);
+
+	}
+
 	;
 
 relational_expression	
 	: shift_expression										{$$=$1;}
-	| relational_expression '<' shift_expression   {$$=make_node("<",$1,$3);}
-	| relational_expression '>' shift_expression   {$$=make_node(">",$1,$3);}
-	| relational_expression LE_OP shift_expression {$$=make_node("<=",$1,$3);}
-	| relational_expression GE_OP shift_expression {$$=make_node(">=",$1,$3);}
+	| relational_expression '<' shift_expression   {$$=make_node("<",$1,$3);
+		string s= relational($1->nodeType, $3->nodeType);
+		if(s)
+		{
+			$$->nodeType="bool";
+			if(s=="Bool")
+			{
+				 yyerror("Warning: comparison between pointer and integer");
+			}
+		}
+		else{
+              yyerror("Error: invalid operands to binary <");
+		}
+		$$->init= ($1->init&& $3->init);
+
+	
+	}
+	| relational_expression '>' shift_expression   {$$=make_node(">",$1,$3);
+		string s= relational($1->nodeType, $3->nodeType);
+		if(s)
+		{
+			$$->nodeType="bool";
+			if(s=="Bool")
+			{
+				 yyerror("Warning: comparison between pointer and integer");
+			}
+		}
+		else{
+              yyerror("Error: invalid operands to binary >");
+		}
+		$$->init= ($1->init&& $3->init);
+	}
+
+	| relational_expression LE_OP shift_expression {$$=make_node("<=",$1,$3);
+		string s= relational($1->nodeType, $3->nodeType);
+		if(s)
+		{
+			$$->nodeType="bool";
+			if(s=="Bool")
+			{
+				 yyerror("Warning: comparison between pointer and integer");
+			}
+		}
+		else{
+              yyerror("Error: invalid operands to binary <=");
+		}
+		$$->init= ($1->init&& $3->init);
+	}
+
+	| relational_expression GE_OP shift_expression {$$=make_node(">=",$1,$3);
+		string s= relational($1->nodeType, $3->nodeType);
+		if(s)
+		{
+			$$->nodeType="bool";
+			if(s=="Bool")
+			{
+				 yyerror("Warning: comparison between pointer and integer");
+			}
+		}
+		else{
+              yyerror("Error: invalid operands to binary >=");
+		}
+		$$->init= ($1->init&& $3->init);
+	}
 	;
 
 equality_expression
 	: relational_expression									{$$=$1;}
-	| equality_expression EQ_OP relational_expression       {$$=make_node("==",$1,$3);}
-	| equality_expression NE_OP relational_expression       {$$=make_node("!=",$1,$3);}
+	| equality_expression EQ_OP relational_expression       {$$=make_node("==",$1,$3);
+		string s= equality($1->nodeType, $3->nodeType);
+		if(s)
+		{
+			$$->nodeType="bool";
+			if(s=="Bool")
+			{
+				 yyerror("Warning: comparison between pointer and integer");
+			}
+		}
+		else{
+              yyerror("Error: invalid operands to binary ==");
+		}
+		$$->init= ($1->init&& $3->init);
+	
+	
+	}
+	| equality_expression NE_OP relational_expression       {$$=make_node("!=",$1,$3);
+		string s= equality($1->nodeType, $3->nodeType);
+		if(s)
+		{
+			$$->nodeType="bool";
+			if(s=="Bool")
+			{
+				 yyerror("Warning: comparison between pointer and integer");
+			}
+		}
+		else{
+              yyerror("Error: invalid operands to binary !=");
+		}
+		$$->init= ($1->init&& $3->init);
+	
+	
+	}
 	;
 
 and_expression
 	: equality_expression									       {$$=$1;}
-	| and_expression '&' equality_expression                       {$$=make_node("&",$1,$3);}
+	| and_expression '&' equality_expression                       {$$=make_node("&",$1,$3);
+		string s= bitwise($1->nodeType, $3->nodeType);
+		if(s)
+		{
+			if(s=="bool")$$->nodeType=s;
+			else $$->nodeType="long long";
+			
+		}
+		else{
+              yyerror("Error: invalid operands to binary &");
+		}
+		$$->init= ($1->init&& $3->init);
+	
+	
+	}
 	;
 
 exclusive_or_expression
 	: and_expression											    {$$=$1;}
-	| exclusive_or_expression '^' and_expression			{$$=make_node("^",$1,$3);}
+	| exclusive_or_expression '^' and_expression			{$$=make_node("^",$1,$3);
+		string s= bitwise($1->nodeType, $3->nodeType);
+		if(s)
+		{
+			if(s=="bool")$$->nodeType=s;
+			else $$->nodeType="long long";
+			
+		}
+		else{
+              yyerror("Error: invalid operands to binary ^");
+		}
+		$$->init= ($1->init&& $3->init);
+	
+	}
 	;
 
 inclusive_or_expression
 	: exclusive_or_expression										{$$=$1;}
-	| inclusive_or_expression '|' exclusive_or_expression			{$$=make_node("|",$1,$3);}
+	| inclusive_or_expression '|' exclusive_or_expression			{$$=make_node("|",$1,$3);
+		string s= bitwise($1->nodeType, $3->nodeType);
+		if(s)
+		{
+			if(s=="bool")$$->nodeType=s;
+			else $$->nodeType="long long";
+			
+		}
+		else{
+              yyerror("Error: invalid operands to binary |");
+		}
+		$$->init= ($1->init&& $3->init);
+	
+	
+	}
 	;
 
 logical_and_expression
 	: inclusive_or_expression										{$$=$1;}
-	| logical_and_expression AND_OP inclusive_or_expression			{$$=make_node("&&",$1,$3);}
+	| logical_and_expression AND_OP inclusive_or_expression			{$$=make_node("&&",$1,$3);
+		$$->nodeType="bool";
+		$$->init= ($1->init&& $3->init);
+	
+		//!doubt
+	}
 	;
 
 logical_or_expression
 	: logical_and_expression										{$$=$1;}
-	| logical_or_expression OR_OP logical_and_expression			{$$=make_node("||",$1,$3);}
+	| logical_or_expression OR_OP logical_and_expression			{$$=make_node("||",$1,$3);
+		$$->nodeType="bool";
+		$$->init= ($1->init&& $3->init);
+		//!doubt
+	}
 	;
 
 /*check & vs && */
 conditional_expression
 	: logical_or_expression												{$$=$1;}
-	| logical_or_expression '?' expression ':' conditional_expression    {$$=make_node("conditional_expression",$1,$3,$5);}
+	| logical_or_expression '?' expression ':' conditional_expression    {$$=make_node("conditional_expression",$1,$3,$5);
+		string s=conditional($3->nodeType,$5->nodeType);
+		if(s)$$->nodeType=s;
+		else{
+            yyerror("Error:Type mismatch in conditional expression");
+		}
+
+		$$->init= ($1->init&& $3->init && $5->init);
+	}
+
+
 	;
 
 assignment_expression
 	: conditional_expression													{$$=$1;}
-	| unary_expression assignment_operator assignment_expression		    {$$=make_node("assignment_expression",$1,$2,$3);}
+	| unary_expression assignment_operator assignment_expression		    {$$=make_node("assignment_expression",$1,$2,$3);
+		string s=assign($1->nodeType,$3->nodeType,$2);
+		if(a)
+		{
+			$$->nodeType=$1->nodeType;
+			if(a=="warning"){
+                yyerror("Warning: Assignment with incompatible pointer type"); 
+			}
+			//!TODO:
+		}
+	
+	}
 	;
 
 assignment_operator
