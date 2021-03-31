@@ -13,7 +13,8 @@ typedef struct
     long long int ival;
     long double dval;
     char cval;
-    string nodetype;
+    string nodeType;
+    int init;
     
 
 }node;
@@ -22,4 +23,4 @@ typedef struct
 int getNodeId();
 void BeginGraph();
 void EndGraph();
-node* add(char *str,node* x1=NULL, node* x2=NULL,node* x3=NULL,node* x4=NULL);
+node* make_node(char *str,node* x1=NULL, node* x2=NULL,node* x3=NULL,node* x4=NULL);

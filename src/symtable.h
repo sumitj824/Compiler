@@ -11,13 +11,14 @@ typedef struct symEntry{
 }s_entry;
 
 typedef map<string,s_entry*> symTable;
-map<symTable*,symTable*> parent;
+extern map<symTable*,symTable*> parent;
 
 
 
-symTable Global;
-symTable *cur;
+extern symTable Global;
+extern symTable *cur;
 
 
+s_entry* lookup(string a);
 
 

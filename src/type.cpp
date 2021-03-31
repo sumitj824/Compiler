@@ -1,6 +1,30 @@
 #include "type.h"
 #include "symtable.h"
 
+bool isInt(string t)
+{
+    if(t=="int" || t=="long" || t=="long long" || t=="long long int" || t=="long int")return 1;
+    if(t=="signed int" || t=="signed long" || t=="signed long long" || t=="signed long long int" || t=="signed long int")return 1;
+    if(t=="unsigned int" || t=="unsigned long" || t=="unsigned long long" || t=="unsigned long long int" || t=="unsigned long int")return 1;
+    if(t=="short" || t=="short int" || t=="signed short" || t=="unsigned short" || t=="unsigned short int" || t=="signed short int")return 1;
+    return 0;
+}
+
+
+bool isFloat(string t)
+{
+   if(t=="float" || t=="double" || t=="long double" || t=="unsigned float" || t=="unsigned double" ) return 1;
+   if(t=="unsigned long double" || t=="signed float" ||t=="signed double" || t=="signed long double")return 1;
+   return 0;
+}
+
+
+bool isNum(string t)
+{
+    return isInt(t) || isFloat(t);
+}
+
+
 
 
 string postfix(string t, int num)
@@ -37,10 +61,6 @@ string postfix(string t, int num)
 }
 
 
-bool isNum(string t)
-{
-    return isInt(t) || isFloat(t);
-}
 
 string multiply(string t1,string t2,char op)
 {
@@ -82,7 +102,7 @@ string relational(string t1,string t2)
         }
     }
     if(t1.back()=='*'){
-        if(isInt(t2) || t2="char")return "Bool";
+        if(isInt(t2) || t2=="char")return "Bool";
     }
     return NULL;
 }
@@ -107,13 +127,16 @@ string bitwise(string t1,string t2)
 }
 
 
-string conditional(string t1,string t2)
+string condition(string t1,string t2)
 {
 
+    //TODO:
+    return NULL;
 }
 
 
 string assign(string t1,string t2,string op)
-{
-
+{   
+    //TODO:
+    return NULL;
 }

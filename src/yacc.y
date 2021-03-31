@@ -1,8 +1,10 @@
 %{
 #include <iostream>
 #include <string>
+#include <cstring>
 #include "node.h"
 #include "symtable.h"
+#include "type.h"
 #include <fstream>
 
 
@@ -18,7 +20,7 @@ int yylex();
 
 
 
-%token<str> IDENTIFIER I_CONSTANT F_CONSTANT STRING_LITERAL SIZEOF
+%token<str> IDENTIFIER CONSTANT  STRING_LITERAL SIZEOF
 %token<str> PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token<str> AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token<str> SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
@@ -37,10 +39,10 @@ int yylex();
 
 
 
-
-%type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression CONSTANT
+%type <str>assignment_operator
+%type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression 
 %type <ptr> shift_expression relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
-%type <ptr> conditional_expression assignment_expression assignment_operator expression constant_expression declaration declaration_specifiers init_declarator_list init_declarator
+%type <ptr> conditional_expression assignment_expression  expression constant_expression declaration declaration_specifiers init_declarator_list init_declarator
 %type <ptr> storage_class_specifier type_specifier struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
 %type <ptr> struct_declarator enum_specifier enumerator_list enumerator type_qualifier declarator direct_declarator pointer type_qualifier_list parameter_type_list parameter_list
 %type <ptr> parameter_declaration identifier_list type_name abstract_declarator direct_abstract_declarator initializer initializer_list statement labeled_statement compound_statement
@@ -56,13 +58,13 @@ primary_expression
 					if(t)
 					{
 						$$->init=t->init;
-						$$->nodetype=t->nodetype;
+						$$->nodeType=t->type;
 
 					}
 					else 
 					{
-						yyerror("Error: %s is not declared in this scope",$1);
-						$$->nodetype="";
+						// yyerror("Error: %s is not declared in this scope",$1);
+						$$->nodeType="";
 	
 					}
 	
@@ -72,17 +74,13 @@ primary_expression
 	| '(' expression ')'									{$$=$2;}
 	;
 
-CONSTANT
-	: I_CONSTANT		/* includes character_constant */
-	| F_CONSTANT
-	| ENUMERATION_CONSTANT	/* after it has been defined as such */
-	;
+
 postfix_expression
 	: primary_expression       								{$$=$1;}
 	| postfix_expression '[' expression ']'					{$$=make_node("postfix_expression", $1, $3);
-				$$->init = ($1->init && $2->init);
-				string s=postfix($1->nodetype,1);
-				if(s) $$->nodetype=s;
+				$$->init = ($1->init && $3->init);
+				string s=postfix($1->nodeType,1);
+				if(s.empty()) $$->nodeType=s;
 				else{
 					yyerror("Error: array index out of bound");
 				}
@@ -91,10 +89,10 @@ postfix_expression
 	}
 	| postfix_expression '(' ')'							{$$=$1;
 				$$->init=1;
-				string s=postfix($1->nodetype,2);
-				if(s)
+				string s=postfix($1->nodeType,2);
+				if(s.empty())
 				{
-					$$->nodeType =as;
+					$$->nodeType =s;
 					//TODO : something
 				}
 				else{
@@ -104,10 +102,10 @@ postfix_expression
 	}
 	| postfix_expression '(' argument_expression_list ')'   {$$=make_node("postfix_expression", $1, $3);
 		 $$->init=$3->init;
-		 string s=postfix($1->nodetype,2);
-		 if(s)
+		 string s=postfix($1->nodeType,2);
+		 if(s.empty())
 		 {
-			 $$->nodetype=s;
+			 $$->nodeType=s;
 			 //TODO: something
 		 }
 		 else{
@@ -122,10 +120,10 @@ postfix_expression
 	| postfix_expression PTR_OP IDENTIFIER					{$$=make_node($2,$1,make_node($3));}
 	| postfix_expression INC_OP							    {$$=make_node($2, $1);
 			$$->init=$1->init;
-		    string s=postfix($1->nodetype,3);
-			if(s)
+		    string s=postfix($1->nodeType,3);
+			if(s.empty())
 			{
-				$$->nodetype=s;
+				$$->nodeType=s;
 			}
 			else{
 				yyerror("Error: Increment operator not defined for this type");
@@ -133,10 +131,10 @@ postfix_expression
 	}
 	| postfix_expression DEC_OP								{$$=make_node($2, $1);
 			$$->init=$1->init;
-		    string s=postfix($1->nodetype,3);
-			if(s)
+		    string s=postfix($1->nodeType,3);
+			if(s.empty())
 			{
-				$$->nodetype=s;
+				$$->nodeType=s;
 			}
 			else{
 				yyerror("Error: Decrement operator not defined for this type");
@@ -153,10 +151,10 @@ unary_expression
 	: postfix_expression									{$$=$1;}
 	| INC_OP unary_expression								{$$=make_node($1,$2);
 			$$->init=$2->init;
-		    string s=postfix($1->nodetype,3);
-			if(s)
+		    string s=postfix($2->nodeType,3);
+			if(s.empty())
 			{
-				$$->nodetype=s;
+				$$->nodeType=s;
 			}
 			else{
 				yyerror("Error: Increment operator not defined for this type");
@@ -165,10 +163,10 @@ unary_expression
 	}
 	| DEC_OP unary_expression								{$$=make_node($1,$2);
 			$$->init=$2->init;
-		    string s=postfix($1->nodetype,3);
-			if(s)
+		    string s=postfix($2->nodeType,3);
+			if(s.empty())
 			{
-				$$->nodetype=s;
+				$$->nodeType=s;
 			}
 			else{
 				yyerror("Error: Decrement operator not defined for this type");
@@ -179,10 +177,10 @@ unary_expression
 	| unary_operator cast_expression						{$$=make_node("unary_expression",$1,$2);
 			$$->init=$2->init;
 			//TODO :
-		    // string s=unary($1->nodetype,3);
-			// if(s)
+		    // string s=unary($1->nodeType,3);
+			// if(s.empty())
 			// {
-			// 	$$->nodetype=s;
+			// 	$$->nodeType=s;
 			// }
 			// else{
 			// 	yyerror("Error: Decrement operator not defined for this type");
@@ -223,8 +221,8 @@ multiplicative_expression
 	: cast_expression									   {$$=$1;}
 	| multiplicative_expression '*' cast_expression        {$$=make_node("*", $1, $3);
 			string s=multiply($1->nodeType, $3->nodeType,'*');
-			if(a=="int")$$->nodetype="long long";
-			else if(a=="float")$$->nodetype="long double";
+			if(s=="int")$$->nodeType="long long";
+			else if(s=="float")$$->nodeType="long double";
 			else{
 				yyerror("Error:  Incompatible type for * operator");
 			} 
@@ -233,8 +231,8 @@ multiplicative_expression
 	}
 	| multiplicative_expression '/' cast_expression        {$$=make_node("/", $1, $3);
 			string s=multiply($1->nodeType, $3->nodeType,'/');
-			if(a=="int")$$->nodetype="long long";
-			else if(a=="float")$$->nodetype="long double";
+			if(s=="int")$$->nodeType="long long";
+			else if(s=="float")$$->nodeType="long double";
 			else{
 				yyerror("Error:  Incompatible type for / operator");
 			} 
@@ -243,7 +241,7 @@ multiplicative_expression
 	}
 	| multiplicative_expression '%' cast_expression        {$$=make_node("%", $1, $3);
 			string s=multiply($1->nodeType, $3->nodeType,'%');
-			if(a=="int")$$->nodetype="long long";
+			if(s=="int")$$->nodeType="long long";
 			else{
 				yyerror("Error:  Incompatible type for % operator");
 			} 
@@ -256,10 +254,10 @@ additive_expression
 	: multiplicative_expression								{$$=$1;}
 	| additive_expression '+' multiplicative_expression     {$$=make_node("+", $1, $3);
 		string s= addition($1->nodeType, $3->nodeType);
-		if(s){
-			if(s=="int")$$->nodetype="long long";
-			else if(s=="float")$$->nodetype="long double";
-			else if $$->nodetype=s;
+		if(s.empty()){
+			if(s=="int")$$->nodeType="long long";
+			else if(s=="float")$$->nodeType="long double";
+			else $$->nodeType=s;
 		}
 		else{
 			yyerror("Error: Incompatible type for + operator");
@@ -270,10 +268,10 @@ additive_expression
 
 	| additive_expression '-' multiplicative_expression     {$$=make_node("-", $1, $3);
 		string s= addition($1->nodeType, $3->nodeType);
-		if(s){
-			if(s=="int")$$->nodetype="long long";
-			else if(s=="float")$$->nodetype="long double";
-			else if $$->nodetype=s;
+		if(s.empty()){
+			if(s=="int")$$->nodeType="long long";
+			else if(s=="float")$$->nodeType="long double";
+			else  $$->nodeType=s;
 		}
 		else{
 			yyerror("Error: Incompatible type for - operator");
@@ -287,7 +285,7 @@ shift_expression
 	: additive_expression									{$$=$1;}
 	| shift_expression LEFT_OP additive_expression		{$$=make_node("<<",$1,$3);
 		if(isInt($1->nodeType) && isInt($3->nodeType)) 
-			$$->nodetype= $1->nodetype;
+			$$->nodeType= $1->nodeType;
 		else{
 			yyerror("Error: Invalid operands to binary <<");
 		}
@@ -299,7 +297,7 @@ shift_expression
 
 	| shift_expression RIGHT_OP additive_expression     {$$=make_node(">>",$1,$3);
 		if(isInt($1->nodeType) && isInt($3->nodeType)) 
-			$$->nodetype= $1->nodetype;
+			$$->nodeType= $1->nodeType;
 		else{
 			yyerror("Error: Invalid operands to binary >>");
 		}
@@ -313,7 +311,7 @@ relational_expression
 	: shift_expression										{$$=$1;}
 	| relational_expression '<' shift_expression   {$$=make_node("<",$1,$3);
 		string s= relational($1->nodeType, $3->nodeType);
-		if(s)
+		if(s.empty())
 		{
 			$$->nodeType="bool";
 			if(s=="Bool")
@@ -330,7 +328,7 @@ relational_expression
 	}
 	| relational_expression '>' shift_expression   {$$=make_node(">",$1,$3);
 		string s= relational($1->nodeType, $3->nodeType);
-		if(s)
+		if(s.empty())
 		{
 			$$->nodeType="bool";
 			if(s=="Bool")
@@ -346,7 +344,7 @@ relational_expression
 
 	| relational_expression LE_OP shift_expression {$$=make_node("<=",$1,$3);
 		string s= relational($1->nodeType, $3->nodeType);
-		if(s)
+		if(s.empty())
 		{
 			$$->nodeType="bool";
 			if(s=="Bool")
@@ -362,7 +360,7 @@ relational_expression
 
 	| relational_expression GE_OP shift_expression {$$=make_node(">=",$1,$3);
 		string s= relational($1->nodeType, $3->nodeType);
-		if(s)
+		if(s.empty())
 		{
 			$$->nodeType="bool";
 			if(s=="Bool")
@@ -381,7 +379,7 @@ equality_expression
 	: relational_expression									{$$=$1;}
 	| equality_expression EQ_OP relational_expression       {$$=make_node("==",$1,$3);
 		string s= equality($1->nodeType, $3->nodeType);
-		if(s)
+		if(s.empty())
 		{
 			$$->nodeType="bool";
 			if(s=="Bool")
@@ -398,7 +396,7 @@ equality_expression
 	}
 	| equality_expression NE_OP relational_expression       {$$=make_node("!=",$1,$3);
 		string s= equality($1->nodeType, $3->nodeType);
-		if(s)
+		if(s.empty())
 		{
 			$$->nodeType="bool";
 			if(s=="Bool")
@@ -419,7 +417,7 @@ and_expression
 	: equality_expression									       {$$=$1;}
 	| and_expression '&' equality_expression                       {$$=make_node("&",$1,$3);
 		string s= bitwise($1->nodeType, $3->nodeType);
-		if(s)
+		if(s.empty())
 		{
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
@@ -438,7 +436,7 @@ exclusive_or_expression
 	: and_expression											    {$$=$1;}
 	| exclusive_or_expression '^' and_expression			{$$=make_node("^",$1,$3);
 		string s= bitwise($1->nodeType, $3->nodeType);
-		if(s)
+		if(s.empty())
 		{
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
@@ -456,7 +454,7 @@ inclusive_or_expression
 	: exclusive_or_expression										{$$=$1;}
 	| inclusive_or_expression '|' exclusive_or_expression			{$$=make_node("|",$1,$3);
 		string s= bitwise($1->nodeType, $3->nodeType);
-		if(s)
+		if(s.empty())
 		{
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
@@ -494,8 +492,8 @@ logical_or_expression
 conditional_expression
 	: logical_or_expression												{$$=$1;}
 	| logical_or_expression '?' expression ':' conditional_expression    {$$=make_node("conditional_expression",$1,$3,$5);
-		string s=conditional($3->nodeType,$5->nodeType);
-		if(s)$$->nodeType=s;
+		string s=condition($3->nodeType,$5->nodeType);
+		if(s.empty())$$->nodeType=s;
 		else{
             yyerror("Error:Type mismatch in conditional expression");
 		}
@@ -508,12 +506,12 @@ conditional_expression
 
 assignment_expression
 	: conditional_expression													{$$=$1;}
-	| unary_expression assignment_operator assignment_expression		    {$$=make_node("assignment_expression",$1,$2,$3);
+	| unary_expression assignment_operator assignment_expression		    {$$=make_node("assignment_expression",$1,make_node($2),$3);
 		string s=assign($1->nodeType,$3->nodeType,$2);
-		if(a)
+		if(s.empty())
 		{
 			$$->nodeType=$1->nodeType;
-			if(a=="warning"){
+			if(s=="warning"){
                 yyerror("Warning: Assignment with incompatible pointer type"); 
 			}
 			//!TODO:
@@ -523,17 +521,17 @@ assignment_expression
 	;
 
 assignment_operator
-	: '='				{$$=make_node("=");}
-	| MUL_ASSIGN		{$$=make_node("*=");}
-	| DIV_ASSIGN		{$$=make_node("/=");}
-	| MOD_ASSIGN		{$$=make_node("%=");}
-	| ADD_ASSIGN		{$$=make_node("+=");}
-	| SUB_ASSIGN		{$$=make_node("-=");}
-	| LEFT_ASSIGN		{$$=make_node("<<=");}
-	| RIGHT_ASSIGN		{$$=make_node(">>=");}
-	| AND_ASSIGN		{$$=make_node("&=");}
-	| XOR_ASSIGN		{$$=make_node("^=");}
-	| OR_ASSIGN		   {$$=make_node("|=");}
+	: '='				{$$="=";}
+	| MUL_ASSIGN		{$$="*=";}
+	| DIV_ASSIGN		{$$="/=";}
+	| MOD_ASSIGN		{$$="%=";}
+	| ADD_ASSIGN		{$$="+=";}
+	| SUB_ASSIGN		{$$="-=";}
+	| LEFT_ASSIGN		{$$="<<=";}
+	| RIGHT_ASSIGN		{$$=">>=";}
+	| AND_ASSIGN		{$$="&=";}
+	| XOR_ASSIGN		{$$="^=";}
+	| OR_ASSIGN		   {$$="|=";}
 	;
 /*check here for error*/
 expression
