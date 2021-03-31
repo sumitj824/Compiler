@@ -18,7 +18,7 @@ int yylex();
 
 
 
-%token<str> IDENTIFIER CONSTANT STRING_LITERAL SIZEOF
+%token<str> IDENTIFIER I_CONSTANT F_CONSTANT STRING_LITERAL SIZEOF
 %token<str> PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token<str> AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token<str> SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
@@ -38,7 +38,7 @@ int yylex();
 
 
 
-%type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression
+%type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression CONSTANT
 %type <ptr> shift_expression relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
 %type <ptr> conditional_expression assignment_expression assignment_operator expression constant_expression declaration declaration_specifiers init_declarator_list init_declarator
 %type <ptr> storage_class_specifier type_specifier struct_or_union_specifier struct_or_union struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
@@ -52,7 +52,7 @@ int yylex();
 primary_expression
 	: IDENTIFIER											{$$=make_node($1);
 					string s($1);
-					st_node* t=lookup(s);
+					s_entry* t=lookup(s);
 					if(t)
 					{
 						$$->init=t->init;
@@ -72,6 +72,11 @@ primary_expression
 	| '(' expression ')'									{$$=$2;}
 	;
 
+CONSTANT
+	: I_CONSTANT		/* includes character_constant */
+	| F_CONSTANT
+	| ENUMERATION_CONSTANT	/* after it has been defined as such */
+	;
 postfix_expression
 	: primary_expression       								{$$=$1;}
 	| postfix_expression '[' expression ']'					{$$=make_node("postfix_expression", $1, $3);

@@ -8,9 +8,9 @@ typedef struct symEntry{
     string type;
     int init;
 
-}entry;
+}s_entry;
 
-typedef map<string,entry*> symTable;
+typedef map<string,s_entry*> symTable;
 map<symTable*,symTable*> parent;
 
 

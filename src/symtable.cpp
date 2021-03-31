@@ -13,7 +13,7 @@ symTable *cur;
 
 
 
-entry* lookup(string a)
+s_entry* lookup(string a)
 {
     symTable *t=cur;
     while(t!=NULL)
