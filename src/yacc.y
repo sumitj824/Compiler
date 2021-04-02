@@ -9,6 +9,9 @@
 
 
 using namespace std;
+
+string var_type = ""; // to store variable type in declaration list
+int var_init = 0;
 void yyerror(char *s);
 int yylex();
 
@@ -558,14 +561,27 @@ declaration_specifiers
 	;
 
 init_declarator_list
-	: init_declarator											{$$=$1;}
-	| init_declarator_list ',' init_declarator					{$$=make_node("init_declarator_list",$1,$3);}	
+	: init_declarator											{$$=$1;
+		var_type = "";
+	}
+	| init_declarator_list ',' init_declarator					{$$=make_node("init_declarator_list",$1,$3);
+		var_type = "";
+	}	
 	;
 
 init_declarator
 	: declarator											{$$=$1;}
-	| declarator '=' initializer							{$$=make_node("init_declarator",$1,$3);}
+	| E declarator '=' initializer							{$$=make_node("init_declarator",$2,$4);
+		var_init = 0;
+	}
 	;
+// is_init ?? var_init = 1;
+
+// int a = 5,b;
+
+E : %empty	{
+	var_init = 1;
+}
 
 storage_class_specifier
 	: TYPEDEF												{$$=make_node($1);}
@@ -576,18 +592,88 @@ storage_class_specifier
 	;
 
 type_specifier
-	: VOID												{$$=make_node($1);}
-	| CHAR												{$$=make_node($1);}
-	| SHORT												{$$=make_node($1);}
-	| INT												{$$=make_node($1);}
-	| LONG												{$$=make_node($1);}
-	| FLOAT												{$$=make_node($1);}
-	| DOUBLE										    {$$=make_node($1);}
-	| SIGNED											{$$=make_node($1);}
-	| UNSIGNED										    {$$=make_node($1);}
+	: VOID												{$$=make_node($1);
+		if(var_type == ""){
+			var_type += "void";
+		}
+		else{
+			var_type += " void";
+		}
+	}
+	| CHAR												{$$=make_node($1);
+		if(var_type == ""){
+			var_type += "char";
+		}
+		else{
+			var_type += " char";
+		}
+	}
+	| SHORT												{$$=make_node($1);
+		if(var_type == ""){
+			var_type += "short";
+		}
+		else{
+			var_type += " short";
+		}
+	}
+	| INT												{$$=make_node($1);
+		if(var_type == ""){
+			var_type += "int";
+		}
+		else{
+			var_type += " int";
+		}
+	}
+	| LONG												{$$=make_node($1);
+		if(var_type == ""){
+			var_type += "long";
+		}
+		else{
+			var_type += " long";
+		}
+	}
+	| FLOAT												{$$=make_node($1);
+		if(var_type == ""){
+			var_type += "float";
+		}
+		else{
+			var_type += " float";
+		}
+	}
+	| DOUBLE										    {$$=make_node($1);
+		if(var_type == ""){
+			var_type += "double";
+		}
+		else{
+			var_type += " double";
+		}
+	}
+	| SIGNED											{$$=make_node($1);
+		if(var_type == ""){
+			var_type += "signed";
+		}
+		else{
+			var_type += " signed";
+		}
+	}
+	| UNSIGNED										    {$$=make_node($1);
+		if(var_type == ""){
+			var_type += "unsigned";
+		}
+		else{
+			var_type += " unsigned";
+		}
+	}
 	| struct_or_union_specifier							{$$=$1;}
 	| enum_specifier								    {$$=$1;}
-	| TYPE_NAME											{$$=make_node($1);}
+	| TYPE_NAME											{$$=make_node($1);
+		if(var_type == ""){
+			var_type += "void";
+		}
+		else{
+			var_type += " void";
+		}
+	}
 	;
 
 struct_or_union_specifier
@@ -650,12 +736,17 @@ type_qualifier
 	;
 
 declarator
-	: pointer direct_declarator	               					{$$=make_node("declarator",$1,$2);}
+	: pointer direct_declarator	               					{$$=make_node("declarator_pointer",$1,$2);
+
+	}
 	| direct_declarator											{$$=$1;}
 	;
 
 direct_declarator
-	: IDENTIFIER										    	{$$=make_node($1);}
+	: IDENTIFIER										    	{$$=make_node($1);
+		make_symTable_entry($1,var_type,var_init);
+		// also check if it already exists or not ?
+	}
 	| '(' declarator ')'										{$$=$2;}
 	| direct_declarator '[' constant_expression ']'        		{$$=make_node("direct_declarator",$1,$3);}
 	| direct_declarator '[' ']'							  		{$$=make_node("direct_declarator",$1,make_node("[]"));}
@@ -665,10 +756,18 @@ direct_declarator
 	;
 
 pointer
-	: '*'														{$$=make_node("*");}
-	| '*' type_qualifier_list									{$$=make_node("*",$2);}
-	| '*' pointer												{$$=make_node("*",$2);}
-	| '*' type_qualifier_list pointer		    				{$$=make_node("*",$2,$3);}
+	: '*'														{$$=make_node("*");
+		var_type += "*";
+	}
+	| '*' type_qualifier_list									{$$=make_node("*",$2);
+		var_type += "*";
+	}
+	| '*' pointer												{$$=make_node("*",$2);
+		var_type += "*";
+	}
+	| '*' type_qualifier_list pointer		    				{$$=make_node("*",$2,$3);
+		var_type += "*";
+	}
 	;
 
 type_qualifier_list
