@@ -21,4 +21,6 @@ extern symTable *cur;
 
 s_entry* lookup(string a);
 
+void make_symTable_entry(string name,string type,int init);
+
 
