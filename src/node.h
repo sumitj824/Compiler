@@ -14,6 +14,7 @@ typedef struct
     long double dval;
     char cval;
     string nodeType;
+    string nodeLex;
     int init;
     
 

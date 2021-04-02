@@ -7,6 +7,9 @@
 #include "type.h"
 #include <fstream>
 
+// to do :
+// offset
+// function entry to symbol table
 
 using namespace std;
 
@@ -41,7 +44,7 @@ int yylex();
 
 
 
-
+%type <ptr> M2
 %type <str>assignment_operator
 %type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression 
 %type <ptr> shift_expression relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
@@ -554,34 +557,46 @@ declaration
 declaration_specifiers
 	: storage_class_specifier									{$$=$1;}
 	| storage_class_specifier declaration_specifiers			{$$=make_node("declaration_specifiers",$1,$2);}
-	| type_specifier											{$$=$1;}
-	| type_specifier declaration_specifiers						{$$=make_node("declaration_specifiers",$1,$2);}
+	| M2 type_specifier											{$$=$2;}
+	| M2 type_specifier declaration_specifiers						{$$=make_node("declaration_specifiers",$2,$3);}
 	| type_qualifier											{$$=$1;}
 	| type_qualifier declaration_specifiers						{$$=make_node("declaration_specifiers",$1,$2);}
 	;
 
-init_declarator_list
-	: init_declarator											{$$=$1;
+M2 :		{
 		var_type = "";
 	}
+	;
+
+init_declarator_list
+	: init_declarator											{$$=$1;
+		
+	}
 	| init_declarator_list ',' init_declarator					{$$=make_node("init_declarator_list",$1,$3);
-		var_type = "";
+
 	}	
 	;
 
 init_declarator
-	: declarator											{$$=$1;}
-	| E declarator '=' initializer							{$$=make_node("init_declarator",$2,$4);
-		var_init = 0;
+	: declarator											{$$=$1;
+		s_entry * find = lookup($1->nodeLex);
+		if(find){
+			yyerror("redeclaration of the variable."); 
+		}
+		else{
+			make_symTable_entry($1->nodeLex,$1 -> nodeType,0);
+		}
+	}
+	| declarator '=' initializer							{$$=make_node("init_declarator",$1,$3);
+		s_entry * find = lookup($1->nodeLex);
+		if(find){
+			yyerror("redeclaration of the variable."); 
+		}
+		else{
+			make_symTable_entry($1->nodeLex,$1 -> nodeType,1);
+		}
 	}
 	;
-// is_init ?? var_init = 1;
-
-// int a = 5,b;
-
-E : %empty	{
-	var_init = 1;
-}
 
 storage_class_specifier
 	: TYPEDEF												{$$=make_node($1);}
@@ -736,20 +751,30 @@ type_qualifier
 	;
 
 declarator
-	: pointer direct_declarator	               					{$$=make_node("declarator_pointer",$1,$2);
-
+	: pointer direct_declarator	               					{$$=make_node("direct_declarator",$1,$2);
+		$$ -> nodeType = $2 -> nodeType + $1 -> nodeType;
+		$$ -> nodeLex = $2 -> nodeLex;
 	}
-	| direct_declarator											{$$=$1;}
+	| direct_declarator											{$$=$1;
+		$$ -> nodeLex = $1 -> nodeLex;
+		$$ -> nodeType = $1 -> nodeType;
+	}
 	;
 
 direct_declarator
 	: IDENTIFIER										    	{$$=make_node($1);
-		make_symTable_entry($1,var_type,var_init);
-		// also check if it already exists or not ?
+		$$ -> nodeType = var_type;
+		$$ -> nodeLex = $1;
 	}
 	| '(' declarator ')'										{$$=$2;}
-	| direct_declarator '[' constant_expression ']'        		{$$=make_node("direct_declarator",$1,$3);}
-	| direct_declarator '[' ']'							  		{$$=make_node("direct_declarator",$1,make_node("[]"));}
+	| direct_declarator '[' constant_expression ']'        		{$$=make_node("direct_declarator",$1,$3);
+		$$ -> nodeType = $1 -> nodeType + "*";
+		$$ -> nodeLex = $1 -> nodeLex;
+	}
+	| direct_declarator '[' ']'							  		{$$=make_node("direct_declarator",$1,make_node("[]"));
+		$$ -> nodeType = $1 -> nodeType + "*";
+		$$ -> nodeLex = $1 -> nodeLex;
+	}
 	| direct_declarator '(' parameter_type_list ')'        		{$$=make_node("direct_declarator",$1,$3);}
 	| direct_declarator '(' identifier_list ')'       		    {$$=make_node("direct_declarator",$1,$3);}
 	| direct_declarator '(' ')'									{$$=make_node("direct_declarator",$1,make_node("()"));}
@@ -757,16 +782,16 @@ direct_declarator
 
 pointer
 	: '*'														{$$=make_node("*");
-		var_type += "*";
+		$$ -> nodeType = "*";
 	}
 	| '*' type_qualifier_list									{$$=make_node("*",$2);
-		var_type += "*";
+		
 	}
 	| '*' pointer												{$$=make_node("*",$2);
-		var_type += "*";
+		$$ -> nodeType = $2 -> nodeType + "*";
 	}
 	| '*' type_qualifier_list pointer		    				{$$=make_node("*",$2,$3);
-		var_type += "*";
+		
 	}
 	;
 
