@@ -36,7 +36,7 @@ string postfix(string t, int num)
             t.back()='\0';
             return t;
         }
-         return NULL;
+         return "";
     }
     if(num==2)
     {
@@ -46,7 +46,7 @@ string postfix(string t, int num)
             t+=5;
             return t;
         }
-         return NULL;
+         return "";
     }
     if (num==3)
     { // postfix_expression INC_OP/DEC_OP
@@ -54,7 +54,7 @@ string postfix(string t, int num)
         {
 	        return t;
 	    } 
-	    return NULL;
+	    return "";
     }
     return t;
 
@@ -69,7 +69,7 @@ string multiply(string t1,string t2,char op)
         if(isInt(t1) && isInt(t2))return "int";
         if(op=='*' || op=='/')return "float";
     }
-    return NULL;
+    return "";
 }
 
 
@@ -86,7 +86,7 @@ string addition(string t1,string t2)
     else if(t2=="char" && isInt(t1)) return "char";
     else if(t1.back()=='*' && isInt(t2)) return t1;
     else if(t2.back()=='*' && isInt(t1)) return t2;
-    else return NULL;
+    else return "";
 
 }
 
@@ -97,14 +97,14 @@ string relational(string t1,string t2)
     {
         if(isNum(t2) || t2=="char") return "bool";
         else if(t2.back()=='*'){
-            if(isFloat(t1))return NULL;
+            if(isFloat(t1))return "";
             return "Bool";
         }
     }
     if(t1.back()=='*'){
         if(isInt(t2) || t2=="char")return "Bool";
     }
-    return NULL;
+    return "";
 }
 
 
@@ -114,7 +114,7 @@ string equality(string t1,string t2)
     if(t1==t2) return "bool";
     if(t1.back()=='*' && isInt(t2))return "Bool";
     if(t2.back()=='*' && isInt(t1))return "Bool";
-    return NULL;
+    return "";
 }
 
 
@@ -123,7 +123,7 @@ string bitwise(string t1,string t2)
 {
     if(t1=="bool" && t2=="bool")return "bool";
     if((isInt(t1) || t1=="bool") && (isInt(t2) || t2=="bool"))return "Bool";
-    return NULL;
+    return "";
 }
 
 
@@ -131,12 +131,12 @@ string condition(string t1,string t2)
 {
 
     //TODO:
-    return NULL;
+    return "";
 }
 
 
 string assign(string t1,string t2,string op)
 {   
     //TODO:
-    return NULL;
+    return "";
 }

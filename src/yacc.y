@@ -1,6 +1,7 @@
 %{
 #include <iostream>
 #include <string>
+#include <set>
 #include <cstring>
 #include "node.h"
 #include "symtable.h"
@@ -13,8 +14,12 @@
 
 using namespace std;
 
+set <string> temp_arg; // to store identifier list in function declaration 1
+int funcMatched = 0; // to store whether rule corresponding to function is matched.
 string var_type = ""; // to store variable type in declaration list
 string funcArg = "";
+string tmpstr = ""; // to store identifier list in function definition 1
+map <string,string> tmp_map;
 int var_init = 0;
 void yyerror(char *s);
 int yylex();
@@ -48,7 +53,7 @@ int yylex();
 
 
 
-%type <ptr> M2 M3
+%type <ptr> M2 M3 M4
 %type <str>assignment_operator
 %type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression 
 %type <ptr> shift_expression relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
@@ -583,15 +588,29 @@ init_declarator_list
 init_declarator
 	: declarator											{$$=$1;
 		s_entry * find = lookup_in_curr($1->nodeLex);
+		if(funcMatched){
+			if(temp_arg.find($1 -> nodeLex) == temp_arg.end()){
+				yyerror("variable not introduced in function definition.");
+			}	
+			else{
+				tmp_map[$1 -> nodeLex] = $1 -> nodeType;
+				temp_arg.erase($1 -> nodeLex);
+			}
+		}
 		if(find){
 			yyerror("redeclaration of the variable."); 
 		}
 		else{
 			make_symTable_entry($1->nodeLex,$1 -> nodeType,0);
+			$1 -> init = 0;
 		}
+		
 	}
 	| declarator '=' initializer							{$$=make_node("init_declarator",$1,$3);
 		s_entry * find = lookup_in_curr($1->nodeLex);
+		if(funcMatched){
+			yyerror("not expected token '='");
+		}
 		if(find){
 			yyerror("redeclaration of the variable."); 
 		}
@@ -759,10 +778,7 @@ declarator
 		$$ -> nodeType = $2 -> nodeType + $1 -> nodeType;
 		$$ -> nodeLex = $2 -> nodeLex;
 	}
-	| direct_declarator											{$$=$1;
-		$$ -> nodeLex = $1 -> nodeLex;
-		$$ -> nodeType = $1 -> nodeType;
-	}
+	| direct_declarator											{$$=$1;}
 	;
 
 direct_declarator
@@ -779,12 +795,15 @@ direct_declarator
 		$$ -> nodeType = $1 -> nodeType + "*";
 		$$ -> nodeLex = $1 -> nodeLex;
 	}
-	| direct_declarator '(' M3 parameter_type_list ')'        		{$$=make_node("direct_declarator",$1,$3);
+	| direct_declarator '(' M3 parameter_type_list ')'        		{$$=make_node("direct_declarator",$1,$4);
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> nodeType = $1 -> nodeType;
 	}
-	| direct_declarator '(' identifier_list ')'       		    {$$=make_node("direct_declarator",$1,$3);}
-	| direct_declarator '(' ')'									{$$=make_node("direct_declarator",$1,make_node("()"));
+	| direct_declarator '(' identifier_list ')'       		    {$$=make_node("direct_declarator",$1,$3);
+		$$ -> nodeLex = $1 -> nodeLex;
+		$$ -> nodeType = $1 -> nodeType;
+	}
+	| direct_declarator '(' M3 ')'									{$$=make_node("direct_declarator",$1,make_node("()"));
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> nodeType = $1 -> nodeType;
 	}
@@ -842,8 +861,34 @@ parameter_declaration
 	;
 
 identifier_list
-	: IDENTIFIER												{$$=make_node($1);}
-	| identifier_list ',' IDENTIFIER							{$$=make_node("identifier_list",$1,make_node($3));}
+	: IDENTIFIER												{$$=make_node($1);
+		if(tmpstr == "")
+			tmpstr += $1;
+		else{
+			tmpstr += ',';
+			tmpstr += $1;
+		}
+		if(temp_arg.find($1) == temp_arg.end()){
+			temp_arg.insert($1);
+		}
+		else{
+			yyerror("reuse of same argument");
+		}
+	}
+	| identifier_list ',' IDENTIFIER							{$$=make_node("identifier_list",$1,make_node($3));
+		if(tmpstr == "")
+			tmpstr += $3;
+		else{
+			tmpstr += ',';
+			tmpstr += $3;
+		}
+		if(temp_arg.find($3) == temp_arg.end()){
+			temp_arg.insert($3);
+		}
+		else{
+			yyerror("reuse of same argument");
+		}
+	}
 	;
 
 type_name
@@ -957,30 +1002,68 @@ external_declaration
 	;
 
 function_definition
-	: declaration_specifiers declarator declaration_list compound_statement       {$$=make_node("function_definition1",$1,$2,$3,$4);}
+	: declaration_specifiers declarator M3 M4 declaration_list M4 compound_statement       {$$=make_node("function_definition1",$1,$2,$5,$7);
+		int x= 0;
+		string tmp;
+		while(x < tmpstr.size()){
+			if(tmpstr[x] == ','){
+				if(funcArg == ""){
+					funcArg += tmp_map[tmp];
+				}
+				else{
+					funcArg += "," + tmp_map[tmp];
+				}
+				tmp = "";
+			}
+			else{
+				tmp += tmpstr[x];
+			}
+			x++;
+		}
+		if(funcArg == ""){
+			funcArg += tmp_map[tmp];
+		}
+		else{
+			funcArg += "," + tmp_map[tmp];
+		}
+		if(funcMap.find($2 -> nodeLex) == funcMap.end()){
+			if(!lookup($2 -> nodeLex)){
+				 cout << $2 -> nodeLex << ":" << funcArg << " output : " << $2 -> nodeType << endl;
+				 funcMap.insert({$2 -> nodeLex,funcArg});
+				 make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0);
+			}
+			else{
+				yyerror("redeclaration of the function.");
+			}
+		}
+		else{
+			yyerror("redeclaration of the function.");
+		}
+		funcArg = "";
+		tmpstr = "";
+		tmp_map.clear();
+	}
 	| declaration_specifiers declarator compound_statement                        {$$=make_node("function_definition2",$1,$2,$3);
-		// funcArg[funcName] -> argumentList,outputType
-		//funcName = $2 -> nodeLex;
+		// funcArg[funcName] -> argumentList
+		// funcName = $2 -> nodeLex;
 		// if(funcArg == ""){
 		// 	funcArg += $2 -> nodeType;
 		// }
 		// else{
 		// 	funcArg += "," + $2 -> nodeType;
 		// } // to append output type to funcArg
-		if(funcMap.find($3 -> nodeLex) == funcMap.end()){
-			if(!lookup($3 -> nodeLex)){
-				// cout << "inside : " << $2 -> nodeLex << ":" << funcArg << endl;
-				funcMap.insert({$3 -> nodeLex,funcArg});
-				make_symTable_entry($3 -> nodeLex,$3 -> nodeType,0);
+		if(funcMap.find($2 -> nodeLex) == funcMap.end()){
+			if(!lookup($2 -> nodeLex)){
+				 funcMap.insert({$2 -> nodeLex,funcArg});
+				 make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0);
 			}
-			//cout << $2 -> nodeLex << ":" << funcArg << endl;
-			// else{
-			// 	yyerror("redeclaration of the function.");
-			// }
+			else{
+				yyerror("redeclaration of the function.");
+			}
 		}
-		// else{
-		// 	yyerror("redeclaration of the function.");
-		// }
+		else{
+			yyerror("redeclaration of the function.");
+		}
 		funcArg = "";
 	}
 	| declarator declaration_list compound_statement                              {$$=make_node("function_definition3",$1,$2,$3);}
@@ -990,11 +1073,26 @@ function_definition
 M3
 	:%empty		{
 		symTable * temp = new symTable();
-		parent[temp] = curr_table;
+		parent.insert({temp,curr_table});
 		curr_table = temp;
 	}
 	;
+M4
+	:%empty		{
+		funcMatched = 1 - funcMatched;
+		if(funcMatched == 0){
+			if(temp_arg.empty()){
 
+			}
+			else{
+				yyerror("definition of all parameters is not specified.");
+			}
+			while(!temp_arg.empty()){
+				temp_arg.erase(temp_arg.begin());
+			}
+		}
+	}
+	;
 %%
 #include <stdio.h>
 #define red   "\033[31;1m"
