@@ -30,10 +30,9 @@ int yylex();
 	char *str;
 }
 
-// test case check
-// function remaining definitions
+// typechecking
+// structure 
 // offset
-
 
 %token<str> IDENTIFIER CONSTANT  STRING_LITERAL SIZEOF
 %token<str> PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
@@ -78,7 +77,7 @@ primary_expression
 					}
 					else 
 					{
-						// yyerror("Error: %s is not declared in this scope",$1);
+						yyerror("Use of undeclared identifier.");
 						$$->nodeType="";
 	
 					}
@@ -115,6 +114,8 @@ postfix_expression
 	}
 	| postfix_expression '(' argument_expression_list ')'   {$$=make_node("postfix_expression", $1, $3);
 		 $$->init=$3->init;
+		 // f lookupGST(f) nodeType int
+		 /// output int
 		 string s=postfix($1->nodeType,2);
 		 if(s.empty())
 		 {
@@ -134,7 +135,7 @@ postfix_expression
 	| postfix_expression INC_OP							    {$$=make_node($2, $1);
 			$$->init=$1->init;
 		    string s=postfix($1->nodeType,3);
-			if(s.empty())
+			if(!s.empty())
 			{
 				$$->nodeType=s;
 			}
@@ -145,7 +146,7 @@ postfix_expression
 	| postfix_expression DEC_OP								{$$=make_node($2, $1);
 			$$->init=$1->init;
 		    string s=postfix($1->nodeType,3);
-			if(s.empty())
+			if(!s.empty())
 			{
 				$$->nodeType=s;
 			}
@@ -317,9 +318,7 @@ shift_expression
 		$$->init= ($1->init&& $3->init);
 
 	}
-
 	;
-
 relational_expression	
 	: shift_expression										{$$=$1;}
 	| relational_expression '<' shift_expression   {$$=make_node("<",$1,$3);
@@ -529,7 +528,6 @@ assignment_expression
 			}
 			//!TODO:
 		}
-	
 	}
 	;
 
@@ -604,7 +602,6 @@ init_declarator
 			make_symTable_entry($1->nodeLex,$1 -> nodeType,0);
 			$1 -> init = 0;
 		}
-		
 	}
 	| declarator '=' initializer							{$$=make_node("init_declarator",$1,$3);
 		s_entry * find = lookup_in_curr($1->nodeLex);
@@ -927,8 +924,10 @@ initializer_list
 
 statement
 	: labeled_statement												{$$=$1;}
-	| compound_statement											{$$=$1;}
-	| expression_statement											{$$=$1;}
+	| M3 compound_statement											{$$=$2;}
+	| expression_statement											{$$=$1;
+		// complete typechecking.
+	}
 	| selection_statement											{$$=$1;}
 	| iteration_statement											{$$=$1;}
 	| jump_statement												{$$=$1;}
@@ -967,7 +966,8 @@ statement_list
 
 expression_statement
 	: ';'														{$$=make_node(";");}
-	| expression ';'											{$$=$1;}
+	| expression ';'											{$$=$1;// complete typechecking
+	}
 	;
 
 selection_statement
@@ -1002,7 +1002,7 @@ external_declaration
 	;
 
 function_definition
-	: declaration_specifiers declarator M3 M4 declaration_list M4 compound_statement       {$$=make_node("function_definition1",$1,$2,$5,$7);
+	: declaration_specifiers declarator M3 M4 declaration_list M4 compound_statement       {$$=make_node("function_definition",$1,$2,$5,$7);
 		int x= 0;
 		string tmp;
 		while(x < tmpstr.size()){
@@ -1028,7 +1028,6 @@ function_definition
 		}
 		if(funcMap.find($2 -> nodeLex) == funcMap.end()){
 			if(!lookup($2 -> nodeLex)){
-				 cout << $2 -> nodeLex << ":" << funcArg << " output : " << $2 -> nodeType << endl;
 				 funcMap.insert({$2 -> nodeLex,funcArg});
 				 make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0);
 			}
@@ -1043,15 +1042,7 @@ function_definition
 		tmpstr = "";
 		tmp_map.clear();
 	}
-	| declaration_specifiers declarator compound_statement                        {$$=make_node("function_definition2",$1,$2,$3);
-		// funcArg[funcName] -> argumentList
-		// funcName = $2 -> nodeLex;
-		// if(funcArg == ""){
-		// 	funcArg += $2 -> nodeType;
-		// }
-		// else{
-		// 	funcArg += "," + $2 -> nodeType;
-		// } // to append output type to funcArg
+	| declaration_specifiers declarator compound_statement                        {$$=make_node("function_definition",$1,$2,$3);
 		if(funcMap.find($2 -> nodeLex) == funcMap.end()){
 			if(!lookup($2 -> nodeLex)){
 				 funcMap.insert({$2 -> nodeLex,funcArg});
@@ -1066,8 +1057,62 @@ function_definition
 		}
 		funcArg = "";
 	}
-	| declarator declaration_list compound_statement                              {$$=make_node("function_definition3",$1,$2,$3);}
-	| declarator compound_statement                                               {$$=make_node("function_definition4",$1,$2);}
+	| declarator M3 M4 declaration_list M4 compound_statement                              {$$=make_node("function_definition",$1,$4,$6);
+		int x= 0;
+		string tmp;
+		while(x < tmpstr.size()){
+			if(tmpstr[x] == ','){
+				if(funcArg == ""){
+					funcArg += tmp_map[tmp];
+				}
+				else{
+					funcArg += "," + tmp_map[tmp];
+				}
+				tmp = "";
+			}
+			else{
+				tmp += tmpstr[x];
+			}
+			x++;
+		}
+		if(funcArg == ""){
+			funcArg += tmp_map[tmp];
+		}
+		else{
+			funcArg += "," + tmp_map[tmp];
+		}
+		if(funcMap.find($1 -> nodeLex) == funcMap.end()){
+			if(!lookup($1 -> nodeLex)){
+				 funcMap.insert({$1 -> nodeLex,funcArg});
+				 make_symTable_entry($1 -> nodeLex,"int",0);
+			}
+			else{
+				yyerror("redeclaration of the function.");
+			}
+		}
+		else{
+			yyerror("redeclaration of the function.");
+		}
+		funcArg = "";
+		tmpstr = "";
+		tmp_map.clear();
+	
+	}
+	| declarator compound_statement                                               {$$=make_node("function_definition",$1,$2);
+		if(funcMap.find($1 -> nodeLex) == funcMap.end()){
+			if(!lookup($1 -> nodeLex)){
+				 funcMap.insert({$1 -> nodeLex,funcArg});
+				 make_symTable_entry($1 -> nodeLex,"int",0);
+			}
+			else{
+				yyerror("redeclaration of the function.");
+			}
+		}
+		else{
+			yyerror("redeclaration of the function.");
+		}
+		funcArg = "";
+	}
 	;
 
 M3
