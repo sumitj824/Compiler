@@ -20,7 +20,7 @@ string var_type = ""; // to store variable type in declaration list
 string funcArg = "";
 string tmpstr = ""; // to store identifier list in function definition 1
 map <string,string> tmp_map;
-int var_init = 0;
+int struct_count = 0;
 void yyerror(char *s);
 int yylex();
 
@@ -30,9 +30,9 @@ int yylex();
 	char *str;
 }
 
-// typechecking
-// structure 
 // offset
+// abstract declaration
+// typechecking
 
 %token<str> IDENTIFIER CONSTANT  STRING_LITERAL SIZEOF
 %token<str> PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
@@ -52,7 +52,7 @@ int yylex();
 
 
 
-%type <ptr> M2 M3 M4
+%type <ptr> M2 M3 M4 M5
 %type <str>assignment_operator
 %type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression 
 %type <ptr> shift_expression relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
@@ -699,7 +699,12 @@ type_specifier
 			var_type += " unsigned";
 		}
 	}
-	| struct_or_union_specifier							{$$=$1;}
+	| struct_or_union_specifier							{$$=$1;
+		if(var_type == "")
+			var_type += $1 -> nodeType;
+		else
+			var_type += " " + $1 -> nodeType;
+	}
 	| enum_specifier								    {$$=$1;}
 	| TYPE_NAME											{$$=make_node($1);
 		if(var_type == ""){
@@ -710,16 +715,52 @@ type_specifier
 		}
 	}
 	;
+// struct x{int a;int b;} a,b,c; // x -> struct
 
 struct_or_union_specifier
-	: struct_or_union IDENTIFIER '{' struct_declaration_list '}'  {$$=make_node("struct_or_union_specifier",$1,make_node($2),$4);}
-	| struct_or_union '{' struct_declaration_list '}'             {$$=make_node("struct_or_union_specifier",$1,$3);}
-	| struct_or_union IDENTIFIER								  {$$=make_node("struct_or_union_specifier",$1,make_node($2));}
+	: struct_or_union IDENTIFIER M3 '{' struct_declaration_list '}'  {$$=make_node("struct_or_union_specifier",$1,make_node($2),$5);
+		if(struct_table.find($2) == struct_table.end()){
+			struct_table.insert({$2,curr_table});
+			$$ -> nodeType = $2;
+			$$ -> nodeLex = $2;
+		}
+		else{
+			yyerror("structure already defined.");
+		}
+		curr_table = parent[curr_table];
+	}
+	| struct_or_union M3 '{' struct_declaration_list '}'             {$$=make_node("struct_or_union_specifier",$1,$4);
+		struct_count += 1;
+		string name = convert_to_string(struct_count);
+		if(struct_table.find(name) == struct_table.end()){
+			struct_table.insert({name,curr_table});
+			$$ -> nodeType = name;
+			$$ -> nodeLex = name;
+		}
+		else{
+			yyerror("structure already defined.");
+		}
+		curr_table = parent[curr_table];
+	}
+	| struct_or_union IDENTIFIER								  {$$=make_node("struct_or_union_specifier",$1,make_node($2));
+		if(struct_table.find($2) == struct_table.end()){
+			yyerror("structure defintion not defined.");
+		}	
+		else{
+			$$ -> nodeType = $2;
+			$$ -> nodeLex = $2;
+		}
+	}
 	;
-
 struct_or_union
-	: STRUCT										    {$$=make_node($1);}
-	| UNION										        {$$=make_node($1);}
+	: STRUCT										    {$$=make_node($1);
+		$$ -> nodeType = $1;
+		$$ -> nodeLex = $1;
+	}
+	| UNION										        {$$=make_node($1);
+		$$ -> nodeType = $1;
+		$$ -> nodeLex = $1;
+	}
 	;
 
 struct_declaration_list
@@ -728,7 +769,9 @@ struct_declaration_list
 	;
 
 struct_declaration
-	: specifier_qualifier_list struct_declarator_list ';'          {$$=make_node("struct_declaration",$1,$2);}
+	: specifier_qualifier_list struct_declarator_list ';'          {$$=make_node("struct_declaration",$1,$2);
+		var_type = "";
+	}
 	;
 
 specifier_qualifier_list
@@ -744,9 +787,23 @@ struct_declarator_list
 	;
 
 struct_declarator
-	: declarator											{$$=$1;}
+	: declarator											{$$=$1;
+		if(lookup_in_curr($1 -> nodeLex)){
+			yyerror("redeclaration of variable.");
+		}
+		else{
+			make_symTable_entry($1 -> nodeLex,$1 -> nodeType,0);
+		}
+	}
 	| ':' constant_expression								{$$=$2;}
-	| declarator ':' constant_expression					{$$=make_node("struct_declarator",$1,$3);}
+	| declarator ':' constant_expression					{$$=make_node("struct_declarator",$1,$3);
+		if(lookup_in_curr($1 -> nodeLex)){
+			yyerror("redeclaration of variable.");
+		}
+		else{
+			make_symTable_entry($1->nodeLex,$1 -> nodeType,0);
+		}
+	}
 	;
 
 enum_specifier
