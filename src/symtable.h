@@ -21,7 +21,6 @@ s_entry* lookup(string a);
 
 void make_symTable_entry(string name,string type,int init);
 void make_symTable_entry2(symTable * table,string name,string type,int init);
-string convert_to_string(int n);
 s_entry* lookup_in_curr(string a);
 
 

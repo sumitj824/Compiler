@@ -787,7 +787,7 @@ struct_or_union_specifier
 	}
 	| struct_or_union M3 '{' struct_declaration_list '}'             {$$=make_node("struct_or_union_specifier",$1,$4);
 		struct_count += 1;
-		string name = convert_to_string(struct_count);
+		string name = to_string(struct_count);
 		if(struct_table.find(name) == struct_table.end()){
 			struct_table.insert({name,curr_table});
 			$$ -> nodeType = name;
