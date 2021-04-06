@@ -77,7 +77,7 @@ primary_expression
 					}
 					else 
 					{
-						yyerror("Use of undeclared identifier.");
+						yyerror("Error: Use of undeclared identifier.");
 						$$->nodeType="";
 	
 					}
@@ -563,7 +563,7 @@ conditional_expression
 		string s=condition($3->nodeType,$5->nodeType);
 		if(!s.empty())$$->nodeType=s;
 		else{
-            yyerror("Error:Type mismatch in conditional expression");
+            yyerror("Error: Type mismatch in conditional expression");
 		}
 
 		$$->init= ($1->init&& $3->init && $5->init);
@@ -644,7 +644,7 @@ init_declarator
 		s_entry * find = lookup_in_curr($1->nodeLex);
 		if(funcMatched){
 			if(temp_arg.find($1 -> nodeLex) == temp_arg.end()){
-				yyerror("variable not introduced in function definition.");
+				yyerror("Error: variable not introduced in function definition.");
 			}	
 			else{
 				tmp_map[$1 -> nodeLex] = $1 -> nodeType;
@@ -652,7 +652,7 @@ init_declarator
 			}
 		}
 		if(find){
-			yyerror("redeclaration of the variable."); 
+			yyerror("Error: redeclaration of the variable."); 
 		}
 		else{
 			make_symTable_entry($1->nodeLex,$1 -> nodeType,0);
@@ -662,10 +662,10 @@ init_declarator
 	| declarator '=' initializer							{$$=make_node("init_declarator",$1,$3);
 		s_entry * find = lookup_in_curr($1->nodeLex);
 		if(funcMatched){
-			yyerror("not expected token '='");
+			yyerror("Error: not expected token '='");
 		}
 		if(find){
-			yyerror("redeclaration of the variable."); 
+			yyerror("Error: redeclaration of the variable."); 
 		}
 		else{
 			make_symTable_entry($1->nodeLex,$1 -> nodeType,1);
@@ -781,7 +781,7 @@ struct_or_union_specifier
 			$$ -> nodeLex = $2;
 		}
 		else{
-			yyerror("structure already defined.");
+			yyerror("Error: structure already defined.");
 		}
 		curr_table = parent[curr_table];
 	}
@@ -794,13 +794,13 @@ struct_or_union_specifier
 			$$ -> nodeLex = name;
 		}
 		else{
-			yyerror("structure already defined.");
+			yyerror("Error: structure already defined.");
 		}
 		curr_table = parent[curr_table];
 	}
 	| struct_or_union IDENTIFIER								  {$$=make_node("struct_or_union_specifier",$1,make_node($2));
 		if(struct_table.find($2) == struct_table.end()){
-			yyerror("structure defintion not defined.");
+			yyerror("Error: structure defintion not defined.");
 		}	
 		else{
 			$$ -> nodeType = $2;
@@ -845,7 +845,7 @@ struct_declarator_list
 struct_declarator
 	: declarator											{$$=$1;
 		if(lookup_in_curr($1 -> nodeLex)){
-			yyerror("redeclaration of variable.");
+			yyerror("Error: redeclaration of variable.");
 		}
 		else{
 			make_symTable_entry($1 -> nodeLex,$1 -> nodeType,0);
@@ -854,7 +854,7 @@ struct_declarator
 	| ':' constant_expression								{$$=$2;}
 	| declarator ':' constant_expression					{$$=make_node("struct_declarator",$1,$3);
 		if(lookup_in_curr($1 -> nodeLex)){
-			yyerror("redeclaration of variable.");
+			yyerror("Error: redeclaration of variable.");
 		}
 		else{
 			make_symTable_entry($1->nodeLex,$1 -> nodeType,0);
@@ -954,7 +954,7 @@ parameter_declaration
 	: declaration_specifiers declarator                 		{$$=make_node("parameter_declaration",$1,$2);
 		s_entry* find = lookup_in_curr($2 -> nodeLex);
 		if(find){
-			yyerror("redeclaration of variable.");
+			yyerror("Error: redeclaration of variable.");
 		}
 		else{
 			make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0);
@@ -982,7 +982,7 @@ identifier_list
 			temp_arg.insert($1);
 		}
 		else{
-			yyerror("reuse of same argument");
+			yyerror("Error: reuse of same argument");
 		}
 	}
 	| identifier_list ',' IDENTIFIER							{$$=make_node("identifier_list",$1,make_node($3));
@@ -996,7 +996,7 @@ identifier_list
 			temp_arg.insert($3);
 		}
 		else{
-			yyerror("reuse of same argument");
+			yyerror("Error: reuse of same argument");
 		}
 	}
 	;
@@ -1145,11 +1145,11 @@ function_definition
 				 make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0);
 			}
 			else{
-				yyerror("redeclaration of the function.");
+				yyerror("Error: redeclaration of the function.");
 			}
 		}
 		else{
-			yyerror("redeclaration of the function.");
+			yyerror("Error: redeclaration of the function.");
 		}
 		funcArg = "";
 		tmpstr = "";
@@ -1162,11 +1162,11 @@ function_definition
 				 make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0);
 			}
 			else{
-				yyerror("redeclaration of the function.");
+				yyerror("Error: redeclaration of the function.");
 			}
 		}
 		else{
-			yyerror("redeclaration of the function.");
+			yyerror("Error: redeclaration of the function.");
 		}
 		funcArg = "";
 	}
@@ -1200,11 +1200,11 @@ function_definition
 				 make_symTable_entry($1 -> nodeLex,"int",0);
 			}
 			else{
-				yyerror("redeclaration of the function.");
+				yyerror("Error: redeclaration of the function.");
 			}
 		}
 		else{
-			yyerror("redeclaration of the function.");
+			yyerror("Error: redeclaration of the function.");
 		}
 		funcArg = "";
 		tmpstr = "";
@@ -1218,11 +1218,11 @@ function_definition
 				 make_symTable_entry($1 -> nodeLex,"int",0);
 			}
 			else{
-				yyerror("redeclaration of the function.");
+				yyerror("Error: redeclaration of the function.");
 			}
 		}
 		else{
-			yyerror("redeclaration of the function.");
+			yyerror("Error: redeclaration of the function.");
 		}
 		funcArg = "";
 	}
@@ -1243,7 +1243,7 @@ M4
 
 			}
 			else{
-				yyerror("definition of all parameters is not specified.");
+				yyerror("Error: definition of all parameters is not specified.");
 			}
 			while(!temp_arg.empty()){
 				temp_arg.erase(temp_arg.begin());
@@ -1253,6 +1253,7 @@ M4
 	;
 %%
 #include <stdio.h>
+#include <vector>
 #define red   "\033[31;1m"
 #define reset   "\033[0m"
 extern char yytext[];
@@ -1261,22 +1262,13 @@ extern int line;
 char *filename;
 FILE *in=NULL;
 FILE *out=NULL;
-
+vector<string> code;
 void yyerror(char *s)
 {	
 	fflush(stdout);
-	fprintf(stderr,"%s:%d:%d:%s Error: %s\n",filename,line,column,red,reset);
-	fclose(in);
-	in=freopen(filename,"r",stdin);
-	string str;
-	for(int i=0;i<line;i++)
-	{
-		getline(cin,str);
-	}
-	
-	cerr<<str;
-
-	fprintf(stderr,"\n%*s\n%s%*s%s\n", column, "^", red,column,s,reset);
+	fprintf(stderr,"%s:%d:%d:%s %s%s\n",filename,line,column,red,s,reset);
+	cerr<<code[line-1];
+	fprintf(stderr,"\n%s%*s%s\n", red,column,"^~~~~",reset);
 }
 
 void help(int f)
@@ -1348,8 +1340,22 @@ int main(int argc, char *argv[])
 			return 0;
 		}
 	}
-	if(!in)help(1);
+	if(!in){
+		help(1);
+		return 0;
+	}
 	if(!out)freopen("ast.dot","w",stdout);
+
+	string s;
+	while(getline(cin,s))
+	{
+		code.push_back(s);
+	}
+	fclose(in);
+	in=freopen(filename,"r",stdin);
+
+
+
 	BeginGraph();
 	yyparse();
 	EndGraph();
