@@ -34,7 +34,7 @@ int yylex();
 // abstract declaration
 // typechecking
 
-%token<str> IDENTIFIER CONSTANT  STRING_LITERAL SIZEOF
+%token<str> IDENTIFIER I_CONSTANT F_CONSTANT  STRING_LITERAL SIZEOF
 %token<str> PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token<str> AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token<str> SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
@@ -150,7 +150,7 @@ postfix_expression
 	| postfix_expression '[' expression ']'					{$$=make_node("postfix_expression", $1, $3);
 				$$->init = ($1->init && $3->init);
 				string s=postfix($1->nodeType,1);
-				if(s.empty()) $$->nodeType=s;
+				if(!s.empty()) $$->nodeType=s;
 				else{
 					yyerror("Error: array index out of bound");
 				}
@@ -158,7 +158,7 @@ postfix_expression
 	| postfix_expression '(' ')'							{$$=$1;
 				$$->init=1;
 				string s=postfix($1->nodeType,2);
-				if(s.empty())
+				if(!s.empty())
 				{
 					$$->nodeType =s;
 					//TODO : something
@@ -173,7 +173,7 @@ postfix_expression
 		 // f lookupGST(f) nodeType int
 		 /// output int
 		 string s=postfix($1->nodeType,2);
-		 if(s.empty())
+		 if(!s.empty())
 		 {
 			 $$->nodeType=s;
 			 //TODO: something
@@ -222,7 +222,7 @@ unary_expression
 	| INC_OP unary_expression								{$$=make_node($1,$2);
 			$$->init=$2->init;
 		    string s=postfix($2->nodeType,3);
-			if(s.empty())
+			if(!s.empty())
 			{
 				$$->nodeType=s;
 			}
@@ -234,7 +234,7 @@ unary_expression
 	| DEC_OP unary_expression								{$$=make_node($1,$2);
 			$$->init=$2->init;
 		    string s=postfix($2->nodeType,3);
-			if(s.empty())
+			if(!s.empty())
 			{
 				$$->nodeType=s;
 			}
@@ -248,7 +248,7 @@ unary_expression
 			$$->init=$2->init;
 			//TODO :
 		    // string s=unary($1->nodeType,3);
-			// if(s.empty())
+			// if(!s.empty())
 			// {
 			// 	$$->nodeType=s;
 			// }
@@ -324,7 +324,7 @@ additive_expression
 	: multiplicative_expression								{$$=$1;}
 	| additive_expression '+' multiplicative_expression     {$$=make_node("+", $1, $3);
 		string s= addition($1->nodeType, $3->nodeType);
-		if(s.empty()){
+		if(!s.empty()){
 			if(s=="int")$$->nodeType="long long";
 			else if(s=="float")$$->nodeType="long double";
 			else $$->nodeType=s;
@@ -338,7 +338,7 @@ additive_expression
 
 	| additive_expression '-' multiplicative_expression     {$$=make_node("-", $1, $3);
 		string s= addition($1->nodeType, $3->nodeType);
-		if(s.empty()){
+		if(!s.empty()){
 			if(s=="int")$$->nodeType="long long";
 			else if(s=="float")$$->nodeType="long double";
 			else  $$->nodeType=s;
@@ -379,7 +379,7 @@ relational_expression
 	: shift_expression										{$$=$1;}
 	| relational_expression '<' shift_expression   {$$=make_node("<",$1,$3);
 		string s= relational($1->nodeType, $3->nodeType);
-		if(s.empty())
+		if(!s.empty())
 		{
 			$$->nodeType="bool";
 			if(s=="Bool")
@@ -396,7 +396,7 @@ relational_expression
 	}
 	| relational_expression '>' shift_expression   {$$=make_node(">",$1,$3);
 		string s= relational($1->nodeType, $3->nodeType);
-		if(s.empty())
+		if(!s.empty())
 		{
 			$$->nodeType="bool";
 			if(s=="Bool")
@@ -412,7 +412,7 @@ relational_expression
 
 	| relational_expression LE_OP shift_expression {$$=make_node("<=",$1,$3);
 		string s= relational($1->nodeType, $3->nodeType);
-		if(s.empty())
+		if(!s.empty())
 		{
 			$$->nodeType="bool";
 			if(s=="Bool")
@@ -428,7 +428,7 @@ relational_expression
 
 	| relational_expression GE_OP shift_expression {$$=make_node(">=",$1,$3);
 		string s= relational($1->nodeType, $3->nodeType);
-		if(s.empty())
+		if(!s.empty())
 		{
 			$$->nodeType="bool";
 			if(s=="Bool")
@@ -447,7 +447,7 @@ equality_expression
 	: relational_expression									{$$=$1;}
 	| equality_expression EQ_OP relational_expression       {$$=make_node("==",$1,$3);
 		string s= equality($1->nodeType, $3->nodeType);
-		if(s.empty())
+		if(!s.empty())
 		{
 			$$->nodeType="bool";
 			if(s=="Bool")
@@ -464,7 +464,7 @@ equality_expression
 	}
 	| equality_expression NE_OP relational_expression       {$$=make_node("!=",$1,$3);
 		string s= equality($1->nodeType, $3->nodeType);
-		if(s.empty())
+		if(!s.empty())
 		{
 			$$->nodeType="bool";
 			if(s=="Bool")
@@ -485,7 +485,7 @@ and_expression
 	: equality_expression									       {$$=$1;}
 	| and_expression '&' equality_expression                       {$$=make_node("&",$1,$3);
 		string s= bitwise($1->nodeType, $3->nodeType);
-		if(s.empty())
+		if(!s.empty())
 		{
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
@@ -504,7 +504,7 @@ exclusive_or_expression
 	: and_expression											    {$$=$1;}
 	| exclusive_or_expression '^' and_expression			{$$=make_node("^",$1,$3);
 		string s= bitwise($1->nodeType, $3->nodeType);
-		if(s.empty())
+		if(!s.empty())
 		{
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
@@ -522,7 +522,7 @@ inclusive_or_expression
 	: exclusive_or_expression										{$$=$1;}
 	| inclusive_or_expression '|' exclusive_or_expression			{$$=make_node("|",$1,$3);
 		string s= bitwise($1->nodeType, $3->nodeType);
-		if(s.empty())
+		if(!s.empty())
 		{
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
@@ -561,7 +561,7 @@ conditional_expression
 	: logical_or_expression												{$$=$1;}
 	| logical_or_expression '?' expression ':' conditional_expression    {$$=make_node("conditional_expression",$1,$3,$5);
 		string s=condition($3->nodeType,$5->nodeType);
-		if(s.empty())$$->nodeType=s;
+		if(!s.empty())$$->nodeType=s;
 		else{
             yyerror("Error:Type mismatch in conditional expression");
 		}
@@ -576,7 +576,7 @@ assignment_expression
 	: conditional_expression													{$$=$1;}
 	| unary_expression assignment_operator assignment_expression		    {$$=make_node("assignment_expression",$1,make_node($2),$3);
 		string s=assign($1->nodeType,$3->nodeType,$2);
-		if(s.empty())
+		if(!s.empty())
 		{
 			$$->nodeType=$1->nodeType;
 			if(s=="warning"){
