@@ -83,7 +83,63 @@ primary_expression
 					}
 	
 	}				
-	| CONSTANT												{$$=make_node($1);}
+	| I_CONSTANT												{
+		$$=make_node($1);
+		
+		char * ptr = $1;
+		int num = strlen(ptr);
+		//for L'ab' type
+		if(ptr[0]=='L'){
+			$$->ival = ptr[num-2];
+		}
+		long long int val=0;
+		//for 'ab' type
+		if(ptr[0] == '\''){
+
+			for(int i = 1;i<num-1;i++){
+				if(ptr[i] == '\\') i++;
+				val = val<<8;
+				val+= ptr[i];
+			}
+			$$->ival = val;
+		}
+		string s($1);
+		if(ptr[num-1]!='\''){
+			//it is a number
+			$$->ival = stoll(s,nullptr,0);
+		}
+
+		int ty=1;
+		int un=0;
+		//for type:
+		if(ptr[num-1] == '\''){
+			$$->nodeType = "int";
+		}else{
+			for(int i = num-1;i>=0;i--){
+				if(ptr[i] == 'L' || ptr[i] == 'l') ty++;
+				else{
+					if(ptr[i] == 'u' || ptr[i] == 'U') un=1;
+					else break;
+				}
+			}
+		}
+		if(ty>=3) $$->nodeType = "long long int";
+		if(ty==2) $$->nodeType = "long int";
+		if(ty==1) $$->nodeType = "int";
+		if(un) $$->nodeType = "unsigned "+$$->nodeType;
+		$$->init = 1;
+		//cout<< $$->ival<<' '<<$$->nodeType<<endl;
+	}
+	|F_CONSTANT 											{$$=make_node($1);
+		string s($1);
+		$$->dval=stold(s);
+		$$->nodeType = "float";
+		for(auto x:s) if(x=='e') $$->nodeType = "double";
+		if(s[s.length()-1] == 'L') $$->nodeType = "long double";
+		if(s[s.length()-1] == 'F') $$->nodeType = "float"; 
+		$$->init=1;
+		//cout<< $$->dval<<' '<<$$->nodeType<<endl;
+	}
 	| STRING_LITERAL										{$$=make_node($1);}
 	| '(' expression ')'									{$$=$2;}
 	;
