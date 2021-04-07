@@ -1,19 +1,11 @@
-struct x{
-    int c;
-    int d;
-}; 
+union d{
+    int a;
+};
 
-struct y{
-    struct x a[];
-    float c;
-    struct x * b[];
-    char ** d;
+struct c{
+    struct c d;
 };
 
 int main(){
-    //  x ka type 1 y int error type assignment
-    int e;
-    struct y x;
-    int a[5] = {1,2,3,4,5};
     return 0;
 }

@@ -23,6 +23,7 @@ void EndGraph()
 node* make_node(char *str,node* x1, node* x2,node* x3,node* x4)
 {   
     node *n=new node;
+    n -> is_union = 2;
     string s(str);
     stringstream ss;
     if(!x1)

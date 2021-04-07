@@ -8,7 +8,8 @@ map<symTable*,symTable*> parent;
 map<string,string> funcMap;
 symTable *curr_table = new symTable();
 symTable *GST = curr_table;
-map<string,symTable*> struct_table;
+struct_table * curr_struct_table = new struct_table();
+map <struct_table*,struct_table*> struct_parent;
 
 void make_symTable_entry(string name,string type,int init){
    // cout << name << " with " << type << " init : " << init << endl;  
@@ -39,5 +40,32 @@ s_entry* lookup(string a)
 
 s_entry* lookup_in_curr(string a){
     return (((*curr_table).find(a) == (*curr_table).end()) ? NULL : (*curr_table)[a]);
+}
+
+int lookup_in_struct_curr_scope(string a){
+    if((*curr_struct_table).find(a) == (*curr_struct_table).end()){
+        return false;
+    }
+    else{
+        return true;
+    }
+}
+
+int lookup_struct(string name,int is_union){
+    struct_table * temp = curr_struct_table;
+    while(temp){
+        if((*temp).find(name) != (*temp).end()){
+            if((*temp)[name].second == is_union){
+                return (*temp)[name].first;
+            }
+            else{
+                temp = struct_parent[temp];
+            }
+        }
+        else{
+            temp = struct_parent[temp];
+        }
+    }
+    return 0;
 }
 

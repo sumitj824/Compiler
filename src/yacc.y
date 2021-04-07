@@ -64,7 +64,6 @@ int yylex();
 
 %start translation_unit
 %%
-
 primary_expression
 	: IDENTIFIER											{$$=make_node($1);
 					string s($1);
@@ -651,12 +650,13 @@ init_declarator
 				temp_arg.erase($1 -> nodeLex);
 			}
 		}
+		cout << $1 -> nodeLex << " " << $1 -> nodeType << endl;
 		if(find){
 			yyerror("Error: redeclaration of the variable."); 
 		}
 		else{
 			make_symTable_entry($1->nodeLex,$1 -> nodeType,0);
-			$1 -> init = 0;
+			$$ -> init = 0;
 		}
 	}
 	| declarator '=' initializer							{$$=make_node("init_declarator",$1,$3);
@@ -664,12 +664,13 @@ init_declarator
 		if(funcMatched){
 			yyerror("Error: not expected token '='");
 		}
+		cout << $1 -> nodeLex << " 2nd " << $1 -> nodeType << endl;
 		if(find){
 			yyerror("Error: redeclaration of the variable."); 
 		}
 		else{
 			make_symTable_entry($1->nodeLex,$1 -> nodeType,1);
-			$1 -> init = 1;
+			$$ -> init = 1;
 		}
 	}
 	;
@@ -774,48 +775,53 @@ type_specifier
 // struct x{int a;int b;} a,b,c; // x -> struct
 
 struct_or_union_specifier
-	: struct_or_union IDENTIFIER M3 '{' struct_declaration_list '}'  {$$=make_node("struct_or_union_specifier",$1,make_node($2),$5);
-		if(struct_table.find($2) == struct_table.end()){
-			struct_table.insert({$2,curr_table});
-			$$ -> nodeType = $2;
-			$$ -> nodeLex = $2;
-		}
-		else{
-			yyerror("Error: structure already defined.");
-		}
+	: M5 M3 '{' struct_declaration_list '}'  {$$=make_node("struct_or_union_specifier",$1,$4);
+		curr_struct_table = struct_parent[curr_struct_table];
 		curr_table = parent[curr_table];
 	}
 	| struct_or_union M3 '{' struct_declaration_list '}'             {$$=make_node("struct_or_union_specifier",$1,$4);
-		struct_count += 1;
-		string name = to_string(struct_count);
-		if(struct_table.find(name) == struct_table.end()){
-			struct_table.insert({name,curr_table});
-			$$ -> nodeType = name;
-			$$ -> nodeLex = name;
-		}
-		else{
-			yyerror("Error: structure already defined.");
-		}
+		curr_struct_table = struct_parent[curr_struct_table];
 		curr_table = parent[curr_table];
+		struct_count++;
+		string name = to_string(struct_count);
+		(*curr_struct_table)[name] = {struct_count,$1 -> is_union};
+		$$ -> nodeType = name;
+		$$ -> nodeLex = name;
 	}
 	| struct_or_union IDENTIFIER								  {$$=make_node("struct_or_union_specifier",$1,make_node($2));
-		if(struct_table.find($2) == struct_table.end()){
-			yyerror("Error: structure defintion not defined.");
-		}	
+		int id = lookup_struct($2,$1 -> is_union);
+		if(id){
+			$$ -> nodeType = to_string(id);
+			$$ -> nodeLex = to_string(id); 
+		}
 		else{
-			$$ -> nodeType = $2;
-			$$ -> nodeLex = $2;
+			yyerror("Error : structure not declared.");
 		}
 	}
 	;
+
+M5
+	:struct_or_union IDENTIFIER		{ $$ = make_node("Marker",$1,make_node($2));
+		if(lookup_in_struct_curr_scope($2)){
+			yyerror("Error : Redeclaration of structure.");
+		}
+		else{
+			struct_count++;
+			(*curr_struct_table)[$2] = {struct_count,$1 -> is_union};
+			$$ -> nodeType = to_string(struct_count);
+			$$ -> nodeLex = $2;
+		}
+	}
 struct_or_union
 	: STRUCT										    {$$=make_node($1);
 		$$ -> nodeType = $1;
 		$$ -> nodeLex = $1;
+		$$ -> is_union = 0;
 	}
 	| UNION										        {$$=make_node($1);
 		$$ -> nodeType = $1;
 		$$ -> nodeLex = $1;
+		$$ -> is_union = 1;
 	}
 	;
 
@@ -857,7 +863,7 @@ struct_declarator
 			yyerror("Error: redeclaration of variable.");
 		}
 		else{
-			make_symTable_entry($1->nodeLex,$1 -> nodeType,0);
+			make_symTable_entry($1 -> nodeLex,$1 -> nodeType,0);
 		}
 	}
 	;
@@ -924,13 +930,13 @@ pointer
 		$$ -> nodeType = "*";
 	}
 	| '*' type_qualifier_list									{$$=make_node("*",$2);
-		
+		$$ -> nodeType = $2 -> nodeType + "*";
 	}
 	| '*' pointer												{$$=make_node("*",$2);
 		$$ -> nodeType = $2 -> nodeType + "*";
 	}
 	| '*' type_qualifier_list pointer		    				{$$=make_node("*",$2,$3);
-		
+		$$ -> nodeType = $2 -> nodeType + $3 -> nodeType + "*";
 	}
 	;
 
@@ -1055,15 +1061,19 @@ labeled_statement
 compound_statement
 	: '{' '}'    								{$$=make_node("{ }");
 		curr_table = parent[curr_table];
+		curr_struct_table = struct_parent[curr_struct_table];
 	}
 	| '{' statement_list '}'					{$$=make_node("compound_statement",$2);
 		curr_table = parent[curr_table];
+		curr_struct_table = struct_parent[curr_struct_table];
 	}
 	| '{' declaration_list '}'					{$$=make_node("compound_statement",$2);
 		curr_table = parent[curr_table];
+		curr_struct_table = struct_parent[curr_struct_table];
 	}
 	| '{' declaration_list statement_list '}'   {$$=make_node("compound_statement",$2,$3);
 		curr_table = parent[curr_table];
+		curr_struct_table = struct_parent[curr_struct_table];
 	}
 	;
 
@@ -1231,6 +1241,9 @@ function_definition
 M3
 	:%empty		{
 		symTable * temp = new symTable();
+		struct_table * temp2 = new struct_table();
+		struct_parent.insert({temp2,curr_struct_table});
+		curr_struct_table = temp2;
 		parent.insert({temp,curr_table});
 		curr_table = temp;
 	}
