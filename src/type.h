@@ -9,6 +9,7 @@ bool isInt(string t);
 bool isFloat(string t);
 bool isNum(string t);
 string postfix(string t, int num);
+string unary(string t, string op);
 string multiply(string t1,string t2,char op);
 string addition(string t1,string t2);
 string relational(string t1,string t2);
