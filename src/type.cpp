@@ -25,26 +25,22 @@ bool isNum(string t)
 }
 
 
-
-
 string postfix(string t, int num)
 {
     if(num==1)  // postfix_expression '[' expression ']' 
     {
         if(t.back()=='*')
         {
-            t.back()='\0';
+            t.pop_back();
             return t;
         }
          return "";
     }
-    if(num==2)
+    if(num==2) 
     {
         if(t.substr(0,5)=="FUNC_")
         {
-            //TODO:
-            t+=5;
-            return t;
+            return string(t.begin()+5,t.end());
         }
          return "";
     }
@@ -59,8 +55,6 @@ string postfix(string t, int num)
     return t;
 
 }
-
-
 
 string multiply(string t1,string t2,char op)
 {
@@ -110,8 +104,8 @@ string relational(string t1,string t2)
 
 string equality(string t1,string t2)
 {
-    if(isNum(t1) && isNum(t2))return "bool";
     if(t1==t2) return "bool";
+    if((isNum(t1) || t1=="char") && isNum(t2)|| t1=="char")return "bool";
     if(t1.back()=='*' && isInt(t2))return "Bool";
     if(t2.back()=='*' && isInt(t1))return "Bool";
     return "";
@@ -130,13 +124,47 @@ string bitwise(string t1,string t2)
 string condition(string t1,string t2)
 {
 
-    //TODO:
+    if(t1==t2)
+    {
+        if(isInt(t1))return "long long";
+        if(isFloat(t1))return "long double";
+        return t1;
+    }
+    if(t1.back()=='*' && t2.back()=='*')return "void*";
     return "";
 }
 
 
+string validAssign(string t1,string t2)
+{   
+    if(t1==t2)return "true";
+    if((isNum(t1) || t1=="char") && isNum(t2)|| t1=="char")return "true";
+    if(t1.back()=='*' && isInt(t2))return "warning";
+    if(t2.back()=='*' && isInt(t1))return "warning";
+    if(t1=="void*" && t2.back()=='*')return "true";
+    if(t2=="void*" && t1.back()=='*')return "true";
+    if(t1.back()=='*' && t2.back()=='*')return "void*";
+    return "";
+}
+
 string assign(string t1,string t2,string op)
 {   
-    //TODO:
+    string s;
+    if(op=="="){
+        return validAssign(t1,t2);
+    }
+    if(op=="*=" || op=="/=" || op=="%="){
+        return multiply(t1,t1,op[0]);
+    }
+    if(op=="+=" || op=="-=" ){
+        return addition(t1,t2);
+    }
+    if(op==">>=" || op=="<<=" ){
+        if(isInt(t1) && isInt(t2))return "true";
+        else return "";
+    }
+    if(op=="&=" || op=="^=" || op=="|=" ){
+        return bitwise(t1,t2);
+    }
     return "";
 }

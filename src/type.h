@@ -15,4 +15,5 @@ string relational(string t1,string t2);
 string equality(string t1,string t2);
 string bitwise(string t1,string t2);
 string condition(string t1,string t2);
+string validAssign(string t1,string t2);
 string assign(string t1,string t2,string op);

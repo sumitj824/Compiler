@@ -78,7 +78,6 @@ primary_expression
 					{
 						yyerror("Error: Use of undeclared identifier.");
 						$$->nodeType="";
-	
 					}
 	
 	}				
@@ -582,6 +581,10 @@ assignment_expression
                 yyerror("Warning: Assignment with incompatible pointer type"); 
 			}
 			//!TODO:
+		}
+		else{
+			s="Error: Incompatible types when assigning type" +$3->nodeType +" to "+$1-> nodeType;
+			yyerror(s.c_str());
 		}
 	}
 	;
