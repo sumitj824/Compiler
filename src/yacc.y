@@ -21,6 +21,11 @@ string funcArg = "";
 string tmpstr = ""; // to store identifier list in function definition 1
 map <string,string> tmp_map;
 int struct_count = 0;
+int accept = 0;
+int array_case2 = 0;
+int in_param = 0;
+int initializer_list_size = 0;
+map <string,int> complete;
 void yyerror(char *s);
 int yylex();
 
@@ -52,7 +57,7 @@ int yylex();
 
 
 
-%type <ptr> M2 M3 M4 M5
+%type <ptr> M2 M3 M4 M5	M6 M7 M8
 %type <str>assignment_operator
 %type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression 
 %type <ptr> shift_expression relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
@@ -645,22 +650,27 @@ init_declarator_list
 init_declarator
 	: declarator											{$$=$1;
 		s_entry * find = lookup_in_curr($1->nodeLex);
-		if(funcMatched){
-			if(temp_arg.find($1 -> nodeLex) == temp_arg.end()){
-				yyerror("Error: variable not introduced in function definition.");
-			}	
-			else{
-				tmp_map[$1 -> nodeLex] = $1 -> nodeType;
-				temp_arg.erase($1 -> nodeLex);
-			}
-		}
-		cout << $1 -> nodeLex << " " << $1 -> nodeType << endl;
-		if(find){
-			yyerror("Error: redeclaration of the variable."); 
+		if(array_case2){
+			yyerror("Error : array size not defined.");
+			array_case2 = 0;
 		}
 		else{
-			make_symTable_entry($1->nodeLex,$1 -> nodeType,0);
-			$$ -> init = 0;
+			if(funcMatched){
+				if(temp_arg.find($1 -> nodeLex) == temp_arg.end()){
+					yyerror("Error: variable not introduced in function definition.");
+				}	
+				else{
+					tmp_map[$1 -> nodeLex] = $1 -> nodeType;
+					temp_arg.erase($1 -> nodeLex);
+				}
+			}
+			if(find){
+				yyerror("Error: redeclaration of the variable."); 
+			}
+			else{
+				make_symTable_entry($1->nodeLex,$1 -> nodeType,0);
+				$$ -> init = 0;
+			}
 		}
 	}
 	| declarator '=' initializer							{$$=make_node("init_declarator",$1,$3);
@@ -668,7 +678,9 @@ init_declarator
 		if(funcMatched){
 			yyerror("Error: not expected token '='");
 		}
-		cout << $1 -> nodeLex << " 2nd " << $1 -> nodeType << endl;
+		if(array_case2 && initializer_list_size == 0){
+			yyerror("Error : unexpected initialisation of array.");
+		}
 		if(find){
 			yyerror("Error: redeclaration of the variable."); 
 		}
@@ -676,6 +688,8 @@ init_declarator
 			make_symTable_entry($1->nodeLex,$1 -> nodeType,1);
 			$$ -> init = 1;
 		}
+		initializer_list_size = 0;
+		array_case2 = 0;
 	}
 	;
 
@@ -782,6 +796,9 @@ struct_or_union_specifier
 	: M5 M3 '{' struct_declaration_list '}'  {$$=make_node("struct_or_union_specifier",$1,$4);
 		curr_struct_table = struct_parent[curr_struct_table];
 		curr_table = parent[curr_table];
+		complete[$1 -> nodeType] = 1;
+		$$ -> nodeType = $1 -> nodeType;
+		$$ -> nodeLex = $1 -> nodeLex;
 	}
 	| struct_or_union M3 '{' struct_declaration_list '}'             {$$=make_node("struct_or_union_specifier",$1,$4);
 		curr_struct_table = struct_parent[curr_struct_table];
@@ -791,6 +808,7 @@ struct_or_union_specifier
 		(*curr_struct_table)[name] = {struct_count,$1 -> is_union};
 		$$ -> nodeType = name;
 		$$ -> nodeLex = name;
+		complete[$1 -> nodeType] = 1;
 	}
 	| struct_or_union IDENTIFIER								  {$$=make_node("struct_or_union_specifier",$1,make_node($2));
 		int id = lookup_struct($2,$1 -> is_union);
@@ -835,22 +853,40 @@ struct_declaration_list
 	;
 
 struct_declaration
-	: specifier_qualifier_list struct_declarator_list ';'          {$$=make_node("struct_declaration",$1,$2);
+	: M6 struct_declarator_list ';'          {$$=make_node("struct_declaration",$1,$2);
 		var_type = "";
 	}
 	;
 
+M6
+	:specifier_qualifier_list		{	$$ = $1;
+		var_type = $1 -> nodeType;
+	}
+	;
 specifier_qualifier_list
-	: type_specifier specifier_qualifier_list					{$$=make_node("specifier_qualifier_list",$1,$2);}
-	| type_specifier											{$$=$1;}
-	| type_qualifier specifier_qualifier_list					{$$=make_node("specifier_qualifier_list",$1,$2);}
-	| type_qualifier											{$$=$1;}
+	: type_specifier specifier_qualifier_list					{$$=make_node("specifier_qualifier_list",$1,$2);
+		$$ -> nodeType = $1 -> nodeType + $2 -> nodeType;;
+	}
+	| type_specifier											{$$=$1;
+		$$ -> nodeType = $1 -> nodeType;
+	}
+	| type_qualifier specifier_qualifier_list					{$$=make_node("specifier_qualifier_list",$1,$2);
+		$$ -> nodeType = $1 -> nodeType + $2 -> nodeType;
+	}
+	| type_qualifier											{$$=$1;
+		$$ -> nodeType = $1 -> nodeType;
+	}
 	;
 
 struct_declarator_list
-	: struct_declarator											{$$=$1;}
-	| struct_declarator_list ',' struct_declarator				{$$=make_node("struct_declarator_list",$1,$3);}              
+	: M7											{$$=$1;}
+	| struct_declarator_list ',' M7				{$$=make_node("struct_declarator_list",$1,$3);}              
 	;
+
+M7
+	:struct_declarator		{ $$ = $1;
+		accept = 0;
+	}
 
 struct_declarator
 	: declarator											{$$=$1;
@@ -858,7 +894,10 @@ struct_declarator
 			yyerror("Error: redeclaration of variable.");
 		}
 		else{
-			make_symTable_entry($1 -> nodeLex,$1 -> nodeType,0);
+			if(!complete[var_type] && !accept){
+				yyerror("Error : Creating object before completing structure definition.");
+			}
+			else make_symTable_entry($1 -> nodeLex,$1 -> nodeType,0);
 		}
 	}
 	| ':' constant_expression								{$$=$2;}
@@ -867,7 +906,10 @@ struct_declarator
 			yyerror("Error: redeclaration of variable.");
 		}
 		else{
-			make_symTable_entry($1 -> nodeLex,$1 -> nodeType,0);
+			if(!complete[var_type] && !accept){
+				yyerror("Error : Creating object before completing structure definition.");
+			}
+			else make_symTable_entry($1 -> nodeLex,$1 -> nodeType,0);
 		}
 	}
 	;
@@ -897,6 +939,7 @@ declarator
 	: pointer direct_declarator	               					{$$=make_node("direct_declarator",$1,$2);
 		$$ -> nodeType = $2 -> nodeType + $1 -> nodeType;
 		$$ -> nodeLex = $2 -> nodeLex;
+		accept = 1;
 	}
 	| direct_declarator											{$$=$1;}
 	;
@@ -910,10 +953,15 @@ direct_declarator
 	| direct_declarator '[' constant_expression ']'        		{$$=make_node("direct_declarator",$1,$3);
 		$$ -> nodeType = $1 -> nodeType + "*";
 		$$ -> nodeLex = $1 -> nodeLex;
+		//$$ -> size = ($1 -> size)*$3 -> iVal; // check whether constant_expression is evaluated or not
 	}
 	| direct_declarator '[' ']'							  		{$$=make_node("direct_declarator",$1,make_node("[]"));
 		$$ -> nodeType = $1 -> nodeType + "*";
 		$$ -> nodeLex = $1 -> nodeLex;
+		//$$ -> size = ($1 -> size)*initializer_list_size;
+		if(!in_param){
+			array_case2 = 1;
+		}
 	}
 	| direct_declarator '(' M3 parameter_type_list ')'        		{$$=make_node("direct_declarator",$1,$4);
 		$$ -> nodeLex = $1 -> nodeLex;
@@ -961,24 +1009,29 @@ parameter_list
 	;
 
 parameter_declaration
-	: declaration_specifiers declarator                 		{$$=make_node("parameter_declaration",$1,$2);
-		s_entry* find = lookup_in_curr($2 -> nodeLex);
+	: declaration_specifiers M8 declarator M8                 		{$$=make_node("parameter_declaration",$1,$3);
+		s_entry* find = lookup_in_curr($3 -> nodeLex);
 		if(find){
 			yyerror("Error: redeclaration of variable.");
 		}
 		else{
-			make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0);
+			make_symTable_entry($3 -> nodeLex,$3 -> nodeType,0);
 		}
 		if(funcArg == ""){
-			funcArg += $2 -> nodeType;
+			funcArg += $3 -> nodeType;
 		}
 		else{
-			funcArg += "," + $2 -> nodeType;
+			funcArg += "," + $3 -> nodeType;
 		}
 	}
 	| declaration_specifiers abstract_declarator                {$$=make_node("parameter_declaration",$1,$2);}
 	| declaration_specifiers									{$$=$1;}
 	;
+
+M8
+	:%empty{
+		in_param = 1 - in_param;
+	}
 
 identifier_list
 	: IDENTIFIER												{$$=make_node($1);
@@ -1041,8 +1094,12 @@ initializer
 	;
 
 initializer_list
-	: initializer											{$$=$1;}
-	| initializer_list ',' initializer						{$$=make_node("initializer_list",$1,$3);}
+	: initializer											{$$=$1;
+		initializer_list_size++;
+	}
+	| initializer_list ',' initializer						{$$=make_node("initializer_list",$1,$3);
+		initializer_list_size++;
+	}
 	;
 
 statement
@@ -1223,7 +1280,6 @@ function_definition
 		funcArg = "";
 		tmpstr = "";
 		tmp_map.clear();
-	
 	}
 	| declarator compound_statement                                               {$$=make_node("function_definition",$1,$2);
 		if(funcMap.find($1 -> nodeLex) == funcMap.end()){
@@ -1298,6 +1354,7 @@ void help(int f)
 
 int main(int argc, char *argv[])
 {	
+	complete[""] = 1;
 	if(argc==1)
 	{
 		help(1);
