@@ -56,6 +56,26 @@ string postfix(string t, int num)
 
 }
 
+
+
+string unary(string t, string op){
+    if(op=="&") return t+"*";
+    if(op=="*") return postfix(t,1);
+    if(op=="+") {
+        if(!isNum(t))return "";
+    }
+    if(op=="-"){
+        if(!isNum(t))return "";
+    }
+    if(op=="~"){
+        if(isInt(t)==0 && t!="bool")return "";
+    }
+    if(op=="!"){
+        if(isInt(t)==0 && t!="bool")return "";
+    }
+    return t;
+
+}
 string multiply(string t1,string t2,char op)
 {
     if(isNum(t1) && isNum(t2))

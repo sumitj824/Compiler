@@ -212,7 +212,9 @@ postfix_expression
 
 argument_expression_list									
 	: assignment_expression									{$$=$1;}
-	| argument_expression_list ',' assignment_expression    {$$=make_node("argument_expression_list", $1, $3);}
+	| argument_expression_list ',' assignment_expression    {$$=make_node("argument_expression_list", $1, $3);
+		//TODO:something
+	}
 	;
 
 unary_expression
@@ -244,15 +246,15 @@ unary_expression
 	}
 	| unary_operator cast_expression						{$$=make_node("unary_expression",$1,$2);
 			$$->init=$2->init;
-			//TODO :
-		    // string s=unary($1->nodeType,3);
-			// if(!s.empty())
-			// {
-			// 	$$->nodeType=s;
-			// }
-			// else{
-			// 	yyerror("Error: Decrement operator not defined for this type");
-			// }
+			
+		    string s=unary($2->nodeType,$1->name);
+			if(!s.empty())
+			{
+				$$->nodeType=s;
+			}
+			else{
+				yyerror("Error: Type inconsistent with unary operator");
+			}
 	
 	
 	}
@@ -540,8 +542,6 @@ logical_and_expression
 	| logical_and_expression AND_OP inclusive_or_expression			{$$=make_node("&&",$1,$3);
 		$$->nodeType="bool";
 		$$->init= ($1->init&& $3->init);
-	
-		//!doubt
 	}
 	;
 
@@ -550,7 +550,6 @@ logical_or_expression
 	| logical_or_expression OR_OP logical_and_expression			{$$=make_node("||",$1,$3);
 		$$->nodeType="bool";
 		$$->init= ($1->init&& $3->init);
-		//!doubt
 	}
 	;
 
