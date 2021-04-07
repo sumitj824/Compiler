@@ -584,7 +584,9 @@ assignment_expression
 		}
 		else{
 			s="Error: Incompatible types when assigning type" +$3->nodeType +" to "+$1-> nodeType;
-			yyerror(s.c_str());
+			char *x;
+			strcpy(x,s.c_str());
+			yyerror(x);
 		}
 	}
 	;
