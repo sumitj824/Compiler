@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <vector>
 using namespace std;
 
 
@@ -18,4 +19,4 @@ string bitwise(string t1,string t2);
 string condition(string t1,string t2);
 string validAssign(string t1,string t2);
 string assign(string t1,string t2,string op);
-int func_check(string user_arg,string func_arg);
+char* func_check(string user_arg,string func_arg);

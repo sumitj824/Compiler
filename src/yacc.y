@@ -169,14 +169,11 @@ postfix_expression
 					s_entry * s = lookup_in_table(GST,$1 -> nodeLex);
 					$$ -> nodeType = s -> type;
 					$$ -> nodeLex = $1 -> nodeLex;
-					if(func_check("",funcMap[$1 -> nodeLex])){
-						// TODO:
-					}
-					else{
-						yyerror("Error : Invalid arguments to function");
+					char* x=func_check("",funcMap[$1 -> nodeLex]);
+					if(x){
+						yyerror(x);
 					}
 				}	
-				//TODO : something
 	}
 	| postfix_expression '(' argument_expression_list')'   {$$=make_node("postfix_expression", $1, $3);
 		 $$->init=$3->init;
@@ -187,11 +184,9 @@ postfix_expression
 			s_entry * s = lookup_in_table(GST,$1 -> nodeLex);
 			$$ -> nodeType = s -> type;
 			$$ -> nodeLex = $1 -> nodeLex;
-			if(func_check(arg_list,funcMap[$1 -> nodeLex])){
-				// TODO:
-			}
-			else{
-				yyerror("Error : Invalid arguments to function");
+			char* x=func_check(arg_list,funcMap[$1 -> nodeLex]);
+			if(x){
+				yyerror(x);
 			}
 		}	 
 		arg_list = "";

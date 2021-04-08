@@ -48,8 +48,65 @@ string postfix(string t, int num)
 
 }
 
-int func_check(string user_arg,string func_arg){
-    return true;//TODO;
+
+string validAssign(string t1,string t2)
+{   
+    if(t1==t2)return "true";
+    if((isNum(t1) || t1=="char") && isNum(t2)|| t1=="char")return "true";
+    if(t1.back()=='*' && isInt(t2))return "warning";
+    if(t2.back()=='*' && isInt(t1))return "warning";
+    if(t1=="void*" && t2.back()=='*')return "true";
+    if(t2=="void*" && t1.back()=='*')return "true";
+    if(t1.back()=='*' && t2.back()=='*')return "void*";
+    return "";
+}
+
+char* func_check(string user_arg,string func_arg){
+    if(user_arg==func_arg)return NULL;
+    char *s;
+    vector<string> v1,v2;
+    string x="";
+    for(int i=0;i<user_arg.size();i++)
+    {
+        if(user_arg[i]==','){
+            v1.push_back(x);
+            x="";
+        }
+        else x+=user_arg[i];
+    }
+    x="";
+    for(int i=0;i<func_arg.size();i++)
+    {
+        if(func_arg[i]==','){
+            v2.push_back(x);
+            x="";
+        }
+        else x+=func_arg[i];
+    }
+    if(v1.size()>v2.size())
+    {
+         s="Error: too many arguments are provided to function";
+         return s;
+    }
+    else if(v1.size()<v2.size())
+    {
+         s="Error:  few arguments are provided to function";
+         return s;
+    }
+    bool warn=0;
+    for(int i=0;i<v1.size();i++)
+    {
+        if(validAssign(v1[i],v2[i])==""){
+            s= "Error: invalid type of arguments to function";
+            return s;
+        }
+        else if(validAssign(v1[i],v2[i])=="warning")warn=1;
+    }
+    if(warn){
+        s = "Warning: function call with incompatible type ";
+        return s;
+    }
+    return NULL;
 }
 
 string unary(string t, string op){
@@ -149,17 +206,6 @@ string condition(string t1,string t2)
 }
 
 
-string validAssign(string t1,string t2)
-{   
-    if(t1==t2)return "true";
-    if((isNum(t1) || t1=="char") && isNum(t2)|| t1=="char")return "true";
-    if(t1.back()=='*' && isInt(t2))return "warning";
-    if(t2.back()=='*' && isInt(t1))return "warning";
-    if(t1=="void*" && t2.back()=='*')return "true";
-    if(t2=="void*" && t1.back()=='*')return "true";
-    if(t1.back()=='*' && t2.back()=='*')return "void*";
-    return "";
-}
 
 string assign(string t1,string t2,string op)
 {   
