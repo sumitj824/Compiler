@@ -1534,6 +1534,7 @@ M13
 		struct_table * temp = new struct_table;
 		struct_parent[temp] = curr_struct_table;
 		curr_struct_table = temp;
+		symTable_type[temp_table]="function";
 	}
 	;
 M14
