@@ -1531,6 +1531,9 @@ M4
 M13 
 	:%empty		{
 		temp_table = new symTable();
+		struct_table * temp = new struct_table;
+		struct_parent[temp] = curr_struct_table;
+		curr_struct_table = temp;
 	}
 	;
 M14
