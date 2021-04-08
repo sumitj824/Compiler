@@ -34,3 +34,4 @@ void printSymTable(symTable* tablem,string block_name,string block_type,int star
 s_entry * lookup_in_table(symTable *table,string name);
 void update_init(string name,int init);
 int check_type(string type1,string type2);
+int is_struct(string type1);

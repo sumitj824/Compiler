@@ -29,6 +29,7 @@ extern int yylineno;
 vector<int> st_line_no;
 string arg_list = "";
 string funcName = "";
+string return_type = "";
 int initializer_list_size = 0;
 map <string,int> complete;
 void yyerror(char *s);
@@ -1223,9 +1224,7 @@ initializer_list
 statement
 	: labeled_statement												{$$=$1;}
 	| M12 M9 compound_statement M9											{$$=$3;}
-	| expression_statement											{$$=$1;
-		// complete typechecking.
-	}
+	| expression_statement											{$$=$1;}
 	| selection_statement											{$$=$1;}
 	| iteration_statement											{$$=$1;}
 	| jump_statement												{$$=$1;}
@@ -1331,8 +1330,12 @@ jump_statement
 	: GOTO IDENTIFIER ';'						{$$=make_node("jump_statement",make_node($1),make_node($2));}
 	| CONTINUE ';'						        {$$=make_node("continue");}
 	| BREAK ';'						            {$$=make_node("break");}
-	| RETURN ';'						        {$$=make_node("return");}
-	| RETURN expression ';'						{$$=make_node("jump_statement",make_node("return"),$2);}
+	| RETURN ';'						        {$$=make_node("return");
+		return_type = "void";
+	}
+	| RETURN expression ';'						{$$=make_node("jump_statement",make_node("return"),$2);
+		return_type = $2 -> nodeType;
+	}
 	;
 
 translation_unit
@@ -1370,6 +1373,16 @@ function_definition
 		else{
 			funcArg += "," + tmp_map[tmp];
 		}
+		if(is_struct($2 -> nodeType) || is_struct(return_type)){
+			if($2 -> nodeType != return_type){
+				yyerror("Error : Return type not consistent with output type of function.");
+			}
+		}
+		else{
+			if($2 -> nodeType != return_type){
+				yyerror("Warning : Implicit typecasting at return type.");
+			}
+		}
 		if(funcMap.find($2 -> nodeLex) == funcMap.end()){
 			if(!lookup($2 -> nodeLex)){
 				 funcMap.insert({$2 -> nodeLex,funcArg});
@@ -1386,8 +1399,20 @@ function_definition
 		tmpstr = "";
 		tmp_map.clear();
 		var_type = "";
+		return_type = "";
 	}
 	| declaration_specifiers declarator M4 compound_statement M4                        {$$=make_node("function_definition",$1,$2,$4);
+		if(is_struct($2 -> nodeType) || is_struct(return_type)){
+			if($2 -> nodeType != return_type){
+				yyerror("Error : Return type not consistent with output type of function.");
+			}
+		}
+		else{
+			if($2 -> nodeType != return_type){
+				yyerror("Warning : Implicit typecasting at return type.");
+			}
+		}
+		return_type = "";
 		if(funcMap.find($2 -> nodeLex) == funcMap.end()){
 			if(!lookup($2 -> nodeLex)){
 				 funcMap.insert({$2 -> nodeLex,funcArg});
@@ -1406,6 +1431,17 @@ function_definition
 	| declarator M3 M4 declaration_list compound_statement M4                        {$$=make_node("function_definition",$1,$4,$5);
 		int x= 0;
 		string tmp;
+		if(is_struct("int") || is_struct(return_type)){
+			if("int" != return_type){
+				yyerror("Error : Return type not consistent with output type of function.");
+			}
+		}
+		else{
+			if("int" != return_type){
+				yyerror("Warning : Implicit typecasting at return type.");
+			}
+		}
+		return_type = "";
 		while(x < tmpstr.size()){
 			if(tmpstr[x] == ','){
 				if(funcArg == ""){
@@ -1444,6 +1480,17 @@ function_definition
 		tmp_map.clear();
 	}
 	| declarator M4 compound_statement M4                                              {$$=make_node("function_definition",$1,$3);
+		if(is_struct("int") || is_struct(return_type)){
+			if("int" != return_type){
+				yyerror("Error : Return type not consistent with output type of function.");
+			}
+		}
+		else{
+			if("int" != return_type){
+				yyerror("Warning : Implicit typecasting at return type.");
+			}
+		}
+		return_type = "";
 		if(funcMap.find($1 -> nodeLex) == funcMap.end()){
 			if(!lookup($1 -> nodeLex)){
 				 funcMap.insert({$1 -> nodeLex,funcArg});

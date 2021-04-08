@@ -1,20 +1,9 @@
-struct xyz{
-    int x;
-    int y;
-};
+int f(int * a){
+    return 0;
+}
 
 int main(){
-    struct xyz temp;
-    int i;
-    temp.x = 0;
-    temp.y = 0;
-    for(i = 0;i < 5;i++){
-        if(i%2 != 0){
-            temp.y++;
-        }
-        else{
-            temp.x++;
-        }
-    }
+    int *a;
+    int b = f(a);
     return 0;
 }
