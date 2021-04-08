@@ -13,6 +13,8 @@ map <struct_table*,struct_table*> struct_parent;
 map <string,symTable*> id_to_struct;
 FILE * csv_output = fopen("csv_output.csv","w");
 map <symTable*,string> symTable_type;
+map <string,string> id_to_struct_name;
+
 void make_symTable_entry(string name,string type,int init){
    // cout << name << " with " << type << " init : " << init << endl;  
     s_entry * p = new s_entry();
@@ -81,7 +83,11 @@ void printSymTable(symTable* table,string block_name,string block_type,int sline
     start_new_block(block_name,symTable_type[table],sline,eline);
     fprintf(csv_output,"%-25s%-25s%-25s\n","Key","Type","Is_initialized");
     for(auto it : (*table)){
-        fprintf(csv_output,"%-25s%-25s%-25d\n",(it.first).c_str(),((it.second) -> type).c_str(),(it.second) -> init);
+        string type = (it.second) -> type;
+        if(id_to_struct_name.count(type)){
+            type = id_to_struct_name[type];
+        }
+        fprintf(csv_output,"%-25s%-25s%-25d\n",(it.first).c_str(),type.c_str(),(it.second) -> init);
     }
 }
 

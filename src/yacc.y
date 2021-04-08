@@ -869,6 +869,7 @@ struct_or_union_specifier
 		printSymTable(curr_table,$1 -> nodeLex,"struct",st_line_no.back(),yylineno);
 		st_line_no.pop_back();
 		id_to_struct[$1 -> nodeType] = curr_table;
+		id_to_struct_name[$1 -> nodeType] = "struct_name " + $1 -> nodeLex;
 		curr_table = parent[curr_table];
 		complete[$1 -> nodeType] = 1;
 		$$ -> nodeType = $1 -> nodeType;
@@ -882,6 +883,7 @@ struct_or_union_specifier
 		printSymTable(curr_table,name,"struct",st_line_no.back(),yylineno);
 		st_line_no.pop_back();
 		curr_table = parent[curr_table];
+		id_to_struct_name[name] = "struct_type_definition_2";
 		(*curr_struct_table)[name] = {struct_count,$1 -> is_union};
 		$$ -> nodeType = name;
 		$$ -> nodeLex = name;
@@ -1100,7 +1102,7 @@ parameter_declaration
 			yyerror("Error: redeclaration of variable.");
 		}
 		else{
-			make_symTable_entry($3 -> nodeLex,$3 -> nodeType,0);
+			make_symTable_entry($3 -> nodeLex,$3 -> nodeType,1);
 		}
 		if(funcArg == ""){
 			funcArg += $3 -> nodeType;
