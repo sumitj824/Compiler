@@ -71,17 +71,17 @@ int lookup_struct(string name,int is_union){
     return 0;
 }
 
-void start_new_block(string block_name,string block_type,int line){
-    fprintf(csv_output,"----------------------------------------------------------------\n");
-    fprintf(csv_output,"              starting %s with type %s  at line  %d      \n",block_name.c_str(),block_type.c_str(),line);
-    fprintf(csv_output,"----------------------------------------------------------------\n");
+void start_new_block(string block_name,string block_type,int sline,int eline){
+    fprintf(csv_output,"\n_________________________________________________________________\n");
+    fprintf(csv_output,"      %s with type %s  from line %d  to line %d        \n",block_name.c_str(),block_type.c_str(),sline,eline);
+    fprintf(csv_output,"-----------------------------------------------------------------\n");
 }
 
-void printSymTable(symTable* table,string block_name,string block_type,int line){
-    start_new_block(block_name,block_type,line);
-    fprintf(csv_output,"Key,Type,Is_initialized\n");
+void printSymTable(symTable* table,string block_name,string block_type,int sline,int eline){
+    start_new_block(block_name,block_type,sline,eline);
+    fprintf(csv_output,"%-25s%-25s%-25s\n","Key","Type","Is_initialized");
     for(auto it : (*table)){
-        fprintf(csv_output,"%s,%s,%d\n",(it.first).c_str(),((it.second) -> type).c_str(),(it.second) -> init);
+        fprintf(csv_output,"%-25s%-25s%-25d\n",(it.first).c_str(),((it.second) -> type).c_str(),(it.second) -> init);
     }
 }
 

@@ -866,7 +866,7 @@ type_specifier
 struct_or_union_specifier
 	: M5 M3 M10 '{' struct_declaration_list '}'  {$$=make_node("struct_or_union_specifier",$1,$5);
 		curr_struct_table = struct_parent[curr_struct_table];
-		printSymTable(curr_table,$1 -> nodeLex,"struct",st_line_no.back());
+		printSymTable(curr_table,$1 -> nodeLex,"struct",st_line_no.back(),yylineno);
 		st_line_no.pop_back();
 		id_to_struct[$1 -> nodeType] = curr_table;
 		curr_table = parent[curr_table];
@@ -879,7 +879,7 @@ struct_or_union_specifier
 		struct_count++;
 		string name = to_string(struct_count);
 		id_to_struct[name] = curr_table;
-		printSymTable(curr_table,name,"struct",st_line_no.back());
+		printSymTable(curr_table,name,"struct",st_line_no.back(),yylineno);
 		st_line_no.pop_back();
 		curr_table = parent[curr_table];
 		(*curr_struct_table)[name] = {struct_count,$1 -> is_union};
@@ -1242,11 +1242,11 @@ labeled_statement
 compound_statement
 	: M10 '{' '}'    								{$$=make_node("{ }");
 		if(!simple_block){
-			printSymTable(curr_table,funcName,"function",st_line_no.back());
+			printSymTable(curr_table,funcName,"function",st_line_no.back(),yylineno);
 			st_line_no.pop_back();
 		}
 		else{
-			printSymTable(curr_table,"BLOCK","BLOCK",st_line_no.back());
+			printSymTable(curr_table,"BLOCK","BLOCK",st_line_no.back(),yylineno);
 			st_line_no.pop_back();
 		}
 		curr_table = parent[curr_table];
@@ -1254,11 +1254,11 @@ compound_statement
 	}
 	| M10 '{' statement_list '}'					{$$=make_node("compound_statement",$3);
 		if(!simple_block){
-			printSymTable(curr_table,funcName,"function",st_line_no.back());
+			printSymTable(curr_table,funcName,"function",st_line_no.back(),yylineno);
 			st_line_no.pop_back();
 		}
 		else{
-			printSymTable(curr_table,"BLOCK","BLOCK",st_line_no.back());
+			printSymTable(curr_table,"BLOCK","BLOCK",st_line_no.back(),yylineno);
 			st_line_no.pop_back();
 		}
 		curr_table = parent[curr_table];
@@ -1266,11 +1266,11 @@ compound_statement
 	}
 	| M10 '{' declaration_list '}'					{$$=make_node("compound_statement",$3);
 		if(!simple_block){
-			printSymTable(curr_table,funcName,"function",st_line_no.back());
+			printSymTable(curr_table,funcName,"function",st_line_no.back(),yylineno);
 			st_line_no.pop_back();
 		}
 		else{
-			printSymTable(curr_table,"BLOCK","BLOCK",st_line_no.back());
+			printSymTable(curr_table,"BLOCK","BLOCK",st_line_no.back(),yylineno);
 			st_line_no.pop_back();
 		}
 		curr_table = parent[curr_table];
@@ -1278,11 +1278,11 @@ compound_statement
 	}
 	| M10 '{' declaration_list statement_list '}'   {$$=make_node("compound_statement",$3,$4);
 		if(!simple_block){
-			printSymTable(curr_table,funcName,"function",st_line_no.back());
+			printSymTable(curr_table,funcName,"function",st_line_no.back(),yylineno);
 			st_line_no.pop_back();
 		}
 		else{
-			printSymTable(curr_table,"BLOCK","BLOCK",st_line_no.back());
+			printSymTable(curr_table,"BLOCK","BLOCK",st_line_no.back(),yylineno);
 			st_line_no.pop_back();
 		}
 		curr_table = parent[curr_table];
