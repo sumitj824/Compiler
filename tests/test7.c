@@ -8,6 +8,7 @@ void update(int i,int val,int bit[],int n)
         bit[i]+=val;
         i+=i&(-i);
     }
+    return;
 }
 
 int query(int i,int bit[])
@@ -37,6 +38,5 @@ int main()
     {
         update(i+1,arr[i],bit,n);
     }
-
-    printf("%d\n",query(5,bit));
+    return 0;
 }

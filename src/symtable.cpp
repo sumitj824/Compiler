@@ -11,7 +11,7 @@ symTable *GST = curr_table;
 struct_table * curr_struct_table = new struct_table();
 map <struct_table*,struct_table*> struct_parent;
 map <string,symTable*> id_to_struct;
-FILE * csv_output = fopen("csv_output.csv","w");
+FILE * csv_output = fopen("All_symbolTable.txt","w");
 map <symTable*,string> symTable_type;
 map <string,string> id_to_struct_name;
 
@@ -81,7 +81,7 @@ void start_new_block(string block_name,string block_type,int sline,int eline){
 
 void printSymTable(symTable* table,string block_name,string block_type,int sline,int eline){
     start_new_block(block_name,symTable_type[table],sline,eline);
-    fprintf(csv_output,"%-25s%-25s%-25s\n","Key","Type","Is_initialized");
+    fprintf(csv_output,"%-25s%-25s%-25s\n\n","Key","Type","Is_initialized");
     for(auto it : (*table)){
         string type = (it.second) -> type;
         if(id_to_struct_name.count(type)){

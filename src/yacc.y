@@ -136,7 +136,6 @@ primary_expression
 		if(ty==1) $$->nodeType = "int";
 		if(un) $$->nodeType = "unsigned "+$$->nodeType;
 		$$->init = 1;
-		//cout<< $$->ival<<' '<<$$->nodeType<<endl;
 	}
 	|F_CONSTANT 											{$$=make_node($1);
 		string s($1);
@@ -146,7 +145,6 @@ primary_expression
 		if(s[s.length()-1] == 'L') $$->nodeType = "long double";
 		if(s[s.length()-1] == 'F') $$->nodeType = "float"; 
 		$$->init=1;
-		//cout<< $$->dval<<' '<<$$->nodeType<<endl;
 	}
 	| STRING_LITERAL										{$$=make_node($1);}
 	| '(' expression ')'									{$$=$2;}
@@ -209,7 +207,6 @@ postfix_expression
 				$$ -> nodeType = find -> type;
 				$$ -> init = find -> init;
 				$$ -> nodeLex = $1 -> nodeLex + "." + $3;
-				//  << "found : " << $$ -> nodeLex << " " << $$ -> nodeType << endl;cout
 			}
 			else{
 				yyerror("Error : Undefined attribute access in structure.");
@@ -228,7 +225,7 @@ postfix_expression
 				$$ -> nodeType = find -> type;
 				$$ -> init = find -> init;
 				$$ -> nodeLex = $1 -> nodeLex + $2 + $3;
-				cout << "found : " << $$ -> nodeLex << " " << $$ -> nodeType << endl;
+				
 			}
 			else{
 				yyerror("Error : Undefined attribute access in structure.");
@@ -1042,7 +1039,7 @@ direct_declarator
 			array_case2 = 1;
 		}
 	}
-	| direct_declarator '(' M3 parameter_type_list ')'        		{$$=make_node("direct_declarator",$1,$4);
+	| direct_declarator '(' M8 M3 parameter_type_list M8 ')'        		{$$=make_node("direct_declarator",$1,$5);
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> nodeType = $1 -> nodeType;
 		funcName = $1 -> nodeLex;
@@ -1097,19 +1094,19 @@ parameter_list
 	;
 
 parameter_declaration
-	: declaration_specifiers M8 declarator M8                 		{$$=make_node("parameter_declaration",$1,$3);
-		s_entry* find = lookup_in_curr($3 -> nodeLex);
+	: declaration_specifiers  declarator                  		{$$=make_node("parameter_declaration",$1,$2);
+		s_entry* find = lookup_in_curr($2 -> nodeLex);
 		if(find){
 			yyerror("Error: redeclaration of variable.");
 		}
 		else{
-			make_symTable_entry($3 -> nodeLex,$3 -> nodeType,1);
+			make_symTable_entry($2 -> nodeLex,$2 -> nodeType,1);
 		}
 		if(funcArg == ""){
-			funcArg += $3 -> nodeType;
+			funcArg += $2 -> nodeType;
 		}
 		else{
-			funcArg += "," + $3 -> nodeType;
+			funcArg += "," + $2 -> nodeType;
 		}
 		var_type = "";
 	}
