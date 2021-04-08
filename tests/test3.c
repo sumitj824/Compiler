@@ -1,45 +1,42 @@
-//testing data types and operations
-
-typedef unsigned char BYTE;
-
-struct point{
-    int x;
-    int y;
-};
-
-static int num = 6;
-extern int var;
-int k = 9;
-
-int main(){
-    int a = 5;
-    int b = 5;
-    char c = 'c';
-    double d1 = 7.0000000;
-    double d2 = 7.3e-10;
-    double d3 = 7.3e11;
-    unsigned int e = 11;
-    short f = 12;
-    long g = 133333;
-    int arr[5] = {1,2,3,4,5};
-
-    auto x = 7;
+//fenwick tree
 
 
-    int k = a++;
-    b-=a;
-    a+=b;
-    a*=b;
-    a/=b;
-    a--;
-    --a;
-    ++b;
+void update(int i,int val,int bit[],int n)
+{
+    while(i<=n)
+    {
+        bit[i]+=val;
+        i+=i&(-i);
+    }
+    return;
+}
 
-    //binary operators
+int query(int i,int bit[])
+{
+    int res=0;
+    while(i>0)
+    {
+        res+=bit[i];
+        i-=i&(-i);
+    }
+    return res;
+}
 
+int main()
+{
+    int n=1e6;
+    int i=0;
+    int bit[n+1];
+    int arr[]={1,2,3,4,5,6,7};
 
-    a = a|b;
-    b = a&b;
-    e = a^b;
-    e = ~a;
+    for(i=1;i<=n;i++)
+    {
+        bit[i]=0;
+    }
+
+    for(i=0;i<sizeof(arr)/sizeof(int);i++)
+    {
+        update(i+1,arr[i],bit,n);
+    }
+    return 0;
 }

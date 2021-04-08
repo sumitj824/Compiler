@@ -1,31 +1,18 @@
-// #include<stdio.h>
-// #include<math.h>
-// #include<stdlib.h>
-
-struct ar{
-    float x;
+struct xyz{
+    int x;
     int y;
-    char *s;
-};
-/* multiple
-    line */
+}; 
 
-//single line comment
-
-
-int main() {
- 
- int x;
- struct ar instant;
- instant.x = 100;
- instant.s = (char *)malloc(5*sizeof(char));
- instant.s[1] = 'a';
- instant.s[1] = 'b';
- instant.s[2] = 'c';
- instant.s[3] = 'd';
- instant.s[4] = '\0';
- printf("%d  %f  %s", x, instant.x, instant.s);
-
- return 2;
-
+int main(){
+    struct xyz temp;
+    int i;
+    temp.x=0; temp.y=0;
+    for( i = 0; i < 5; i++){
+        if(i%2!=0)
+        {
+            temp.y++;
+        }
+        else temp.x++;
+    }
+    return 0;
 }

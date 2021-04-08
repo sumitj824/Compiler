@@ -1,21 +1,46 @@
-// #include<stdio.h>
+//testing data types and operations
 
-union xy_z{
-    int  *ptr;
-    float x;
+typedef unsigned char BYTE;
+
+struct point{
+    int x;
+    int y;
 };
 
+static int num = 6;
+extern int var;
+int k = 9;
+
 int main(){
-    union xy_z curr;
-    int i;
-    curr.x = 15/5;
-    printf("%ld \n",sizeof(curr));
-    for( i = 0; i < 5; i++){
-        if(i%2!=0)
-        {
-            printf("%ld \n", sizeof(curr.ptr));
-        }
-        else printf ("%f \n",curr.x);
-    }
+    int a = 5;
+    int b = 5;
+    char c = 'c';
+    double d1 = 7.0000000;
+    double d2 = 7.3e-10;
+    double d3 = 7.3e11;
+    unsigned int e = 11;
+    short f = 12;
+    long g = 133333;
+    int arr[5] = {1,2,3,4,5};
+
+    auto x = 7;
+
+
+    int k = a++;
+    b-=a;
+    a+=b;
+    a*=b;
+    a/=b;
+    a--;
+    --a;
+    ++b;
+
+    //binary operators
+
+
+    a = a|b;
+    b = a&b;
+    e = a^b;
+    e = ~a;
     return 0;
 }
