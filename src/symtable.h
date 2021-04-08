@@ -21,6 +21,7 @@ extern struct_table* curr_struct_table;// struct_id[name] -> id
 extern map<struct_table*,struct_table*> struct_parent;
 extern map<string,symTable*> id_to_struct;
 extern FILE * csv_output;
+extern map <symTable*,string> symTable_type;
 s_entry* lookup(string a);
 
 void make_symTable_entry(string name,string type,int init);

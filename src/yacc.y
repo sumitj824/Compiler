@@ -62,7 +62,7 @@ int yylex();
 
 
 
-%type <ptr> M2 M3 M4 M5	M6 M7 M8 M9 M10
+%type <ptr> M2 M3 M4 M5	M6 M7 M8 M9 M10 M11 M12
 %type <str>assignment_operator
 %type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression 
 %type <ptr> shift_expression relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
@@ -864,7 +864,7 @@ type_specifier
 // struct x{int a;int b;} a,b,c; // x -> struct
 
 struct_or_union_specifier
-	: M5 M3 M10 '{' struct_declaration_list '}'  {$$=make_node("struct_or_union_specifier",$1,$5);
+	: M5 M11 M10 '{' struct_declaration_list '}'  {$$=make_node("struct_or_union_specifier",$1,$5);
 		curr_struct_table = struct_parent[curr_struct_table];
 		printSymTable(curr_table,$1 -> nodeLex,"struct",st_line_no.back(),yylineno);
 		st_line_no.pop_back();
@@ -874,7 +874,7 @@ struct_or_union_specifier
 		$$ -> nodeType = $1 -> nodeType;
 		$$ -> nodeLex = $1 -> nodeLex;
 	}
-	| struct_or_union M3 M10 '{' struct_declaration_list '}'             {$$=make_node("struct_or_union_specifier",$1,$5);
+	| struct_or_union M11 M10 '{' struct_declaration_list '}'             {$$=make_node("struct_or_union_specifier",$1,$5);
 		curr_struct_table = struct_parent[curr_struct_table];
 		struct_count++;
 		string name = to_string(struct_count);
@@ -1220,7 +1220,7 @@ initializer_list
 
 statement
 	: labeled_statement												{$$=$1;}
-	| M3 M9 compound_statement M9											{$$=$3;}
+	| M12 M9 compound_statement M9											{$$=$3;}
 	| expression_statement											{$$=$1;
 		// complete typechecking.
 	}
@@ -1241,7 +1241,7 @@ labeled_statement
 
 compound_statement
 	: M10 '{' '}'    								{$$=make_node("{ }");
-		if(!simple_block){
+		if(symTable_type[curr_table] == "function"){
 			printSymTable(curr_table,funcName,"function",st_line_no.back(),yylineno);
 			st_line_no.pop_back();
 		}
@@ -1253,7 +1253,7 @@ compound_statement
 		curr_struct_table = struct_parent[curr_struct_table];
 	}
 	| M10 '{' statement_list '}'					{$$=make_node("compound_statement",$3);
-		if(!simple_block){
+		if(symTable_type[curr_table] == "function"){
 			printSymTable(curr_table,funcName,"function",st_line_no.back(),yylineno);
 			st_line_no.pop_back();
 		}
@@ -1265,7 +1265,7 @@ compound_statement
 		curr_struct_table = struct_parent[curr_struct_table];
 	}
 	| M10 '{' declaration_list '}'					{$$=make_node("compound_statement",$3);
-		if(!simple_block){
+		if(symTable_type[curr_table] == "function"){
 			printSymTable(curr_table,funcName,"function",st_line_no.back(),yylineno);
 			st_line_no.pop_back();
 		}
@@ -1277,7 +1277,7 @@ compound_statement
 		curr_struct_table = struct_parent[curr_struct_table];
 	}
 	| M10 '{' declaration_list statement_list '}'   {$$=make_node("compound_statement",$3,$4);
-		if(!simple_block){
+		if(symTable_type[curr_table] == "function"){
 			printSymTable(curr_table,funcName,"function",st_line_no.back(),yylineno);
 			st_line_no.pop_back();
 		}
@@ -1466,8 +1466,31 @@ M3
 		curr_struct_table = temp2;
 		parent.insert({temp,curr_table});
 		curr_table = temp;
+		symTable_type[curr_table] = "function";
 	}
 	;
+M11
+	:%empty		{
+		symTable * temp = new symTable();
+		struct_table * temp2 = new struct_table();
+		struct_parent.insert({temp2,curr_struct_table});
+		curr_struct_table = temp2;
+		parent.insert({temp,curr_table});
+		curr_table = temp;
+		symTable_type[curr_table] = "struct";
+	}
+	;
+M12
+:%empty		{
+	symTable * temp = new symTable();
+	struct_table * temp2 = new struct_table();
+	struct_parent.insert({temp2,curr_struct_table});
+	curr_struct_table = temp2;
+	parent.insert({temp,curr_table});
+	curr_table = temp;
+	symTable_type[curr_table] = "block";
+}
+;
 M4
 	:%empty		{
 		funcMatched = 1 - funcMatched;
