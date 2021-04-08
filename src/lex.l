@@ -1,4 +1,4 @@
-
+%option yylineno
 D			[0-9]
 L			[a-zA-Z_]
 H			[a-fA-F0-9]
@@ -17,6 +17,7 @@ void comment();
 void single_line_comment();
 int check_type();
 %}
+
 
 %%
 "/*"			{ comment(); }

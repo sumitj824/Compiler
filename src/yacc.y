@@ -7,7 +7,7 @@
 #include "symtable.h"
 #include "type.h"
 #include <fstream>
-
+#include<vector>
 // to do :
 // offset
 // function entry to symbol table
@@ -25,6 +25,8 @@ int accept = 0;
 int array_case2 = 0;
 int in_param = 0;
 int simple_block = 0;
+extern int yylineno;
+vector<int> st_line_no;
 string arg_list = "";
 string funcName = "";
 int initializer_list_size = 0;
@@ -862,21 +864,23 @@ type_specifier
 // struct x{int a;int b;} a,b,c; // x -> struct
 
 struct_or_union_specifier
-	: M5 M3 '{' struct_declaration_list '}'  {$$=make_node("struct_or_union_specifier",$1,$4);
+	: M5 M3 M10 '{' struct_declaration_list '}'  {$$=make_node("struct_or_union_specifier",$1,$5);
 		curr_struct_table = struct_parent[curr_struct_table];
-		printSymTable(curr_table,$1 -> nodeLex,"struct");
+		printSymTable(curr_table,$1 -> nodeLex,"struct",st_line_no.back());
+		st_line_no.pop_back();
 		id_to_struct[$1 -> nodeType] = curr_table;
 		curr_table = parent[curr_table];
 		complete[$1 -> nodeType] = 1;
 		$$ -> nodeType = $1 -> nodeType;
 		$$ -> nodeLex = $1 -> nodeLex;
 	}
-	| struct_or_union M3 '{' struct_declaration_list '}'             {$$=make_node("struct_or_union_specifier",$1,$4);
+	| struct_or_union M3 M10 '{' struct_declaration_list '}'             {$$=make_node("struct_or_union_specifier",$1,$5);
 		curr_struct_table = struct_parent[curr_struct_table];
 		struct_count++;
 		string name = to_string(struct_count);
 		id_to_struct[name] = curr_table;
-		printSymTable(curr_table,name,"struct");
+		printSymTable(curr_table,name,"struct",st_line_no.back());
+		st_line_no.pop_back();
 		curr_table = parent[curr_table];
 		(*curr_struct_table)[name] = {struct_count,$1 -> is_union};
 		$$ -> nodeType = name;
@@ -1236,45 +1240,59 @@ labeled_statement
 	;
 
 compound_statement
-	: '{' '}'    								{$$=make_node("{ }");
+	: M10 '{' '}'    								{$$=make_node("{ }");
 		if(!simple_block){
-			printSymTable(curr_table,funcName,"function");
+			printSymTable(curr_table,funcName,"function",st_line_no.back());
+			st_line_no.pop_back();
 		}
 		else{
-			printSymTable(curr_table,"BLOCK","BLOCK");
+			printSymTable(curr_table,"BLOCK","BLOCK",st_line_no.back());
+			st_line_no.pop_back();
 		}
 		curr_table = parent[curr_table];
 		curr_struct_table = struct_parent[curr_struct_table];
 	}
-	| '{' statement_list '}'					{$$=make_node("compound_statement",$2);
+	| M10 '{' statement_list '}'					{$$=make_node("compound_statement",$3);
 		if(!simple_block){
-			printSymTable(curr_table,funcName,"function");
+			printSymTable(curr_table,funcName,"function",st_line_no.back());
+			st_line_no.pop_back();
 		}
 		else{
-			printSymTable(curr_table,"BLOCK","BLOCK");
+			printSymTable(curr_table,"BLOCK","BLOCK",st_line_no.back());
+			st_line_no.pop_back();
 		}
 		curr_table = parent[curr_table];
 		curr_struct_table = struct_parent[curr_struct_table];
 	}
-	| '{' declaration_list '}'					{$$=make_node("compound_statement",$2);
+	| M10 '{' declaration_list '}'					{$$=make_node("compound_statement",$3);
 		if(!simple_block){
-			printSymTable(curr_table,funcName,"function");
+			printSymTable(curr_table,funcName,"function",st_line_no.back());
+			st_line_no.pop_back();
 		}
 		else{
-			printSymTable(curr_table,"BLOCK","BLOCK");
+			printSymTable(curr_table,"BLOCK","BLOCK",st_line_no.back());
+			st_line_no.pop_back();
 		}
 		curr_table = parent[curr_table];
 		curr_struct_table = struct_parent[curr_struct_table];
 	}
-	| '{' declaration_list statement_list '}'   {$$=make_node("compound_statement",$2,$3);
+	| M10 '{' declaration_list statement_list '}'   {$$=make_node("compound_statement",$3,$4);
 		if(!simple_block){
-			printSymTable(curr_table,funcName,"function");
+			printSymTable(curr_table,funcName,"function",st_line_no.back());
+			st_line_no.pop_back();
 		}
 		else{
-			printSymTable(curr_table,"BLOCK","BLOCK");
+			printSymTable(curr_table,"BLOCK","BLOCK",st_line_no.back());
+			st_line_no.pop_back();
 		}
 		curr_table = parent[curr_table];
 		curr_struct_table = struct_parent[curr_struct_table];
+	}
+	;
+
+M10
+	:%empty		{
+		st_line_no.push_back(yylineno);
 	}
 	;
 

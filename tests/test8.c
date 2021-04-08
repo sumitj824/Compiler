@@ -20,6 +20,6 @@ int main(){
     // void y=11;          //variable of void type cannot be there 
     // int* a=4;           //invalid conversion from int to int*
     int b[10];
-    b[1.1] = 2;         //accessing array with index not an integer
+    b[11] = 2;         //accessing array with index not an integer
 
 }

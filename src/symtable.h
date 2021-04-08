@@ -28,7 +28,7 @@ void make_symTable_entry2(symTable * table,string name,string type,int init);
 s_entry* lookup_in_curr(string a);
 int lookup_in_struct_curr_scope(string a); // returns a flag 0/1
 int lookup_struct(string a,int is_union); // returns id of struct
-void printSymTable(symTable* tablem,string block_name,string block_type);
+void printSymTable(symTable* tablem,string block_name,string block_type,int line);
 s_entry * lookup_in_table(symTable *table,string name);
 void update_init(string name,int init);
 int check_type(string type1,string type2);
