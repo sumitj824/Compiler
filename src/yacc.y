@@ -155,9 +155,17 @@ postfix_expression
 	| postfix_expression '[' expression ']'					{$$=make_node("postfix_expression", $1, $3);
 				$$->init = ($1->init && $3->init);
 				string s=postfix($1->nodeType,1);
-				if(!s.empty()) $$->nodeType=s;
+				if(!s.empty()){ $$->nodeType=s;
+					if(isInt($3->nodeType)){
+						//TODO :check for array bound
+					}
+					else{
+						yyerror("Error: array subscript is not an integer");
+					}
+
+				}
 				else{
-					yyerror("Error: array index out of bound");
+					yyerror("Error:  Identifier is not pointer type");
 				}
 	}
 	| postfix_expression '(' ')'							{$$=$1;

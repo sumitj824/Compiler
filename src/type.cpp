@@ -74,6 +74,7 @@ char* func_check(string user_arg,string func_arg){
         }
         else x+=user_arg[i];
     }
+    if(x!="")v1.push_back(x);
     x="";
     for(int i=0;i<func_arg.size();i++)
     {
@@ -83,6 +84,7 @@ char* func_check(string user_arg,string func_arg){
         }
         else x+=func_arg[i];
     }
+    if(x!="")v2.push_back(x);
     if(v1.size()>v2.size())
     {
          s="Error: too many arguments are provided to function";
