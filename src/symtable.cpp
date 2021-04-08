@@ -10,6 +10,8 @@ symTable *curr_table = new symTable();
 symTable *GST = curr_table;
 struct_table * curr_struct_table = new struct_table();
 map <struct_table*,struct_table*> struct_parent;
+map <string,symTable*> id_to_struct;
+FILE * csv_output = fopen("csv_output.csv","w");
 
 void make_symTable_entry(string name,string type,int init){
    // cout << name << " with " << type << " init : " << init << endl;  
@@ -69,3 +71,52 @@ int lookup_struct(string name,int is_union){
     return 0;
 }
 
+void start_new_block(string block_name,string block_type){
+    fprintf(csv_output,"----------------------------------------------------------------\n");
+    fprintf(csv_output,"              starting %s with type %s        \n",block_name.c_str(),block_type.c_str());
+    fprintf(csv_output,"----------------------------------------------------------------\n");
+}
+
+void printSymTable(symTable* table,string block_name,string block_type){
+    start_new_block(block_name,block_type);
+    fprintf(csv_output,"Key,Type,Is_initialized\n");
+    for(auto it : (*table)){
+        fprintf(csv_output,"%s,%s,%d\n",(it.first).c_str(),((it.second) -> type).c_str(),(it.second) -> init);
+    }
+}
+
+s_entry * lookup_in_table(symTable * table,string name){
+    if((*table).count(name)){
+        return (*table)[name];
+    }
+    else return NULL;
+}
+
+void update_init(string name,int init){
+    s_entry * find = lookup(name);
+    if(find){
+        find -> init = init;
+    }
+    return;
+}
+
+int is_struct(string type1){
+    for(char a : type1){
+        if(a >= '0' && a <= '9'){
+
+        }
+        else{
+            return false;
+        }
+    }
+    return true;
+}
+
+int check_type(string type1,string type2){
+    if(is_struct(type1) || is_struct(type2)){
+        return type1 == type2;
+    }
+    else{
+        return true;
+    }
+}

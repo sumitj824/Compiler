@@ -36,14 +36,6 @@ string postfix(string t, int num)
         }
          return "";
     }
-    if(num==2) 
-    {
-        if(t.substr(0,5)=="FUNC_")
-        {
-            return string(t.begin()+5,t.end());
-        }
-         return "";
-    }
     if (num==3)
     { // postfix_expression INC_OP/DEC_OP
 	    if(isInt(t))
@@ -56,7 +48,9 @@ string postfix(string t, int num)
 
 }
 
-
+int func_check(string user_arg,string func_arg){
+    return true;//TODO;
+}
 
 string unary(string t, string op){
     if(op=="&") return t+"*";
