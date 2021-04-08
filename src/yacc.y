@@ -1220,7 +1220,7 @@ initializer_list
 
 statement
 	: labeled_statement												{$$=$1;}
-	| M3 M9 compound_statement M9											{$$=$2;}
+	| M3 M9 compound_statement M9											{$$=$3;}
 	| expression_statement											{$$=$1;
 		// complete typechecking.
 	}
@@ -1344,7 +1344,7 @@ external_declaration
 	;
 
 function_definition
-	: declaration_specifiers declarator M3 M4 declaration_list compound_statement M4       {$$=make_node("function_definition",$1,$2,$5,$7);
+	: declaration_specifiers declarator M3 M4 declaration_list compound_statement M4       {$$=make_node("function_definition",$1,$2,$5,$6);
 		int x= 0;
 		string tmp;
 		while(x < tmpstr.size()){
@@ -1385,7 +1385,7 @@ function_definition
 		tmp_map.clear();
 		var_type = "";
 	}
-	| declaration_specifiers declarator M4 compound_statement M4                        {$$=make_node("function_definition",$1,$2,$3);
+	| declaration_specifiers declarator M4 compound_statement M4                        {$$=make_node("function_definition",$1,$2,$4);
 		if(funcMap.find($2 -> nodeLex) == funcMap.end()){
 			if(!lookup($2 -> nodeLex)){
 				 funcMap.insert({$2 -> nodeLex,funcArg});
@@ -1401,7 +1401,7 @@ function_definition
 		funcArg = "";
 		var_type = "";
 	}
-	| declarator M3 M4 declaration_list compound_statement M4                        {$$=make_node("function_definition",$1,$4,$6);
+	| declarator M3 M4 declaration_list compound_statement M4                        {$$=make_node("function_definition",$1,$4,$5);
 		int x= 0;
 		string tmp;
 		while(x < tmpstr.size()){
@@ -1441,7 +1441,7 @@ function_definition
 		tmpstr = "";
 		tmp_map.clear();
 	}
-	| declarator M4 compound_statement M4                                              {$$=make_node("function_definition",$1,$2);
+	| declarator M4 compound_statement M4                                              {$$=make_node("function_definition",$1,$3);
 		if(funcMap.find($1 -> nodeLex) == funcMap.end()){
 			if(!lookup($1 -> nodeLex)){
 				 funcMap.insert({$1 -> nodeLex,funcArg});

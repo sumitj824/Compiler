@@ -101,6 +101,9 @@ void update_init(string name,int init){
 }
 
 int is_struct(string type1){
+    if(type1 == ""){
+        return false;
+    }
     for(char a : type1){
         if(a >= '0' && a <= '9'){
 
