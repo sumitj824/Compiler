@@ -24,7 +24,7 @@ $ ./bin/lexer -i ./tests/test1.c -o output.txt
 ```
 
 
-## Part 2 : Parser
+## Part 3 : Semantics
 In this we have constructed a Parser of source language to output Abstract Syntax Tree
 
 
