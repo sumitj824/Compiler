@@ -32,6 +32,7 @@ string funcName = "";
 string return_type = "";
 int initializer_list_size = 0;
 map <string,int> complete;
+symTable * temp_table;
 void yyerror(char *s);
 int yylex();
 
@@ -63,7 +64,7 @@ int yylex();
 
 
 
-%type <ptr> M2 M3 M4 M5	M6 M7 M8 M9 M10 M11 M12
+%type <ptr> M2 M3 M4 M5	M6 M7 M8 M9 M10 M11 M12 M13 M14 M15
 %type <str>assignment_operator
 %type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression 
 %type <ptr> shift_expression relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
@@ -1039,7 +1040,7 @@ direct_declarator
 			array_case2 = 1;
 		}
 	}
-	| direct_declarator '(' M8 M3 parameter_type_list M8 ')'        		{$$=make_node("direct_declarator",$1,$5);
+	| direct_declarator '(' M8 M13 parameter_type_list M8 ')'        		{$$=make_node("direct_declarator",$1,$5);
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> nodeType = $1 -> nodeType;
 		funcName = $1 -> nodeLex;
@@ -1048,7 +1049,7 @@ direct_declarator
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> nodeType = $1 -> nodeType;
 	}
-	| direct_declarator '(' M3 ')'									{$$=make_node("direct_declarator",$1,make_node("()"));
+	| direct_declarator '(' M13 M3 ')'									{$$=make_node("direct_declarator",$1,make_node("()"));
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> nodeType = $1 -> nodeType;
 		funcName = $1 -> nodeLex;
@@ -1100,7 +1101,7 @@ parameter_declaration
 			yyerror("Error: redeclaration of variable.");
 		}
 		else{
-			make_symTable_entry($2 -> nodeLex,$2 -> nodeType,1);
+			make_symTable_entry2(temp_table,$2 -> nodeLex,$2 -> nodeType,1);
 		}
 		if(funcArg == ""){
 			funcArg += $2 -> nodeType;
@@ -1398,7 +1399,7 @@ function_definition
 		var_type = "";
 		return_type = "";
 	}
-	| declaration_specifiers declarator M4 compound_statement M4                        {$$=make_node("function_definition",$1,$2,$4);
+	| M14 M4 compound_statement M4                        {$$=make_node("function_definition",$1,$3);
 		if(is_struct($2 -> nodeType) || is_struct(return_type)){
 			if($2 -> nodeType != return_type){
 				yyerror("Error : Return type not consistent with output type of function.");
@@ -1410,20 +1411,6 @@ function_definition
 			}
 		}
 		return_type = "";
-		if(funcMap.find($2 -> nodeLex) == funcMap.end()){
-			if(!lookup($2 -> nodeLex)){
-				 funcMap.insert({$2 -> nodeLex,funcArg});
-				 make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0);
-			}
-			else{
-				yyerror("Error: redeclaration of the function.");
-			}
-		}
-		else{
-			yyerror("Error: redeclaration of the function.");
-		}
-		funcArg = "";
-		var_type = "";
 	}
 	| declarator M3 M4 declaration_list compound_statement M4                        {$$=make_node("function_definition",$1,$4,$5);
 		int x= 0;
@@ -1476,7 +1463,7 @@ function_definition
 		tmpstr = "";
 		tmp_map.clear();
 	}
-	| declarator M4 compound_statement M4                                              {$$=make_node("function_definition",$1,$3);
+	| M15 M4 compound_statement M4                                              {$$=make_node("function_definition",$1,$3);
 		if(is_struct("int") || is_struct(return_type)){
 			if("int" != return_type){
 				yyerror("Error : Return type not consistent with output type of function.");
@@ -1488,19 +1475,6 @@ function_definition
 			}
 		}
 		return_type = "";
-		if(funcMap.find($1 -> nodeLex) == funcMap.end()){
-			if(!lookup($1 -> nodeLex)){
-				 funcMap.insert({$1 -> nodeLex,funcArg});
-				 make_symTable_entry($1 -> nodeLex,"int",0);
-			}
-			else{
-				yyerror("Error: redeclaration of the function.");
-			}
-		}
-		else{
-			yyerror("Error: redeclaration of the function.");
-		}
-		funcArg = "";
 	}
 	;
 
@@ -1552,6 +1526,52 @@ M4
 			}
 			funcName = "";
 		}
+	}
+	;
+M13 
+	:%empty		{
+		temp_table = new symTable();
+	}
+	;
+M14
+	:declaration_specifiers declarator		{ $$ = make_node("Marker14",$1,$2);
+		$$ -> nodeType = $1 -> nodeType;
+		if(funcMap.find($2 -> nodeLex) == funcMap.end()){
+			if(!lookup($2 -> nodeLex)){
+				 funcMap.insert({$2 -> nodeLex,funcArg});
+				 make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0);
+			}
+			else{
+				yyerror("Error: redeclaration of the function.");
+			}
+		}
+		else{
+			yyerror("Error: redeclaration of the function.");
+		}
+		funcArg = "";
+		var_type = "";
+		parent[temp_table] = curr_table;
+		curr_table = temp_table;
+	}
+	;
+M15
+	:declarator		{
+		$$ = $1;
+		if(funcMap.find($1 -> nodeLex) == funcMap.end()){
+			if(!lookup($1 -> nodeLex)){
+				 funcMap.insert({$1 -> nodeLex,funcArg});
+				 make_symTable_entry($1 -> nodeLex,"int",0);
+			}
+			else{
+				yyerror("Error: redeclaration of the function.");
+			}
+		}
+		else{
+			yyerror("Error: redeclaration of the function.");
+		}
+		funcArg = "";
+		parent[temp_table] = curr_table;
+		curr_table = temp_table;
 	}
 	;
 %%
