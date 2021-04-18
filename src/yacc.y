@@ -86,7 +86,10 @@ primary_expression
 					{
 						$$->init=t->init;
 						$$->nodeType=t->type;
-						$$ -> nodeLex = $1;
+						$$ -> nodeLex = string($1);
+						///
+						$$->place={string($1),t};
+						///
 					}
 					else 
 					{
@@ -139,6 +142,10 @@ primary_expression
 		if(ty==1) $$->nodeType = "int";
 		if(un) $$->nodeType = "unsigned "+$$->nodeType;
 		$$->init = 1;
+		///
+		 $$->place={$1->str,NULL};
+		///
+
 	}
 	|F_CONSTANT 											{$$=make_node($1);
 		string s($1);
@@ -148,8 +155,15 @@ primary_expression
 		if(s[s.length()-1] == 'L') $$->nodeType = "long double";
 		if(s[s.length()-1] == 'F') $$->nodeType = "float"; 
 		$$->init=1;
+		///
+		 $$->place={$1->str,NULL};
+		///
 	}
-	| STRING_LITERAL										{$$=make_node($1);}
+	| STRING_LITERAL										{$$=make_node($1);
+		///
+		 $$->place={$1->str,NULL};
+		///
+	}
 	| '(' expression ')'									{$$=$2;}
 	;
 
@@ -190,7 +204,7 @@ postfix_expression
 						yyerror(x);
 					}
 				}
-				////
+				///
 				comp temp = get_temp_label($$ -> nodeType);
 				// todo : reference to parameters
 				emit({"CALL_FUNC",NULL},$1 -> place,{"",NULL},temp);	
@@ -253,6 +267,11 @@ postfix_expression
 			if(!s.empty())
 			{
 				$$->nodeType=s;
+				///
+				comp temp = get_temp_label($$ -> nodeType);
+				emit({"++S",lookup("++")},$1 -> place,{"",NULL},temp);	
+				$$->place=temp;
+				///
 			}
 			else{
 				yyerror("Error: Increment operator not defined for this type");
@@ -264,6 +283,11 @@ postfix_expression
 			if(!s.empty())
 			{
 				$$->nodeType=s;
+				///
+				comp temp = get_temp_label($$ -> nodeType);
+				emit({"--S",lookup("--")},$1 -> place,{"",NULL},temp);	
+				$$->place=temp;
+				///
 			}
 			else{
 				yyerror("Error: Decrement operator not defined for this type");
@@ -301,6 +325,13 @@ unary_expression
 			{
 				$$->nodeType=s;
 				$$-> nodeLex = $2 -> nodeLex;
+				///
+				comp temp = get_temp_label($$ -> nodeType);
+				emit({"++P",lookup("++")},$2 -> place,{"",NULL},temp);	
+				$$->place=temp;
+				///
+				
+
 			}
 			else{
 				yyerror("Error: Increment operator not defined for this type");
@@ -314,6 +345,11 @@ unary_expression
 			{
 				$$->nodeType=s;
 				$$-> nodeLex = $2 -> nodeLex;
+				///
+				comp temp = get_temp_label($$ -> nodeType);
+				emit({"--P",lookup("--")},$2 -> place,{"",NULL},temp);	
+				$$->place=temp;
+				///
 			}
 			else{
 				yyerror("Error: Decrement operator not defined for this type");
@@ -329,6 +365,11 @@ unary_expression
 			{
 				$$->nodeType=s;
 				$$-> nodeLex = $2 -> nodeLex;
+				///
+				comp temp = get_temp_label($$ -> nodeType);
+				emit($1->place,$2 -> place,{"",NULL},temp);	
+				$$->place=temp;
+				///
 			}
 			else{
 				yyerror("Error: Type inconsistent with unary operator");
@@ -340,30 +381,57 @@ unary_expression
 			$$->nodeType="int";
 			$$->init=1;
 			$$->nodeLex = $2 -> nodeLex;
+			///
+			comp temp = get_temp_label($$ -> nodeType);
+			emit({"SIZEOF",lookup("sizeof")},$2 -> place,{"",NULL},temp);	
+			$$->place=temp;
+			///
 	
 	}
 	| SIZEOF '(' type_name ')'								{$$=make_node($1,$3);
 			$$->nodeType="int";
 			$$->init=1;
 			$$->nodeLex = $3 -> nodeLex;
+			///
+			comp temp = get_temp_label($$ -> nodeType);
+			emit({"SIZEOF",lookup("sizeof")},$3 -> place,{"",NULL},temp);	
+			$$->place=temp;
+			///
 	}
 	;
 
 unary_operator
-	: '&'		{$$=make_node("&");}
-	| '*'		{$$=make_node("*");}
-	| '+'		{$$=make_node("+");}
-	| '-'		{$$=make_node("-");}
-	| '~'		{$$=make_node("~");}
-	| '!'		{$$=make_node("!");}
+	: '&'		{$$=make_node("&");
+		$$->place={"&",lookup("&")};
+	}
+	| '*'		{$$=make_node("*");
+		$$->place={"*",lookup("*")};
+	}
+	| '+'		{$$=make_node("+");
+		$$->place={"unary+",lookup("+")};
+	}
+	| '-'		{$$=make_node("-");
+		$$->place={"unary-",lookup("-")};
+	}
+	| '~'		{$$=make_node("~");
+		$$->place={"~",lookup("~")};
+	}
+	| '!'		{$$=make_node("!");
+		$$->place={"!",lookup("!")};
+	}
 	;
 
 cast_expression
 	: unary_expression									   {$$=$1;}
 	| '(' type_name ')' cast_expression                    {$$=make_node("cast_expression", $2, $4);
-			  $$->nodeType=$2->nodeType;
-			  $$->init=$4->init;
-			  $$ -> nodeLex = $4 -> nodeLex;
+			$$->nodeType=$2->nodeType;
+			$$->init=$4->init;
+			$$ -> nodeLex = $4 -> nodeLex;
+			///
+			comp temp = get_temp_label($$ -> nodeType);
+			emit({$4->nodeType+"to"+$$->nodeType,NULL},$4 -> place,{"",NULL},temp);	
+			$$->place=temp;
+			///
 	}
 	;
 
@@ -371,8 +439,34 @@ multiplicative_expression
 	: cast_expression									   {$$=$1;}
 	| multiplicative_expression '*' cast_expression        {$$=make_node("*", $1, $3);
 			string s=multiply($1->nodeType, $3->nodeType,'*');
-			if(s=="int")$$->nodeType="long long";
-			else if(s=="float")$$->nodeType="long double";
+			if(s=="int"){
+				$$->nodeType="long long";
+				///
+				comp temp = get_temp_label($$ -> nodeType);
+				emit({"*int",lookup("*")},$1 -> place,$3 -> place,temp);	
+				$$->place=temp;
+				///
+			}
+			else if(s=="float"){
+				$$->nodeType="long double";
+				///
+				comp temp1 = get_temp_label($$ -> nodeType);
+				if(isInt($1->nodeType)){
+					comp temp2=get_temp_label($$ -> nodeType);
+					emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
+					emit({"*real",lookup("*")},temp2,$3 -> place,temp1);	
+				}
+				else if(isInt($3->nodeType)){
+					comp temp2=get_temp_label($$ -> nodeType);
+					emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
+					emit({"*real",lookup("*")},$1 -> place,temp2,temp1);
+				}
+				else {
+					emit({"*real",lookup("*")},$1 -> place,$3->place,temp1);
+				}
+				$$->place=temp1;
+				///
+			}
 			else{
 				yyerror("Error:  Incompatible type for * operator");
 			} 
@@ -381,8 +475,35 @@ multiplicative_expression
 	}
 	| multiplicative_expression '/' cast_expression        {$$=make_node("/", $1, $3);
 			string s=multiply($1->nodeType, $3->nodeType,'/');
-			if(s=="int")$$->nodeType="long long";
-			else if(s=="float")$$->nodeType="long double";
+			if(s=="int"){
+				$$->nodeType="long long";
+				///
+				comp temp = get_temp_label($$ -> nodeType);
+				emit({"/int",lookup("/")},$1 -> place,$3 -> place,temp);	
+				$$->place=temp;
+				///
+			}
+			else if(s=="float"){
+				$$->nodeType="long double";
+				///
+				comp temp1 = get_temp_label($$ -> nodeType);
+				if(isInt($1->nodeType)){
+					comp temp2=get_temp_label($$ -> nodeType);
+					emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
+					emit({"/real",lookup("/")},temp2,$3 -> place,temp1);	
+				}
+				else if(isInt($3->nodeType)){
+					comp temp2=get_temp_label($$ -> nodeType);
+					emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
+					emit({"/real",lookup("/")},$1 -> place,temp2,temp1);
+				}
+				else {
+					emit({"/real",lookup("/")},$1 -> place,$3->place,temp1);
+	
+				}
+				$$->place=temp1;
+				///
+			}
 			else{
 				yyerror("Error:  Incompatible type for / operator");
 			} 
@@ -391,7 +512,15 @@ multiplicative_expression
 	}
 	| multiplicative_expression '%' cast_expression        {$$=make_node("%", $1, $3);
 			string s=multiply($1->nodeType, $3->nodeType,'%');
-			if(s=="int")$$->nodeType="long long";
+			if(s=="int"){
+				$$->nodeType="long long";
+				///
+				comp temp = get_temp_label($$ -> nodeType);
+				emit({"%",lookup("%")},$1 -> place,$3 -> place,temp);	
+				$$->place=temp;
+				///
+			
+			}
 			else{
 				yyerror("Error:  Incompatible type for % operator");
 			} 
@@ -436,6 +565,11 @@ shift_expression
 	| shift_expression LEFT_OP additive_expression		{$$=make_node("<<",$1,$3);
 		if(isInt($1->nodeType) && isInt($3->nodeType)) 
 			$$->nodeType= $1->nodeType;
+			///
+			comp temp = get_temp_label($$ -> nodeType);
+			emit({"LEFT_OP",lookup("<<")},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			///
 		else{
 			yyerror("Error: Invalid operands to binary <<");
 		}
@@ -448,6 +582,11 @@ shift_expression
 	| shift_expression RIGHT_OP additive_expression     {$$=make_node(">>",$1,$3);
 		if(isInt($1->nodeType) && isInt($3->nodeType)) 
 			$$->nodeType= $1->nodeType;
+			///
+			comp temp = get_temp_label($$ -> nodeType);
+			emit({"RIGHT_OP",lookup(">>")},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			///
 		else{
 			yyerror("Error: Invalid operands to binary >>");
 		}
@@ -466,6 +605,12 @@ relational_expression
 			{
 				 yyerror("Warning: comparison between pointer and integer");
 			}
+			///
+			comp temp = get_temp_label($$ -> nodeType);
+			emit({"<",lookup("<")},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			///
+			
 		}
 		else{
               yyerror("Error: invalid operands to binary <");
@@ -483,6 +628,11 @@ relational_expression
 			{
 				 yyerror("Warning: comparison between pointer and integer");
 			}
+			///
+			comp temp = get_temp_label($$ -> nodeType);
+			emit({">",lookup(">")},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			///
 		}
 		else{
               yyerror("Error: invalid operands to binary >");
@@ -499,6 +649,11 @@ relational_expression
 			{
 				 yyerror("Warning: comparison between pointer and integer");
 			}
+			///
+			comp temp = get_temp_label($$ -> nodeType);
+			emit({"LE_OP",lookup("<=")},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			///
 		}
 		else{
               yyerror("Error: invalid operands to binary <=");
@@ -515,6 +670,11 @@ relational_expression
 			{
 				 yyerror("Warning: comparison between pointer and integer");
 			}
+			///
+			comp temp = get_temp_label($$ -> nodeType);
+			emit({"GE_OP",lookup(">=")},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			///
 		}
 		else{
               yyerror("Error: invalid operands to binary >=");
@@ -534,6 +694,11 @@ equality_expression
 			{
 				 yyerror("Warning: comparison between pointer and integer");
 			}
+			///
+			comp temp = get_temp_label($$ -> nodeType);
+			emit({"EQ_OP",lookup("==")},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			///
 		}
 		else{
               yyerror("Error: invalid operands to binary ==");
@@ -551,6 +716,11 @@ equality_expression
 			{
 				 yyerror("Warning: comparison between pointer and integer");
 			}
+			///
+			comp temp = get_temp_label($$ -> nodeType);
+			emit({"NE_OP",lookup("!=")},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			///
 		}
 		else{
               yyerror("Error: invalid operands to binary !=");
@@ -569,7 +739,11 @@ and_expression
 		{
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
-			
+			///
+			comp temp = get_temp_label($$ -> nodeType);
+			emit({"&",lookup("&")},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			///
 		}
 		else{
               yyerror("Error: invalid operands to binary &");
@@ -588,6 +762,11 @@ exclusive_or_expression
 		{
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
+			///
+			comp temp = get_temp_label($$ -> nodeType);
+			emit({"^",lookup("^")},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			///
 			
 		}
 		else{
@@ -606,6 +785,11 @@ inclusive_or_expression
 		{
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
+			///
+			comp temp = get_temp_label($$ -> nodeType);
+			emit({"|",lookup("|")},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			///
 			
 		}
 		else{
@@ -633,7 +817,7 @@ logical_or_expression
 	}
 	;
 
-/*check & vs && */
+
 conditional_expression
 	: logical_or_expression												{$$=$1;}
 	| logical_or_expression '?' expression ':' conditional_expression    {$$=make_node("conditional_expression",$1,$3,$5);
