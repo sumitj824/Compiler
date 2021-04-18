@@ -10,7 +10,7 @@
 #include<vector>
 // to do :
 // offset
-// function entry to symbol table
+// 
 
 using namespace std;
 
@@ -169,6 +169,10 @@ postfix_expression
 				else{
 					yyerror("Error:  Identifier is not pointer type");
 				}
+
+				///
+
+				///
 	}
 	| postfix_expression '(' ')'							{$$=$1;
 				$$->init=1;
@@ -183,7 +187,12 @@ postfix_expression
 					if(x){
 						yyerror(x);
 					}
-				}	
+				}
+				///
+				comp temp = get_temp_label($$ -> nodeType);
+				// todo : reference to parameters
+				emit({"CALL_FUNC",NULL},$1 -> place,{"",NULL},temp);	
+				///
 	}
 	| postfix_expression '(' argument_expression_list')'   {$$=make_node("postfix_expression", $1, $3);
 		 $$->init=$3->init;
@@ -1501,7 +1510,7 @@ M11
 	}
 	;
 M12
-:%empty		{
+	:%empty		{
 	symTable * temp = new symTable();
 	struct_table * temp2 = new struct_table();
 	struct_parent.insert({temp2,curr_struct_table});
@@ -1509,8 +1518,8 @@ M12
 	parent.insert({temp,curr_table});
 	curr_table = temp;
 	symTable_type[curr_table] = "block";
-}
-;
+	}
+	;
 M4
 	:%empty		{
 		funcMatched = 1 - funcMatched;

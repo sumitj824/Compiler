@@ -85,19 +85,30 @@ char* func_check(string user_arg,string func_arg){
         else x+=func_arg[i];
     }
     if(x!="")v2.push_back(x);
-    if(v1.size()>v2.size())
-    {
-         s="Error: too many arguments are provided to function";
-         return s;
+    if(v2.back() != "..."){
+        if(v1.size()>v2.size())
+        {
+            s="Error: too many arguments are provided to function";
+            return s;
+        }
+        else if(v1.size()<v2.size())
+        {
+            s="Error:  few arguments are provided to function";
+            return s;
+        }
     }
-    else if(v1.size()<v2.size())
-    {
-         s="Error:  few arguments are provided to function";
-         return s;
+    else{
+        if(v1.size() < (v2.size()-1)){
+            s="Error:  few arguments are provided to function";
+            return s;
+        }
     }
     bool warn=0;
     for(int i=0;i<v1.size();i++)
     {
+        if(v2[i] == "..."){
+            return NULL;
+        }
         if(validAssign(v1[i],v2[i])==""){
             s= "Error: invalid type of arguments to function";
             return s;

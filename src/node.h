@@ -3,6 +3,7 @@
 #include<stdlib.h>
 #include<sstream>
 #include<string.h>
+#include "3ac.h"
 
 using namespace std;
 
@@ -17,6 +18,7 @@ typedef struct
     string nodeLex;
     int init;
     int is_union;
+    quad place;
 }node;
 
 
