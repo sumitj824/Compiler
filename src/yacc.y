@@ -10,7 +10,7 @@
 #include<vector>
 // to do :
 // offset
-// 
+// 3AC
 
 using namespace std;
 
@@ -76,6 +76,8 @@ int yylex();
 
 %start translation_unit
 %%
+// file -> quadraple -> op_code, op1, op2, result
+
 primary_expression
 	: IDENTIFIER											{$$=make_node($1);
 					string s($1);
@@ -188,7 +190,7 @@ postfix_expression
 						yyerror(x);
 					}
 				}
-				///
+				////
 				comp temp = get_temp_label($$ -> nodeType);
 				// todo : reference to parameters
 				emit({"CALL_FUNC",NULL},$1 -> place,{"",NULL},temp);	
@@ -646,7 +648,6 @@ conditional_expression
 
 
 	;
-// int a = 5;
 assignment_expression
 	: conditional_expression													{$$=$1;}
 	| unary_expression assignment_operator assignment_expression		    {$$=make_node("assignment_expression",$1,make_node($2),$3);
@@ -681,7 +682,7 @@ assignment_operator
 	| XOR_ASSIGN		{$$="^=";}
 	| OR_ASSIGN		   {$$="|=";}
 	;
-/*check here for error*/
+
 expression
 	: assignment_expression										{$$=$1;}
 	| expression ',' assignment_expression						{$$=make_node("expression",$1,$3);}
@@ -869,7 +870,6 @@ type_specifier
 		}
 	}
 	;
-// struct x{int a;int b;} a,b,c; // x -> struct
 
 struct_or_union_specifier
 	: M5 M11 M10 '{' struct_declaration_list '}'  {$$=make_node("struct_or_union_specifier",$1,$5);
@@ -1164,7 +1164,7 @@ identifier_list
 	}
 	;
 
-// to be tested : type_name, abstract_declarator, direct_abstract_declarator.
+
 type_name
 	: specifier_qualifier_list									{$$=$1;
 		$$ -> nodeType = var_type;

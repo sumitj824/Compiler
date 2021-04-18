@@ -18,7 +18,7 @@ typedef struct
     string nodeLex;
     int init;
     int is_union;
-    quad place;
+    comp place;
 }node;
 
 
