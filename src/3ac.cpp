@@ -12,16 +12,16 @@ comp get_temp_label(string type){
     return {var,lookup(var)};
 }
 
-int emit(comp op_code,comp op_1,comp op_2,comp result, int num){
+int emit(comp op_code,comp op_1,comp op_2,comp result){
     quad p;
     p.op_code = op_code;
     p.op_1 = op_1;
     p.op_2 = op_2;
     p.result = result;
-    p.num = num;
     code.push_back(p);
     return (int)code.size()-1;
     //to do: could be changed as num could be of no use
+    //todo : not storing statement number
 }
 
 void backpatch(list<int> l,int to_addr){

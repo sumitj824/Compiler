@@ -90,6 +90,7 @@ primary_expression
 						$$ -> nodeLex = string($1);
 						///
 						$$->place={string($1),t};
+						$$->nextlist={};
 						///
 					}
 					else 
@@ -145,6 +146,7 @@ primary_expression
 		$$->init = 1;
 		///
 		 $$->place={$1->str,NULL};
+		 $$->nextlist={};
 		///
 
 	}
@@ -163,6 +165,7 @@ primary_expression
 	| STRING_LITERAL										{$$=make_node($1);
 		///
 		 $$->place={$1->str,NULL};
+		 $$->nextlist={};
 		///
 	}
 	| '(' expression ')'									{$$=$2;}
@@ -305,6 +308,7 @@ argument_expression_list
 			arg_list += ",";
 			arg_list += ($1 -> nodeType);
 		}
+		//TODO:3ac
 	}
 	| argument_expression_list ',' assignment_expression    {$$=make_node("argument_expression_list", $1, $3);
 		if(arg_list == ""){
@@ -330,6 +334,7 @@ unary_expression
 				comp temp = get_temp_label($$ -> nodeType);
 				emit({"++P",lookup("++")},$2 -> place,{"",NULL},temp);	
 				$$->place=temp;
+				$$->nextlist = {};
 				///
 				
 
@@ -350,6 +355,7 @@ unary_expression
 				comp temp = get_temp_label($$ -> nodeType);
 				emit({"--P",lookup("--")},$2 -> place,{"",NULL},temp);	
 				$$->place=temp;
+				$$->nextlist = {};
 				///
 			}
 			else{
@@ -370,6 +376,7 @@ unary_expression
 				comp temp = get_temp_label($$ -> nodeType);
 				emit($1->place,$2 -> place,{"",NULL},temp);	
 				$$->place=temp;
+				$$->nextlist = {};
 				///
 			}
 			else{
@@ -386,6 +393,7 @@ unary_expression
 			comp temp = get_temp_label($$ -> nodeType);
 			emit({"SIZEOF",lookup("sizeof")},$2 -> place,{"",NULL},temp);	
 			$$->place=temp;
+			$$->nextlist = {};
 			///
 	
 	}
@@ -397,6 +405,7 @@ unary_expression
 			comp temp = get_temp_label($$ -> nodeType);
 			emit({"SIZEOF",lookup("sizeof")},$3 -> place,{"",NULL},temp);	
 			$$->place=temp;
+			$$->nextlist = {};
 			///
 	}
 	;
@@ -432,6 +441,7 @@ cast_expression
 			comp temp = get_temp_label($$ -> nodeType);
 			emit({$4->nodeType+"to"+$$->nodeType,NULL},$4 -> place,{"",NULL},temp);	
 			$$->place=temp;
+			$$->nextlist = {};
 			///
 	}
 	;
@@ -446,6 +456,7 @@ multiplicative_expression
 				comp temp = get_temp_label($$ -> nodeType);
 				emit({"*int",lookup("*")},$1 -> place,$3 -> place,temp);	
 				$$->place=temp;
+				$$->nextlist = {};
 				///
 			}
 			else if(s=="float"){
@@ -466,6 +477,7 @@ multiplicative_expression
 					emit({"*real",lookup("*")},$1 -> place,$3->place,temp1);
 				}
 				$$->place=temp1;
+				$$->nextlist = {};
 				///
 			}
 			else{
@@ -482,6 +494,7 @@ multiplicative_expression
 				comp temp = get_temp_label($$ -> nodeType);
 				emit({"/int",lookup("/")},$1 -> place,$3 -> place,temp);	
 				$$->place=temp;
+				$$->nextlist = {};
 				///
 			}
 			else if(s=="float"){
@@ -503,6 +516,7 @@ multiplicative_expression
 	
 				}
 				$$->place=temp1;
+				$$->nextlist = {};
 				///
 			}
 			else{
@@ -519,6 +533,7 @@ multiplicative_expression
 				comp temp = get_temp_label($$ -> nodeType);
 				emit({"%",lookup("%")},$1 -> place,$3 -> place,temp);	
 				$$->place=temp;
+				$$->nextlist = {};
 				///
 			
 			}
@@ -538,6 +553,25 @@ additive_expression
 			if(s=="int")$$->nodeType="long long";
 			else if(s=="float")$$->nodeType="long double";
 			else $$->nodeType=s;
+
+			///
+			comp temp1 = get_temp_label($$ -> nodeType);
+			if(isInt($1->nodeType)&&isFloat($3->nodeType)){
+				comp temp2=get_temp_label($$ -> nodeType);
+				emit({"inttoreal",NULL},$1 -> place,{"",NULL},temp2);	
+				emit({"+"+s,lookup("+")},temp2,$3 -> place,temp);	
+			}
+			else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
+				comp temp2=get_temp_label($$ -> nodeType);
+				emit({"inttoreal",NULL},$3 -> place,{"",NULL},temp2);	
+				emit({"+"+s,lookup("+")},$1 -> place,temp2,temp);	
+			}
+			else{
+				emit({"+"+s,lookup("+")},$1 -> place,$3 -> place,temp);	
+			}
+			$$->place=temp;
+			$$->nextlist = {};
+			///
 		}
 		else{
 			yyerror("Error: Incompatible type for + operator");
@@ -552,6 +586,28 @@ additive_expression
 			if(s=="int")$$->nodeType="long long";
 			else if(s=="float")$$->nodeType="long double";
 			else  $$->nodeType=s;
+
+			///
+			comp temp1 = get_temp_label($$ -> nodeType);
+			if(isInt($1->nodeType)&&isFloat($3->nodeType)){
+				comp temp2=get_temp_label($$ -> nodeType);
+				emit({"inttoreal",NULL},$1 -> place,{"",NULL},temp2);	
+				emit({"-"+s,lookup("-")},temp2,$3 -> place,temp);	
+			}
+			else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
+				comp temp2=get_temp_label($$ -> nodeType);
+				emit({"inttoreal",NULL},$3 -> place,{"",NULL},temp2);	
+				emit({"-"+s,lookup("-")},$1 -> place,temp2,temp);	
+			}
+			else{
+				emit({"-"+s,lookup("-")},$1 -> place,$3 -> place,temp);	
+			}
+			$$->place=temp;
+			$$->nextlist = {};
+			///
+
+
+
 		}
 		else{
 			yyerror("Error: Incompatible type for - operator");
@@ -570,6 +626,7 @@ shift_expression
 			comp temp = get_temp_label($$ -> nodeType);
 			emit({"LEFT_OP",lookup("<<")},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
+			$$->nextlist = {};
 			///
 		else{
 			yyerror("Error: Invalid operands to binary <<");
@@ -587,6 +644,7 @@ shift_expression
 			comp temp = get_temp_label($$ -> nodeType);
 			emit({"RIGHT_OP",lookup(">>")},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
+			$$->nextlist = {};
 			///
 		else{
 			yyerror("Error: Invalid operands to binary >>");
@@ -610,6 +668,7 @@ relational_expression
 			comp temp = get_temp_label($$ -> nodeType);
 			emit({"<",lookup("<")},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
+			$$->nextlist = {};
 			///
 			
 		}
@@ -633,6 +692,7 @@ relational_expression
 			comp temp = get_temp_label($$ -> nodeType);
 			emit({">",lookup(">")},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
+			$$->nextlist = {};
 			///
 		}
 		else{
@@ -654,6 +714,7 @@ relational_expression
 			comp temp = get_temp_label($$ -> nodeType);
 			emit({"LE_OP",lookup("<=")},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
+			$$->nextlist = {};
 			///
 		}
 		else{
@@ -675,6 +736,7 @@ relational_expression
 			comp temp = get_temp_label($$ -> nodeType);
 			emit({"GE_OP",lookup(">=")},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
+			$$->nextlist = {};
 			///
 		}
 		else{
@@ -699,6 +761,7 @@ equality_expression
 			comp temp = get_temp_label($$ -> nodeType);
 			emit({"EQ_OP",lookup("==")},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
+			$$->nextlist = {};
 			///
 		}
 		else{
@@ -721,6 +784,7 @@ equality_expression
 			comp temp = get_temp_label($$ -> nodeType);
 			emit({"NE_OP",lookup("!=")},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
+			$$->nextlist = {};
 			///
 		}
 		else{
@@ -744,6 +808,7 @@ and_expression
 			comp temp = get_temp_label($$ -> nodeType);
 			emit({"&",lookup("&")},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
+			$$->nextlist = {};
 			///
 		}
 		else{
@@ -767,6 +832,7 @@ exclusive_or_expression
 			comp temp = get_temp_label($$ -> nodeType);
 			emit({"^",lookup("^")},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
+			$$->nextlist = {};
 			///
 			
 		}
@@ -790,6 +856,7 @@ inclusive_or_expression
 			comp temp = get_temp_label($$ -> nodeType);
 			emit({"|",lookup("|")},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
+			$$->nextlist = {};
 			///
 			
 		}
@@ -854,6 +921,7 @@ assignment_expression
                 yyerror("Warning: Assignment with incompatible pointer type"); 
 			}
 			update_init($1 -> nodeLex,$3 -> init);
+			//TODO:3ac
 		}
 		else{
 			s="Error: Incompatible types when assigning type " +$3->nodeType +" to "+$1->nodeType;
@@ -880,7 +948,12 @@ assignment_operator
 
 expression
 	: assignment_expression										{$$=$1;}
-	| expression ',' assignment_expression						{$$=make_node("expression",$1,$3);}
+	| expression ',' M assignment_expression						{$$=make_node("expression",$1,$3);
+		///
+		backpatch($1->nextlist,$3);
+		$$->nextlist=$4 -> nextlist;
+		///
+	}
 	;
 
 constant_expression
@@ -893,6 +966,9 @@ declaration
 	}					
 	| declaration_specifiers init_declarator_list ';'			{$$=make_node("declaration",$1,$2);
 		var_type = "";
+		///
+		$$->nextlist=$2 -> nextlist;
+		///
 	}
 	;
 
@@ -915,8 +991,11 @@ init_declarator_list
 	: init_declarator											{$$=$1;
 		
 	}
-	| init_declarator_list ',' init_declarator					{$$=make_node("init_declarator_list",$1,$3);
-
+	| init_declarator_list ',' M init_declarator					{$$=make_node("init_declarator_list",$1,$3);
+			///
+			backpatch($1->nextlist, $3);
+            $$->nextlist = $4->nextlist;
+			///
 	}	
 	;
 
@@ -944,6 +1023,8 @@ init_declarator
 				make_symTable_entry($1->nodeLex,$1 -> nodeType,0);
 				$$ -> init = 0;
 			}
+
+			//TODO:3ac
 		}
 	}
 	| declarator '=' initializer							{$$=make_node("init_declarator",$1,$3);
@@ -965,6 +1046,8 @@ init_declarator
 		else{
 			yyerror("Error : unexpected initialisation of variable.");
 		}
+			//TODO:3ac
+
 	}
 	;
 
@@ -1221,20 +1304,33 @@ declarator
 		$$ -> nodeType = $2 -> nodeType + $1 -> nodeType;
 		$$ -> nodeLex = $2 -> nodeLex;
 		accept = 1;
+		///
+		$$ ->place={$1->nodeLex,NULL};
+		///
 	}
-	| direct_declarator											{$$=$1;}
+	| direct_declarator											{$$=$1;
+		///
+		$$ ->place={$1->nodeLex,NULL};
+		///
+	}
 	;
 
 direct_declarator
 	: IDENTIFIER										    	{$$=make_node($1);
 		$$ -> nodeType = var_type;
 		$$ -> nodeLex = $1;
+		///
+		$$ ->place={$1->nodeLex,NULL};
+		///
 	}
 	| '(' declarator ')'										{$$=$2;}
 	| direct_declarator '[' constant_expression ']'        		{$$=make_node("direct_declarator",$1,$3);
 		$$ -> nodeType = $1 -> nodeType + "*";
 		$$ -> nodeLex = $1 -> nodeLex;
 		//$$ -> size = ($1 -> size)*$3 -> iVal; // check whether constant_expression is evaluated or not
+		///
+		$$ ->place={$1->nodeLex,NULL};
+		///
 	}
 	| direct_declarator '[' ']'							  		{$$=make_node("direct_declarator",$1,make_node("[]"));
 		$$ -> nodeType = $1 -> nodeType + "*";
@@ -1243,20 +1339,28 @@ direct_declarator
 		if(!in_param){
 			array_case2 = 1;
 		}
+		///
+		$$ ->place={$1->nodeLex,NULL};
+		///
 	}
 	| direct_declarator '(' M8 M13 parameter_type_list M8 ')'        		{$$=make_node("direct_declarator",$1,$5);
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> nodeType = $1 -> nodeType;
 		funcName = $1 -> nodeLex;
+		//TODO:3ac
 	}
 	| direct_declarator '(' identifier_list ')'       		    {$$=make_node("direct_declarator",$1,$3);
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> nodeType = $1 -> nodeType;
+		//TODO:3ac
+
 	}
 	| direct_declarator '(' M13 M3 ')'									{$$=make_node("direct_declarator",$1,make_node("()"));
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> nodeType = $1 -> nodeType;
 		funcName = $1 -> nodeLex;
+		//TODO:3ac
+
 	}
 	;
 
@@ -1290,12 +1394,18 @@ parameter_type_list
 		else{
 			funcArg += ",...";
 		}
+		$$->nextlist=$1 -> nextlist;
 	}
 	;
 
 parameter_list
 	: parameter_declaration										{$$=$1;}
-	| parameter_list ',' parameter_declaration                 	{$$=make_node("parameter_list",$1,$3);}
+	| parameter_list ',' M parameter_declaration                 	{$$=make_node("parameter_list",$1,$3);
+		///
+		backpatch($1->nextlist,$3);
+		$$->nextlist=$4->nextlist;
+		///
+	}
 	;
 
 parameter_declaration
@@ -1411,15 +1521,26 @@ initializer
 		
 	}
 	| '{' initializer_list '}'										{$$=$2;}
-	| '{' initializer_list ',' '}'									{$$=make_node("initializer",$2,make_node($3));}
+	| '{' initializer_list ',' '}'									{$$=make_node("initializer",$2,make_node($3));
+		
+		// $$->nodeType = $2 -> nodeType+"*"; //same in above //!doubt
+		///
+		$$->place=$2 -> place;
+		$$->nextlist=$2 -> nextlist;
+		///
+	}
 	;
 
 initializer_list
 	: initializer											{$$=$1;
 		initializer_list_size++;
 	}
-	| initializer_list ',' initializer						{$$=make_node("initializer_list",$1,$3);
+	| initializer_list ',' M initializer						{$$=make_node("initializer_list",$1,$3);
 		initializer_list_size++;
+		///
+		backpatch($1->nextlist,$3);
+		$$->nextlist=$4 -> nextlist;
+		///
 	}
 	;
 
@@ -1437,9 +1558,32 @@ M9
 		simple_block = 1 - simple_block;
 	}
 labeled_statement
-	: IDENTIFIER ':' statement			 		 {$$=make_node("labeled_statement",make_node($1),$3);}
-	| CASE constant_expression ':' statement   	 {$$=make_node("labeled_statement",make_node("case"),$2,$4);}
-	| DEFAULT ':' statement   			  		 {$$=make_node("labeled_statement",make_node("default"),$3);}
+	: IDENTIFIER ':' M statement			 		 {$$=make_node("labeled_statement",make_node($1),$3);
+		///
+		if(gotoindex($1,$3)){
+			string s="Error: "+string($1)+" is already defined";
+			char *x;
+			strcpy(x,s.c_str());
+			yyerror(x);
+		}
+		$$->nextlist=$4 -> nextlist;
+		$$->caselist = $4->caselist;
+		$$->continuelist = $4->continuelist;
+		$$->breaklist = $4->breaklist;
+		///
+	
+	}
+	| CASE constant_expression ':' statement   	 {$$=make_node("labeled_statement",make_node("case"),$2,$4);
+		//Todo:3ac
+	
+	}
+	| DEFAULT ':' statement   			  		 {$$=make_node("labeled_statement",make_node("default"),$3);
+		///
+		$$->nextlist=$3 -> nextlist;
+		$$->continuelist = $3->continuelist;
+		$$->breaklist = $3->breaklist;
+		///
+	}
 	;
 
 compound_statement

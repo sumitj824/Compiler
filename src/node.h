@@ -25,7 +25,7 @@ typedef struct
     list<int> nextlist;
     list<int> breaklist;
     list<int> continuelist;
-    
+    list<int> caselist;
 }node;
 
 
