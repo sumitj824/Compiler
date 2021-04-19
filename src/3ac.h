@@ -8,6 +8,7 @@ typedef struct{
     comp op_1;
     comp op_2;
     comp result;
+    int num;
 }quad;
 
 extern vector <quad> code;

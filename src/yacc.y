@@ -38,6 +38,7 @@ int yylex();
 
 %}
 %union{
+	int num;
 	node *ptr;
 	char *str;
 }
@@ -63,8 +64,8 @@ int yylex();
 %right <str> '&' '=' '!' '~' ':' '?'
 
 
-
-%type <ptr> M2 M3 M4 M5	M6 M7 M8 M9 M10 M11 M12 M13 M14 M15
+%type <num> M
+%type <ptr>  M2 M3 M4 M5	M6 M7 M8 M9 M10 M11 M12 M13 M14 M15
 %type <str>assignment_operator
 %type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression 
 %type <ptr> shift_expression relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
@@ -801,13 +802,23 @@ inclusive_or_expression
 	}
 	;
 
+M
+	: %empty {
+		$$ = (int)code.size();
+	}
+
 logical_and_expression
 	: inclusive_or_expression										{$$=$1;}
-	| logical_and_expression AND_OP inclusive_or_expression			{$$=make_node("&&",$1,$3);
+	| logical_and_expression AND_OP M inclusive_or_expression			{$$=make_node("&&",$1,$3);
 		$$->nodeType="bool";
 		$$->init= ($1->init&& $3->init);
+		///
+		
+		///
 	}
 	;
+
+
 
 logical_or_expression
 	: logical_and_expression										{$$=$1;}
