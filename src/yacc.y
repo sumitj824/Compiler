@@ -5,6 +5,8 @@
 #include <cstring>
 #include "node.h"
 #include "type.h"
+#include "symtable.h"
+
 #include <fstream>
 #include<vector>
 // to do :
@@ -26,6 +28,7 @@ int in_param = 0;
 int simple_block = 0;
 int is_union2 = 0;
 extern int yylineno;
+extern vector <quad> emitted_code;
 vector<int> st_line_no;
 string arg_list = "";
 string funcName = "";
@@ -90,8 +93,8 @@ primary_expression
 						$$->nodeType=t->type;
 						$$ -> nodeLex = string($1);
 						///
-						// $$->place={string($1),t};
-						// $$->nextlist={};
+						$$->place={string($1),t->offset,t->size};
+						$$->nextlist={};
 						///
 					}
 					else 
@@ -146,8 +149,8 @@ primary_expression
 		if(un) $$->nodeType = "unsigned "+$$->nodeType;
 		$$->init = 1;
 		///
-		//  $$->place={$1->str,NULL};
-		//  $$->nextlist={};
+		 $$->place={string($1),0,0};
+		 $$->nextlist={};
 		///
 
 	}
@@ -160,13 +163,13 @@ primary_expression
 		if(s[s.length()-1] == 'F') $$->nodeType = "float"; 
 		$$->init=1;
 		///
-		//  $$->place={$1->str,NULL};
+		 $$->place={string($1),0,0};
 		///
 	}
 	| STRING_LITERAL										{$$=make_node($1);
 		///
-		//  $$->place={$1->str,NULL};
-		//  $$->nextlist={};
+		 $$->place={string($1),0,0};
+		 $$->nextlist={};
 		///
 	}
 	| '(' expression ')'									{$$=$2;}
@@ -413,22 +416,28 @@ unary_expression
 
 unary_operator
 	: '&'		{$$=make_node("&");
-		$$->place={"&",lookup("&")};
+		s_entry *op=lookup("&");
+		$$->place={"&",op->offset,op->size};
 	}
 	| '*'		{$$=make_node("*");
-		$$->place={"*",lookup("*")};
+		s_entry *op=lookup("*");
+		$$->place={"*",op->offset,op->size};
 	}
 	| '+'		{$$=make_node("+");
-		$$->place={"unary+",lookup("+")};
+		s_entry *op=lookup("+");
+		$$->place={"unary+",op->offset,op->size};
 	}
 	| '-'		{$$=make_node("-");
-		$$->place={"unary-",lookup("-")};
+		s_entry *op=lookup("-");
+		$$->place={"unary-",op->offset,op->size};
 	}
 	| '~'		{$$=make_node("~");
-		$$->place={"~",lookup("~")};
+		s_entry *op=lookup("~");
+		$$->place={"~",op->offset,op->size};
 	}
 	| '!'		{$$=make_node("!");
-		$$->place={"!",lookup("!")};
+		s_entry *op=lookup("!");
+		$$->place={"!",op->offset,op->size};
 	}
 	;
 
@@ -454,31 +463,34 @@ multiplicative_expression
 			if(s=="int"){
 				$$->nodeType="long long";
 				///
-				// comp temp = get_temp_label($$ -> nodeType);
-				// emit({"*int",lookup("*")},$1 -> place,$3 -> place,temp);	
-				// $$->place=temp;
-				// $$->nextlist = {};
+				comp temp = get_temp_label($$ -> nodeType);
+				s_entry *op=lookup("*");
+
+				emit({"*int",op->offset,op->size},$1 -> place,$3 -> place,temp);	
+				$$->place=temp;
+				$$->nextlist = {};
 				///
 			}
 			else if(s=="float"){
 				$$->nodeType="long double";
 				///
-				// comp temp1 = get_temp_label($$ -> nodeType);
-				// if(isInt($1->nodeType)){
-				// 	comp temp2=get_temp_label($$ -> nodeType);
-				// 	emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
-				// 	emit({"*real",lookup("*")},temp2,$3 -> place,temp1);	
-				// }
-				// else if(isInt($3->nodeType)){
-				// 	comp temp2=get_temp_label($$ -> nodeType);
-				// 	emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
-				// 	emit({"*real",lookup("*")},$1 -> place,temp2,temp1);
-				// }
-				// else {
-				// 	emit({"*real",lookup("*")},$1 -> place,$3->place,temp1);
-				// }
-				// $$->place=temp1;
-				// $$->nextlist = {};
+				comp temp1 = get_temp_label($$ -> nodeType);
+			    s_entry *op=lookup("*");
+				if(isInt($1->nodeType)){
+					comp temp2=get_temp_label($$ -> nodeType);
+					emit({"inttoreal",0,0},$1->place,{"",0,0},temp2);
+					emit({"*real",op->offset,op->size},temp2,$3 -> place,temp1);	
+				}
+				else if(isInt($3->nodeType)){
+					comp temp2=get_temp_label($$ -> nodeType);
+					emit({"inttoreal",0,0},$3->place,{"",0,0},temp2);
+					emit({"*real",op->offset,op->size},$1 -> place,temp2,temp1);
+				}
+				else {
+					emit({"*real",op->offset,op->size},$1 -> place,$3->place,temp1);
+				}
+				$$->place=temp1;
+				$$->nextlist = {};
 				///
 			}
 			else{
@@ -492,32 +504,35 @@ multiplicative_expression
 			if(s=="int"){
 				$$->nodeType="long long";
 				///
-				// comp temp = get_temp_label($$ -> nodeType);
-				// emit({"/int",lookup("/")},$1 -> place,$3 -> place,temp);	
-				// $$->place=temp;
-				// $$->nextlist = {};
+				comp temp = get_temp_label($$ -> nodeType);
+			    s_entry *op=lookup("/");
+
+				emit({"/int",op->offset,op->size},$1 -> place,$3 -> place,temp);	
+				$$->place=temp;
+				$$->nextlist = {};
 				///
 			}
 			else if(s=="float"){
 				$$->nodeType="long double";
 				///
-				// comp temp1 = get_temp_label($$ -> nodeType);
-				// if(isInt($1->nodeType)){
-				// 	comp temp2=get_temp_label($$ -> nodeType);
-				// 	emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
-				// 	emit({"/real",lookup("/")},temp2,$3 -> place,temp1);	
-				// }
-				// else if(isInt($3->nodeType)){
-				// 	comp temp2=get_temp_label($$ -> nodeType);
-				// 	emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
-				// 	emit({"/real",lookup("/")},$1 -> place,temp2,temp1);
-				// }
-				// else {
-				// 	emit({"/real",lookup("/")},$1 -> place,$3->place,temp1);
+				comp temp1 = get_temp_label($$ -> nodeType);
+			    s_entry *op=lookup("/");
+				if(isInt($1->nodeType)){
+					comp temp2=get_temp_label($$ -> nodeType);
+					emit({"inttoreal",0,0},$1->place,{"",0,0},temp2);
+					emit({"/real",op->offset,op->size},temp2,$3 -> place,temp1);	
+				}
+				else if(isInt($3->nodeType)){
+					comp temp2=get_temp_label($$ -> nodeType);
+					emit({"inttoreal",0,0},$3->place,{"",0,0},temp2);
+					emit({"/real",op->offset,op->size},$1 -> place,temp2,temp1);
+				}
+				else {
+					emit({"/real",op->offset,op->size},$1 -> place,$3->place,temp1);
 	
-				// }
-				// $$->place=temp1;
-				// $$->nextlist = {};
+				}
+				$$->place=temp1;
+				$$->nextlist = {};
 				///
 			}
 			else{
@@ -531,10 +546,11 @@ multiplicative_expression
 			if(s=="int"){
 				$$->nodeType="long long";
 				///
-				// comp temp = get_temp_label($$ -> nodeType);
-				// emit({"%",lookup("%")},$1 -> place,$3 -> place,temp);	
-				// $$->place=temp;
-				// $$->nextlist = {};
+				comp temp = get_temp_label($$ -> nodeType);
+				s_entry *op=lookup("%");
+				emit({"%",op->offset,op->size},$1 -> place,$3 -> place,temp);	
+				$$->place=temp;
+				$$->nextlist = {};
 				///
 			
 			}
@@ -556,22 +572,24 @@ additive_expression
 			else $$->nodeType=s;
 
 			///
-			// comp temp1 = get_temp_label($$ -> nodeType);
-			// if(isInt($1->nodeType)&&isFloat($3->nodeType)){
-			// 	comp temp2=get_temp_label($$ -> nodeType);
-			// 	emit({"inttoreal",NULL},$1 -> place,{"",NULL},temp2);	
-			// 	emit({"+"+s,lookup("+")},temp2,$3 -> place,temp);	
-			// }
-			// else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
-			// 	comp temp2=get_temp_label($$ -> nodeType);
-			// 	emit({"inttoreal",NULL},$3 -> place,{"",NULL},temp2);	
-			// 	emit({"+"+s,lookup("+")},$1 -> place,temp2,temp);	
-			// }
-			// else{
-			// 	emit({"+"+s,lookup("+")},$1 -> place,$3 -> place,temp);	
-			// }
-			// $$->place=temp;
-			// $$->nextlist = {};
+			comp temp1 = get_temp_label($$ -> nodeType);
+		    s_entry *op=lookup("+");
+
+			if(isInt($1->nodeType)&&isFloat($3->nodeType)){
+				comp temp2=get_temp_label($$ -> nodeType);
+				emit({"inttoreal",0,0},$1 -> place,{"",0,0},temp2);	
+				emit({"+"+s,op->offset,op->size},temp2,$3 -> place,temp1);	
+			}
+			else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
+				comp temp2=get_temp_label($$ -> nodeType);
+				emit({"inttoreal",0,0},$3 -> place,{"",0,0},temp2);	
+				emit({"+"+s,op->offset,op->size},$1 -> place,temp2,temp1);	
+			}
+			else{
+				emit({"+"+s,op->offset,op->size},$1 -> place,$3 -> place,temp1);	
+			}
+			$$->place=temp1;
+			$$->nextlist = {};
 			///
 		}
 		else{
@@ -589,22 +607,24 @@ additive_expression
 			else  $$->nodeType=s;
 
 			///
-			// comp temp1 = get_temp_label($$ -> nodeType);
-			// if(isInt($1->nodeType)&&isFloat($3->nodeType)){
-			// 	comp temp2=get_temp_label($$ -> nodeType);
-			// 	emit({"inttoreal",NULL},$1 -> place,{"",NULL},temp2);	
-			// 	emit({"-"+s,lookup("-")},temp2,$3 -> place,temp);	
-			// }
-			// else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
-			// 	comp temp2=get_temp_label($$ -> nodeType);
-			// 	emit({"inttoreal",NULL},$3 -> place,{"",NULL},temp2);	
-			// 	emit({"-"+s,lookup("-")},$1 -> place,temp2,temp);	
-			// }
-			// else{
-			// 	emit({"-"+s,lookup("-")},$1 -> place,$3 -> place,temp);	
-			// }
-			// $$->place=temp;
-			// $$->nextlist = {};
+			comp temp1 = get_temp_label($$ -> nodeType);
+		    s_entry *op=lookup("-");
+
+			if(isInt($1->nodeType)&&isFloat($3->nodeType)){
+				comp temp2=get_temp_label($$ -> nodeType);
+				emit({"inttoreal",0,0},$1 -> place,{"",0,0},temp2);	
+				emit({"-"+s,op->offset,op->size},temp2,$3 -> place,temp1);	
+			}
+			else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
+				comp temp2=get_temp_label($$ -> nodeType);
+				emit({"inttoreal",0,0},$3 -> place,{"",0,0},temp2);	
+				emit({"-"+s,op->offset,op->size},$1 -> place,temp2,temp1);	
+			}
+			else{
+				emit({"-"+s,op->offset,op->size},$1 -> place,$3 -> place,temp1);	
+			}
+			$$->place=temp1;
+			$$->nextlist = {};
 			///
 
 
@@ -621,14 +641,16 @@ additive_expression
 shift_expression
 	: additive_expression									{$$=$1;}
 	| shift_expression LEFT_OP additive_expression		{$$=make_node("<<",$1,$3);
-		if(isInt($1->nodeType) && isInt($3->nodeType)) 
+		if(isInt($1->nodeType) && isInt($3->nodeType)) {
 			$$->nodeType= $1->nodeType;
 			///
-			// comp temp = get_temp_label($$ -> nodeType);
-			// emit({"LEFT_OP",lookup("<<")},$1 -> place,$3 -> place,temp);	
-			// $$->place=temp;
-			// $$->nextlist = {};
+			comp temp = get_temp_label($$ -> nodeType);
+			s_entry *op=lookup("<<");
+			emit({"LEFT_OP",op->offset,op->size},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			$$->nextlist = {};
 			///
+		}
 		else{
 			yyerror("Error: Invalid operands to binary <<");
 		}
@@ -639,14 +661,16 @@ shift_expression
 
 
 	| shift_expression RIGHT_OP additive_expression     {$$=make_node(">>",$1,$3);
-		if(isInt($1->nodeType) && isInt($3->nodeType)) 
+		if(isInt($1->nodeType) && isInt($3->nodeType)) {
 			$$->nodeType= $1->nodeType;
 			///
-			// comp temp = get_temp_label($$ -> nodeType);
-			// emit({"RIGHT_OP",lookup(">>")},$1 -> place,$3 -> place,temp);	
-			// $$->place=temp;
-			// $$->nextlist = {};
+			comp temp = get_temp_label($$ -> nodeType);
+			s_entry *op=lookup(">>");
+			emit({"RIGHT_OP",op->offset,op->size},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			$$->nextlist = {};
 			///
+		}
 		else{
 			yyerror("Error: Invalid operands to binary >>");
 		}
@@ -666,10 +690,11 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			// comp temp = get_temp_label($$ -> nodeType);
-			// emit({"<",lookup("<")},$1 -> place,$3 -> place,temp);	
-			// $$->place=temp;
-			// $$->nextlist = {};
+			comp temp = get_temp_label($$ -> nodeType);
+			s_entry *op=lookup("<");
+			emit({"<",op->offset,op->size},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			$$->nextlist = {};
 			///
 			
 		}
@@ -690,10 +715,11 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			// comp temp = get_temp_label($$ -> nodeType);
-			// emit({">",lookup(">")},$1 -> place,$3 -> place,temp);	
-			// $$->place=temp;
-			// $$->nextlist = {};
+			comp temp = get_temp_label($$ -> nodeType);
+			s_entry *op=lookup(">");
+			emit({">",op->offset,op->size},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			$$->nextlist = {};
 			///
 		}
 		else{
@@ -712,10 +738,11 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			// comp temp = get_temp_label($$ -> nodeType);
-			// emit({"LE_OP",lookup("<=")},$1 -> place,$3 -> place,temp);	
-			// $$->place=temp;
-			// $$->nextlist = {};
+			comp temp = get_temp_label($$ -> nodeType);
+			s_entry *op=lookup("<=");
+			emit({"LE_OP",op->offset,op->size},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			$$->nextlist = {};
 			///
 		}
 		else{
@@ -734,10 +761,11 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			// comp temp = get_temp_label($$ -> nodeType);
-			// emit({"GE_OP",lookup(">=")},$1 -> place,$3 -> place,temp);	
-			// $$->place=temp;
-			// $$->nextlist = {};
+			comp temp = get_temp_label($$ -> nodeType);
+			s_entry *op=lookup(">=");
+			emit({"GE_OP",op->offset,op->size},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			$$->nextlist = {};
 			///
 		}
 		else{
@@ -759,10 +787,11 @@ equality_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			// comp temp = get_temp_label($$ -> nodeType);
-			// emit({"EQ_OP",lookup("==")},$1 -> place,$3 -> place,temp);	
-			// $$->place=temp;
-			// $$->nextlist = {};
+			comp temp = get_temp_label($$ -> nodeType);
+			s_entry *op=lookup("==");
+			emit({"EQ_OP",op->offset,op->size},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			$$->nextlist = {};
 			///
 		}
 		else{
@@ -782,10 +811,11 @@ equality_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			// comp temp = get_temp_label($$ -> nodeType);
-			// emit({"NE_OP",lookup("!=")},$1 -> place,$3 -> place,temp);	
-			// $$->place=temp;
-			// $$->nextlist = {};
+			comp temp = get_temp_label($$ -> nodeType);
+			s_entry *op=lookup("!=");
+			emit({"NE_OP",op->offset,op->size},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			$$->nextlist = {};
 			///
 		}
 		else{
@@ -806,10 +836,11 @@ and_expression
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
 			///
-			// comp temp = get_temp_label($$ -> nodeType);
-			// emit({"&",lookup("&")},$1 -> place,$3 -> place,temp);	
-			// $$->place=temp;
-			// $$->nextlist = {};
+			comp temp = get_temp_label($$ -> nodeType);
+			s_entry *op=lookup("&");
+			emit({"&",op->offset,op->size},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			$$->nextlist = {};
 			///
 		}
 		else{
@@ -830,10 +861,11 @@ exclusive_or_expression
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
 			///
-			// comp temp = get_temp_label($$ -> nodeType);
-			// emit({"^",lookup("^")},$1 -> place,$3 -> place,temp);	
-			// $$->place=temp;
-			// $$->nextlist = {};
+			comp temp = get_temp_label($$ -> nodeType);
+			s_entry *op=lookup("^");
+			emit({"^",op->offset,op->size},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			$$->nextlist = {};
 			///
 			
 		}
@@ -854,10 +886,11 @@ inclusive_or_expression
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
 			///
-			// comp temp = get_temp_label($$ -> nodeType);
-			// emit({"|",lookup("|")},$1 -> place,$3 -> place,temp);	
-			// $$->place=temp;
-			// $$->nextlist = {};
+			comp temp = get_temp_label($$ -> nodeType);
+			s_entry *op=lookup("|");
+			emit({"|",op->offset,op->size},$1 -> place,$3 -> place,temp);	
+			$$->place=temp;
+			$$->nextlist = {};
 			///
 			
 		}
@@ -872,7 +905,7 @@ inclusive_or_expression
 
 M
 	: %empty {
-		// $$ = (int)code.size();
+		$$ = (int)emitted_code.size();
 	}
 
 logical_and_expression
@@ -951,8 +984,8 @@ expression
 	: assignment_expression										{$$=$1;}
 	| expression ',' M assignment_expression						{$$=make_node("expression",$1,$4);
 		///
-		// backpatch($1->nextlist,$3);
-		// $$->nextlist=$4 -> nextlist;
+		backpatch($1->nextlist,$3);
+		$$->nextlist=$4 -> nextlist;
 		///
 	}
 	;
@@ -968,7 +1001,7 @@ declaration
 	| declaration_specifiers init_declarator_list ';'			{$$=make_node("declaration",$1,$2);
 		var_type = "";
 		///
-		// $$->nextlist=$2 -> nextlist;
+		$$->nextlist=$2 -> nextlist;
 		///
 	}
 	;
@@ -994,8 +1027,8 @@ init_declarator_list
 	}
 	| init_declarator_list ',' M init_declarator					{$$=make_node("init_declarator_list",$1,$4);
 			///
-			// backpatch($1->nextlist, $3);
-            // $$->nextlist = $4->nextlist;
+			backpatch($1->nextlist, $3);
+            $$->nextlist = $4->nextlist;
 			///
 	}	
 	;
@@ -2106,4 +2139,6 @@ int main(int argc, char *argv[])
 	symTable_type[GST] = "global_table";
 
 	printSymTable(GST,"Global","",st_line_no.back(),yylineno);
+
+
 } 

@@ -1,16 +1,11 @@
 #include "3ac.h"
-#include "type.h"
+#include "symtable.h"
+
 #include <vector>
 #include <list>
 
 int var_counter = 0;
-
-comp get_temp_label(string type){
-    var_counter++;
-    string var = "_t" + to_string(var_counter);
-    make_symTable_entry(var,type,1);
-    return {var,lookup(var)};
-}
+vector <quad> emitted_code;
 
 int emit(comp op_code,comp op_1,comp op_2,comp result){
     quad p;
@@ -24,6 +19,7 @@ int emit(comp op_code,comp op_1,comp op_2,comp result){
     //todo : not storing statement number
 }
 
+
 void backpatch(list<int> l,int to_addr){
     for(auto x:l) emitted_code[x].num = to_addr;
 }
@@ -31,10 +27,11 @@ void backpatch(list<int> l,int to_addr){
 comp get_temp_label(string type){
     comp p;
     var_counter++;
-    p.first = "t_" + to_string(var_counter);
-    make_symTable_entry2(GST,p.first,type,0,get_size(type));
-    s_entry * find = lookup(p.first);
-    p.second = find;
+    p.name = "__t" + to_string(var_counter)+"__";
+    // make_symTable_entry2(GST,p.name,type,0,get_size(type));
+    s_entry * find = lookup(p.name);
+    p.offset=find->offset;
+    p.size=find->size;
     return p;
 }
 

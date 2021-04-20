@@ -1,7 +1,14 @@
-#include "symtable.h"
 #include <vector>
+#include <string>
+#include <list>
+using namespace std;
 
-typedef pair<string,s_entry*> comp;
+typedef struct{
+    string name;
+    unsigned long long int offset;
+    int size;
+} comp;
+
 
 typedef struct{
     comp op_code;
