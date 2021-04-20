@@ -1,13 +1,15 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <list>
 using namespace std;
 
 
-typedef struct symEntry{
+typedef struct{
     string type;
     int init;
-
+    int size;
+    unsigned long long int offset;
 }s_entry;
 // curr_scope struct name -> {id,0/1}, map
 // curr_scope -> previous_scope -> previous_scope
@@ -23,10 +25,12 @@ extern map<string,symTable*> id_to_struct;
 extern FILE * csv_output;
 extern map <symTable*,string> symTable_type;
 extern map <string,string> id_to_struct_name;
+extern map <string,int> structSize;
+extern map <symTable*,unsigned long long int> offset_table;
 s_entry* lookup(string a);
 
-void make_symTable_entry(string name,string type,int init);
-void make_symTable_entry2(symTable * table,string name,string type,int init);
+void make_symTable_entry(string name,string type,int init,int size);
+void make_symTable_entry2(symTable * table,string name,string type,int init,int size);
 s_entry* lookup_in_curr(string a);
 int lookup_in_struct_curr_scope(string a); // returns a flag 0/1
 int lookup_struct(string a,int is_union); // returns id of struct
@@ -35,3 +39,4 @@ s_entry * lookup_in_table(symTable *table,string name);
 void update_init(string name,int init);
 int check_type(string type1,string type2);
 int is_struct(string type1);
+int get_size(string type);

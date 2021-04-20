@@ -4,7 +4,6 @@
 #include <set>
 #include <cstring>
 #include "node.h"
-#include "symtable.h"
 #include "type.h"
 #include <fstream>
 #include<vector>
@@ -25,12 +24,14 @@ int accept = 0;
 int array_case2 = 0;
 int in_param = 0;
 int simple_block = 0;
+int is_union2 = 0;
 extern int yylineno;
 vector<int> st_line_no;
 string arg_list = "";
 string funcName = "";
 string return_type = "";
 int initializer_list_size = 0;
+int accept2 = 0;
 map <string,int> complete;
 symTable * temp_table;
 void yyerror(char *s);
@@ -89,8 +90,8 @@ primary_expression
 						$$->nodeType=t->type;
 						$$ -> nodeLex = string($1);
 						///
-						$$->place={string($1),t};
-						$$->nextlist={};
+						// $$->place={string($1),t};
+						// $$->nextlist={};
 						///
 					}
 					else 
@@ -145,8 +146,8 @@ primary_expression
 		if(un) $$->nodeType = "unsigned "+$$->nodeType;
 		$$->init = 1;
 		///
-		 $$->place={$1->str,NULL};
-		 $$->nextlist={};
+		//  $$->place={$1->str,NULL};
+		//  $$->nextlist={};
 		///
 
 	}
@@ -159,13 +160,13 @@ primary_expression
 		if(s[s.length()-1] == 'F') $$->nodeType = "float"; 
 		$$->init=1;
 		///
-		 $$->place={$1->str,NULL};
+		//  $$->place={$1->str,NULL};
 		///
 	}
 	| STRING_LITERAL										{$$=make_node($1);
 		///
-		 $$->place={$1->str,NULL};
-		 $$->nextlist={};
+		//  $$->place={$1->str,NULL};
+		//  $$->nextlist={};
 		///
 	}
 	| '(' expression ')'									{$$=$2;}
@@ -209,9 +210,9 @@ postfix_expression
 					}
 				}
 				///
-				comp temp = get_temp_label($$ -> nodeType);
-				// todo : reference to parameters
-				emit({"CALL_FUNC",NULL},$1 -> place,{"",NULL},temp);	
+				// comp temp = get_temp_label($$ -> nodeType);
+				// // todo : reference to parameters
+				// emit({"CALL_FUNC",NULL},$1 -> place,{"",NULL},temp);	
 				///
 	}
 	| postfix_expression '(' argument_expression_list')'   {$$=make_node("postfix_expression", $1, $3);
@@ -272,9 +273,9 @@ postfix_expression
 			{
 				$$->nodeType=s;
 				///
-				comp temp = get_temp_label($$ -> nodeType);
-				emit({"++S",lookup("++")},$1 -> place,{"",NULL},temp);	
-				$$->place=temp;
+				// comp temp = get_temp_label($$ -> nodeType);
+				// emit({"++S",lookup("++")},$1 -> place,{"",NULL},temp);	
+				// $$->place=temp;
 				///
 			}
 			else{
@@ -288,9 +289,9 @@ postfix_expression
 			{
 				$$->nodeType=s;
 				///
-				comp temp = get_temp_label($$ -> nodeType);
-				emit({"--S",lookup("--")},$1 -> place,{"",NULL},temp);	
-				$$->place=temp;
+				// comp temp = get_temp_label($$ -> nodeType);
+				// emit({"--S",lookup("--")},$1 -> place,{"",NULL},temp);	
+				// $$->place=temp;
 				///
 			}
 			else{
@@ -331,10 +332,10 @@ unary_expression
 				$$->nodeType=s;
 				$$-> nodeLex = $2 -> nodeLex;
 				///
-				comp temp = get_temp_label($$ -> nodeType);
-				emit({"++P",lookup("++")},$2 -> place,{"",NULL},temp);	
-				$$->place=temp;
-				$$->nextlist = {};
+				// comp temp = get_temp_label($$ -> nodeType);
+				// emit({"++P",lookup("++")},$2 -> place,{"",NULL},temp);	
+				// $$->place=temp;
+				// $$->nextlist = {};
 				///
 				
 
@@ -352,10 +353,10 @@ unary_expression
 				$$->nodeType=s;
 				$$-> nodeLex = $2 -> nodeLex;
 				///
-				comp temp = get_temp_label($$ -> nodeType);
-				emit({"--P",lookup("--")},$2 -> place,{"",NULL},temp);	
-				$$->place=temp;
-				$$->nextlist = {};
+				// comp temp = get_temp_label($$ -> nodeType);
+				// emit({"--P",lookup("--")},$2 -> place,{"",NULL},temp);	
+				// $$->place=temp;
+				// $$->nextlist = {};
 				///
 			}
 			else{
@@ -373,10 +374,10 @@ unary_expression
 				$$->nodeType=s;
 				$$-> nodeLex = $2 -> nodeLex;
 				///
-				comp temp = get_temp_label($$ -> nodeType);
-				emit($1->place,$2 -> place,{"",NULL},temp);	
-				$$->place=temp;
-				$$->nextlist = {};
+				// comp temp = get_temp_label($$ -> nodeType);
+				// emit($1->place,$2 -> place,{"",NULL},temp);	
+				// $$->place=temp;
+				// $$->nextlist = {};
 				///
 			}
 			else{
@@ -390,10 +391,10 @@ unary_expression
 			$$->init=1;
 			$$->nodeLex = $2 -> nodeLex;
 			///
-			comp temp = get_temp_label($$ -> nodeType);
-			emit({"SIZEOF",lookup("sizeof")},$2 -> place,{"",NULL},temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp = get_temp_label($$ -> nodeType);
+			// emit({"SIZEOF",lookup("sizeof")},$2 -> place,{"",NULL},temp);	
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 	
 	}
@@ -402,10 +403,10 @@ unary_expression
 			$$->init=1;
 			$$->nodeLex = $3 -> nodeLex;
 			///
-			comp temp = get_temp_label($$ -> nodeType);
-			emit({"SIZEOF",lookup("sizeof")},$3 -> place,{"",NULL},temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp = get_temp_label($$ -> nodeType);
+			// emit({"SIZEOF",lookup("sizeof")},$3 -> place,{"",NULL},temp);	
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 	}
 	;
@@ -438,10 +439,10 @@ cast_expression
 			$$->init=$4->init;
 			$$ -> nodeLex = $4 -> nodeLex;
 			///
-			comp temp = get_temp_label($$ -> nodeType);
-			emit({$4->nodeType+"to"+$$->nodeType,NULL},$4 -> place,{"",NULL},temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp = get_temp_label($$ -> nodeType);
+			// emit({$4->nodeType+"to"+$$->nodeType,NULL},$4 -> place,{"",NULL},temp);	
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 	}
 	;
@@ -453,31 +454,31 @@ multiplicative_expression
 			if(s=="int"){
 				$$->nodeType="long long";
 				///
-				comp temp = get_temp_label($$ -> nodeType);
-				emit({"*int",lookup("*")},$1 -> place,$3 -> place,temp);	
-				$$->place=temp;
-				$$->nextlist = {};
+				// comp temp = get_temp_label($$ -> nodeType);
+				// emit({"*int",lookup("*")},$1 -> place,$3 -> place,temp);	
+				// $$->place=temp;
+				// $$->nextlist = {};
 				///
 			}
 			else if(s=="float"){
 				$$->nodeType="long double";
 				///
-				comp temp1 = get_temp_label($$ -> nodeType);
-				if(isInt($1->nodeType)){
-					comp temp2=get_temp_label($$ -> nodeType);
-					emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
-					emit({"*real",lookup("*")},temp2,$3 -> place,temp1);	
-				}
-				else if(isInt($3->nodeType)){
-					comp temp2=get_temp_label($$ -> nodeType);
-					emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
-					emit({"*real",lookup("*")},$1 -> place,temp2,temp1);
-				}
-				else {
-					emit({"*real",lookup("*")},$1 -> place,$3->place,temp1);
-				}
-				$$->place=temp1;
-				$$->nextlist = {};
+				// comp temp1 = get_temp_label($$ -> nodeType);
+				// if(isInt($1->nodeType)){
+				// 	comp temp2=get_temp_label($$ -> nodeType);
+				// 	emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
+				// 	emit({"*real",lookup("*")},temp2,$3 -> place,temp1);	
+				// }
+				// else if(isInt($3->nodeType)){
+				// 	comp temp2=get_temp_label($$ -> nodeType);
+				// 	emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
+				// 	emit({"*real",lookup("*")},$1 -> place,temp2,temp1);
+				// }
+				// else {
+				// 	emit({"*real",lookup("*")},$1 -> place,$3->place,temp1);
+				// }
+				// $$->place=temp1;
+				// $$->nextlist = {};
 				///
 			}
 			else{
@@ -491,32 +492,32 @@ multiplicative_expression
 			if(s=="int"){
 				$$->nodeType="long long";
 				///
-				comp temp = get_temp_label($$ -> nodeType);
-				emit({"/int",lookup("/")},$1 -> place,$3 -> place,temp);	
-				$$->place=temp;
-				$$->nextlist = {};
+				// comp temp = get_temp_label($$ -> nodeType);
+				// emit({"/int",lookup("/")},$1 -> place,$3 -> place,temp);	
+				// $$->place=temp;
+				// $$->nextlist = {};
 				///
 			}
 			else if(s=="float"){
 				$$->nodeType="long double";
 				///
-				comp temp1 = get_temp_label($$ -> nodeType);
-				if(isInt($1->nodeType)){
-					comp temp2=get_temp_label($$ -> nodeType);
-					emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
-					emit({"/real",lookup("/")},temp2,$3 -> place,temp1);	
-				}
-				else if(isInt($3->nodeType)){
-					comp temp2=get_temp_label($$ -> nodeType);
-					emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
-					emit({"/real",lookup("/")},$1 -> place,temp2,temp1);
-				}
-				else {
-					emit({"/real",lookup("/")},$1 -> place,$3->place,temp1);
+				// comp temp1 = get_temp_label($$ -> nodeType);
+				// if(isInt($1->nodeType)){
+				// 	comp temp2=get_temp_label($$ -> nodeType);
+				// 	emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
+				// 	emit({"/real",lookup("/")},temp2,$3 -> place,temp1);	
+				// }
+				// else if(isInt($3->nodeType)){
+				// 	comp temp2=get_temp_label($$ -> nodeType);
+				// 	emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
+				// 	emit({"/real",lookup("/")},$1 -> place,temp2,temp1);
+				// }
+				// else {
+				// 	emit({"/real",lookup("/")},$1 -> place,$3->place,temp1);
 	
-				}
-				$$->place=temp1;
-				$$->nextlist = {};
+				// }
+				// $$->place=temp1;
+				// $$->nextlist = {};
 				///
 			}
 			else{
@@ -530,10 +531,10 @@ multiplicative_expression
 			if(s=="int"){
 				$$->nodeType="long long";
 				///
-				comp temp = get_temp_label($$ -> nodeType);
-				emit({"%",lookup("%")},$1 -> place,$3 -> place,temp);	
-				$$->place=temp;
-				$$->nextlist = {};
+				// comp temp = get_temp_label($$ -> nodeType);
+				// emit({"%",lookup("%")},$1 -> place,$3 -> place,temp);	
+				// $$->place=temp;
+				// $$->nextlist = {};
 				///
 			
 			}
@@ -555,22 +556,22 @@ additive_expression
 			else $$->nodeType=s;
 
 			///
-			comp temp1 = get_temp_label($$ -> nodeType);
-			if(isInt($1->nodeType)&&isFloat($3->nodeType)){
-				comp temp2=get_temp_label($$ -> nodeType);
-				emit({"inttoreal",NULL},$1 -> place,{"",NULL},temp2);	
-				emit({"+"+s,lookup("+")},temp2,$3 -> place,temp);	
-			}
-			else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
-				comp temp2=get_temp_label($$ -> nodeType);
-				emit({"inttoreal",NULL},$3 -> place,{"",NULL},temp2);	
-				emit({"+"+s,lookup("+")},$1 -> place,temp2,temp);	
-			}
-			else{
-				emit({"+"+s,lookup("+")},$1 -> place,$3 -> place,temp);	
-			}
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp1 = get_temp_label($$ -> nodeType);
+			// if(isInt($1->nodeType)&&isFloat($3->nodeType)){
+			// 	comp temp2=get_temp_label($$ -> nodeType);
+			// 	emit({"inttoreal",NULL},$1 -> place,{"",NULL},temp2);	
+			// 	emit({"+"+s,lookup("+")},temp2,$3 -> place,temp);	
+			// }
+			// else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
+			// 	comp temp2=get_temp_label($$ -> nodeType);
+			// 	emit({"inttoreal",NULL},$3 -> place,{"",NULL},temp2);	
+			// 	emit({"+"+s,lookup("+")},$1 -> place,temp2,temp);	
+			// }
+			// else{
+			// 	emit({"+"+s,lookup("+")},$1 -> place,$3 -> place,temp);	
+			// }
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 		}
 		else{
@@ -588,22 +589,22 @@ additive_expression
 			else  $$->nodeType=s;
 
 			///
-			comp temp1 = get_temp_label($$ -> nodeType);
-			if(isInt($1->nodeType)&&isFloat($3->nodeType)){
-				comp temp2=get_temp_label($$ -> nodeType);
-				emit({"inttoreal",NULL},$1 -> place,{"",NULL},temp2);	
-				emit({"-"+s,lookup("-")},temp2,$3 -> place,temp);	
-			}
-			else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
-				comp temp2=get_temp_label($$ -> nodeType);
-				emit({"inttoreal",NULL},$3 -> place,{"",NULL},temp2);	
-				emit({"-"+s,lookup("-")},$1 -> place,temp2,temp);	
-			}
-			else{
-				emit({"-"+s,lookup("-")},$1 -> place,$3 -> place,temp);	
-			}
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp1 = get_temp_label($$ -> nodeType);
+			// if(isInt($1->nodeType)&&isFloat($3->nodeType)){
+			// 	comp temp2=get_temp_label($$ -> nodeType);
+			// 	emit({"inttoreal",NULL},$1 -> place,{"",NULL},temp2);	
+			// 	emit({"-"+s,lookup("-")},temp2,$3 -> place,temp);	
+			// }
+			// else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
+			// 	comp temp2=get_temp_label($$ -> nodeType);
+			// 	emit({"inttoreal",NULL},$3 -> place,{"",NULL},temp2);	
+			// 	emit({"-"+s,lookup("-")},$1 -> place,temp2,temp);	
+			// }
+			// else{
+			// 	emit({"-"+s,lookup("-")},$1 -> place,$3 -> place,temp);	
+			// }
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 
 
@@ -623,10 +624,10 @@ shift_expression
 		if(isInt($1->nodeType) && isInt($3->nodeType)) 
 			$$->nodeType= $1->nodeType;
 			///
-			comp temp = get_temp_label($$ -> nodeType);
-			emit({"LEFT_OP",lookup("<<")},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp = get_temp_label($$ -> nodeType);
+			// emit({"LEFT_OP",lookup("<<")},$1 -> place,$3 -> place,temp);	
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 		else{
 			yyerror("Error: Invalid operands to binary <<");
@@ -641,10 +642,10 @@ shift_expression
 		if(isInt($1->nodeType) && isInt($3->nodeType)) 
 			$$->nodeType= $1->nodeType;
 			///
-			comp temp = get_temp_label($$ -> nodeType);
-			emit({"RIGHT_OP",lookup(">>")},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp = get_temp_label($$ -> nodeType);
+			// emit({"RIGHT_OP",lookup(">>")},$1 -> place,$3 -> place,temp);	
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 		else{
 			yyerror("Error: Invalid operands to binary >>");
@@ -665,10 +666,10 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label($$ -> nodeType);
-			emit({"<",lookup("<")},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp = get_temp_label($$ -> nodeType);
+			// emit({"<",lookup("<")},$1 -> place,$3 -> place,temp);	
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 			
 		}
@@ -689,10 +690,10 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label($$ -> nodeType);
-			emit({">",lookup(">")},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp = get_temp_label($$ -> nodeType);
+			// emit({">",lookup(">")},$1 -> place,$3 -> place,temp);	
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 		}
 		else{
@@ -711,10 +712,10 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label($$ -> nodeType);
-			emit({"LE_OP",lookup("<=")},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp = get_temp_label($$ -> nodeType);
+			// emit({"LE_OP",lookup("<=")},$1 -> place,$3 -> place,temp);	
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 		}
 		else{
@@ -733,10 +734,10 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label($$ -> nodeType);
-			emit({"GE_OP",lookup(">=")},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp = get_temp_label($$ -> nodeType);
+			// emit({"GE_OP",lookup(">=")},$1 -> place,$3 -> place,temp);	
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 		}
 		else{
@@ -758,10 +759,10 @@ equality_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label($$ -> nodeType);
-			emit({"EQ_OP",lookup("==")},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp = get_temp_label($$ -> nodeType);
+			// emit({"EQ_OP",lookup("==")},$1 -> place,$3 -> place,temp);	
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 		}
 		else{
@@ -781,10 +782,10 @@ equality_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label($$ -> nodeType);
-			emit({"NE_OP",lookup("!=")},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp = get_temp_label($$ -> nodeType);
+			// emit({"NE_OP",lookup("!=")},$1 -> place,$3 -> place,temp);	
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 		}
 		else{
@@ -805,10 +806,10 @@ and_expression
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
 			///
-			comp temp = get_temp_label($$ -> nodeType);
-			emit({"&",lookup("&")},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp = get_temp_label($$ -> nodeType);
+			// emit({"&",lookup("&")},$1 -> place,$3 -> place,temp);	
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 		}
 		else{
@@ -829,10 +830,10 @@ exclusive_or_expression
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
 			///
-			comp temp = get_temp_label($$ -> nodeType);
-			emit({"^",lookup("^")},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp = get_temp_label($$ -> nodeType);
+			// emit({"^",lookup("^")},$1 -> place,$3 -> place,temp);	
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 			
 		}
@@ -853,10 +854,10 @@ inclusive_or_expression
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
 			///
-			comp temp = get_temp_label($$ -> nodeType);
-			emit({"|",lookup("|")},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			// comp temp = get_temp_label($$ -> nodeType);
+			// emit({"|",lookup("|")},$1 -> place,$3 -> place,temp);	
+			// $$->place=temp;
+			// $$->nextlist = {};
 			///
 			
 		}
@@ -871,14 +872,14 @@ inclusive_or_expression
 
 M
 	: %empty {
-		$$ = (int)code.size();
+		// $$ = (int)code.size();
 	}
 
 logical_and_expression
 	: inclusive_or_expression										{$$=$1;}
-	| logical_and_expression AND_OP M inclusive_or_expression			{$$=make_node("&&",$1,$3);
+	| logical_and_expression AND_OP M inclusive_or_expression			{$$=make_node("&&",$1,$4);
 		$$->nodeType="bool";
-		$$->init= ($1->init&& $3->init);
+		$$->init= ($1->init&& $4->init);
 		///
 		
 		///
@@ -948,10 +949,10 @@ assignment_operator
 
 expression
 	: assignment_expression										{$$=$1;}
-	| expression ',' M assignment_expression						{$$=make_node("expression",$1,$3);
+	| expression ',' M assignment_expression						{$$=make_node("expression",$1,$4);
 		///
-		backpatch($1->nextlist,$3);
-		$$->nextlist=$4 -> nextlist;
+		// backpatch($1->nextlist,$3);
+		// $$->nextlist=$4 -> nextlist;
 		///
 	}
 	;
@@ -967,7 +968,7 @@ declaration
 	| declaration_specifiers init_declarator_list ';'			{$$=make_node("declaration",$1,$2);
 		var_type = "";
 		///
-		$$->nextlist=$2 -> nextlist;
+		// $$->nextlist=$2 -> nextlist;
 		///
 	}
 	;
@@ -975,8 +976,8 @@ declaration
 declaration_specifiers
 	: storage_class_specifier									{$$=$1;}
 	| storage_class_specifier declaration_specifiers			{$$=make_node("declaration_specifiers",$1,$2);}
-	| M2 type_specifier											{$$=$2;}
-	| M2 type_specifier declaration_specifiers						{$$=make_node("declaration_specifiers",$2,$3);}
+	| type_specifier											{$$=$1;}
+	| type_specifier declaration_specifiers						{$$=make_node("declaration_specifiers",$1,$2);}
 	| type_qualifier											{$$=$1;}
 	| type_qualifier declaration_specifiers						{$$=make_node("declaration_specifiers",$1,$2);}
 	;
@@ -991,10 +992,10 @@ init_declarator_list
 	: init_declarator											{$$=$1;
 		
 	}
-	| init_declarator_list ',' M init_declarator					{$$=make_node("init_declarator_list",$1,$3);
+	| init_declarator_list ',' M init_declarator					{$$=make_node("init_declarator_list",$1,$4);
 			///
-			backpatch($1->nextlist, $3);
-            $$->nextlist = $4->nextlist;
+			// backpatch($1->nextlist, $3);
+            // $$->nextlist = $4->nextlist;
 			///
 	}	
 	;
@@ -1020,12 +1021,12 @@ init_declarator
 				yyerror("Error: redeclaration of the variable."); 
 			}
 			else{
-				make_symTable_entry($1->nodeLex,$1 -> nodeType,0);
+				make_symTable_entry($1->nodeLex,$1 -> nodeType,0,$1 -> size);
 				$$ -> init = 0;
 			}
-
 			//TODO:3ac
 		}
+		accept2 = 0;
 	}
 	| declarator '=' initializer							{$$=make_node("init_declarator",$1,$3);
 		s_entry * find = lookup_in_curr($1->nodeLex);
@@ -1037,11 +1038,24 @@ init_declarator
 				yyerror("Error: redeclaration of the variable."); 
 			}
 			else{
-				make_symTable_entry($1->nodeLex,$1 -> nodeType,1);
+				if(initializer_list_size != 0 && $1 -> size == 0){
+					if(accept2){
+						$1 -> size = get_size("*")*initializer_list_size;
+					}
+					else{
+						string tmp = $1 -> nodeType;
+						while(tmp[tmp.size() - 1] == '*'){
+							tmp.pop_back();
+						}
+						$1 -> size = get_size(tmp)*initializer_list_size; 
+					}
+				}
+				make_symTable_entry($1->nodeLex,$1 -> nodeType,1,$1 -> size);
 				$$ -> init = 1;
 			}
 			initializer_list_size = 0;
 			array_case2 = 0;
+			accept2 = 0;
 		}
 		else{
 			yyerror("Error : unexpected initialisation of variable.");
@@ -1155,11 +1169,19 @@ struct_or_union_specifier
 		printSymTable(curr_table,$1 -> nodeLex,"struct",st_line_no.back(),yylineno);
 		st_line_no.pop_back();
 		id_to_struct[$1 -> nodeType] = curr_table;
-		id_to_struct_name[$1 -> nodeType] = "struct_name " + $1 -> nodeLex;
+		id_to_struct_name[$1 -> nodeType] = $1 -> nodeType;
 		curr_table = parent[curr_table];
 		complete[$1 -> nodeType] = 1;
 		$$ -> nodeType = $1 -> nodeType;
 		$$ -> nodeLex = $1 -> nodeLex;
+		if($1 -> is_union == 0){
+			structSize[$$ -> nodeType] = $5 -> size;
+			$$ -> size = $5 -> size;
+		}
+		else{
+			structSize[$$ -> nodeType] = $5 -> union_size;
+			$$ -> size = $5 -> union_size;
+		}
 	}
 	| struct_or_union M11 M10 '{' struct_declaration_list '}'             {$$=make_node("struct_or_union_specifier",$1,$5);
 		curr_struct_table = struct_parent[curr_struct_table];
@@ -1169,10 +1191,18 @@ struct_or_union_specifier
 		printSymTable(curr_table,name,"struct",st_line_no.back(),yylineno);
 		st_line_no.pop_back();
 		curr_table = parent[curr_table];
-		id_to_struct_name[name] = "struct_type_definition_2";
+		id_to_struct_name[name] = name;
 		(*curr_struct_table)[name] = {struct_count,$1 -> is_union};
 		$$ -> nodeType = name;
 		$$ -> nodeLex = name;
+		if($1 -> is_union == 0){
+			structSize[$$ -> nodeType] = $5 -> size;
+			$$ -> size = $5 -> size;
+		}
+		else{
+			structSize[$$ -> nodeType] = $5 -> union_size;
+			$$ -> size = $5 -> union_size;
+		}
 		complete[$1 -> nodeType] = 1;
 	}
 	| struct_or_union IDENTIFIER								  {$$=make_node("struct_or_union_specifier",$1,make_node($2));
@@ -1180,6 +1210,7 @@ struct_or_union_specifier
 		if(id){
 			$$ -> nodeType = to_string(id);
 			$$ -> nodeLex = to_string(id); 
+			$$ -> size = structSize[to_string(id)];
 		}
 		else{
 			yyerror("Error : structure not declared.");
@@ -1199,6 +1230,7 @@ M5
 			$$ -> nodeLex = $2;
 			complete[$$ -> nodeType] = 0;
 		}
+		$$ -> is_union = $1 -> is_union;
 	}
 struct_or_union
 	: STRUCT										    {$$=make_node($1);
@@ -1210,17 +1242,22 @@ struct_or_union
 		$$ -> nodeType = $1;
 		$$ -> nodeLex = $1;
 		$$ -> is_union = 1;
+		is_union2 = 1;
 	}
 	;
 
 struct_declaration_list
 	: struct_declaration											{$$=$1;}
-	| struct_declaration_list struct_declaration					{$$=make_node("struct_declaration_list",$1,$2);}
+	| struct_declaration_list struct_declaration					{$$=make_node("struct_declaration_list",$1,$2);
+			$$ -> size = $1 -> size + $2 -> size;
+			$$ -> union_size = max($1 -> union_size,$2 -> union_size);
+	}
 	;
-
 struct_declaration
 	: M6 struct_declarator_list ';'          {$$=make_node("struct_declaration",$1,$2);
 		var_type = "";
+		$$ -> size = $2 -> size;
+		$$ -> union_size = $2 -> union_size;
 	}
 	;
 
@@ -1243,26 +1280,33 @@ specifier_qualifier_list
 	;
 
 struct_declarator_list
-	: M7											{$$=$1;}
-	| struct_declarator_list ',' M7				{$$=make_node("struct_declarator_list",$1,$3);}              
+	: M7											{$$=$1;
+		$$ -> union_size = $1 -> size;
+	}
+	| struct_declarator_list ',' M7				{$$=make_node("struct_declarator_list",$1,$3);
+		$$ -> size = $1 -> size + $3 -> size;
+		$$ -> union_size = max($1 -> union_size,$3 -> size);
+	}              
 	;
 
 M7
 	:struct_declarator		{ $$ = $1;
 		accept = 0;
 	}
-
+	;
 struct_declarator
 	: declarator											{$$=$1;
 		if(lookup_in_curr($1 -> nodeLex)){
 			yyerror("Error: redeclaration of variable.");
 		}
 		else{// var_type == ""; int var_type == 
+			$$ -> size = $1 -> size;
 			if((complete.find(var_type) != complete.end()) && (complete[var_type] == 0) && !accept){
 				yyerror("Error : Creating object before completing structure definition.");
 			}
-			else make_symTable_entry($1 -> nodeLex,$1 -> nodeType,0);
+			else make_symTable_entry($1 -> nodeLex,$1 -> nodeType,0,$$ -> size);
 		}
+		accept2 = 0;
 	}
 	| ':' constant_expression								{$$=$2;}
 	| declarator ':' constant_expression					{$$=make_node("struct_declarator",$1,$3);
@@ -1270,11 +1314,13 @@ struct_declarator
 			yyerror("Error: redeclaration of variable.");
 		}
 		else{// var_type == "";
+			$$ -> size = $1 -> size;
 			if((complete.find(var_type) != complete.end()) && (complete[var_type] == 0) && !accept){
 				yyerror("Error : Creating object before completing structure definition.");
 			}
-			else make_symTable_entry($1 -> nodeLex,$1 -> nodeType,0);
+			else make_symTable_entry($1 -> nodeLex,$1 -> nodeType,0,$$ -> size);
 		}
+		accept2 = 0;
 	}
 	;
 
@@ -1303,14 +1349,21 @@ declarator
 	: pointer direct_declarator	               					{$$=make_node("direct_declarator",$1,$2);
 		$$ -> nodeType = $2 -> nodeType + $1 -> nodeType;
 		$$ -> nodeLex = $2 -> nodeLex;
+		$$ -> size = get_size("*")*($2 -> size);
 		accept = 1;
+		accept2 = 1;
 		///
-		$$ ->place={$1->nodeLex,NULL};
+		// $$ ->place={$1->nodeLex,NULL};
 		///
 	}
 	| direct_declarator											{$$=$1;
+		string tmp = $1 -> nodeType;
+		while(tmp[tmp.size() - 1] == '*'){
+			tmp.pop_back();
+		}
+		$$ -> size = get_size(tmp)*($1 -> size);
 		///
-		$$ ->place={$1->nodeLex,NULL};
+		// $$ ->place={$1->nodeLex,NULL};
 		///
 	}
 	;
@@ -1319,28 +1372,30 @@ direct_declarator
 	: IDENTIFIER										    	{$$=make_node($1);
 		$$ -> nodeType = var_type;
 		$$ -> nodeLex = $1;
+		$$ -> size = 1;
+		cout << var_type << endl;
 		///
-		$$ ->place={$1->nodeLex,NULL};
+		// $$ ->place={$1->nodeLex,NULL};
 		///
 	}
 	| '(' declarator ')'										{$$=$2;}
 	| direct_declarator '[' constant_expression ']'        		{$$=make_node("direct_declarator",$1,$3);
 		$$ -> nodeType = $1 -> nodeType + "*";
 		$$ -> nodeLex = $1 -> nodeLex;
-		//$$ -> size = ($1 -> size)*$3 -> iVal; // check whether constant_expression is evaluated or not
+		$$ -> size = ($1 -> size)*($3 -> ival);
 		///
-		$$ ->place={$1->nodeLex,NULL};
+		// $$ ->place={$1->nodeLex,NULL};
 		///
 	}
 	| direct_declarator '[' ']'							  		{$$=make_node("direct_declarator",$1,make_node("[]"));
 		$$ -> nodeType = $1 -> nodeType + "*";
 		$$ -> nodeLex = $1 -> nodeLex;
-		//$$ -> size = ($1 -> size)*initializer_list_size;
+		$$ -> size = ($1 -> size)*initializer_list_size;
 		if(!in_param){
 			array_case2 = 1;
 		}
 		///
-		$$ ->place={$1->nodeLex,NULL};
+		// $$ ->place={$1->nodeLex,NULL};
 		///
 	}
 	| direct_declarator '(' M8 M13 parameter_type_list M8 ')'        		{$$=make_node("direct_declarator",$1,$5);
@@ -1400,22 +1455,23 @@ parameter_type_list
 
 parameter_list
 	: parameter_declaration										{$$=$1;}
-	| parameter_list ',' M parameter_declaration                 	{$$=make_node("parameter_list",$1,$3);
+	| parameter_list ',' M parameter_declaration                 	{$$=make_node("parameter_list",$1,$4);
 		///
-		backpatch($1->nextlist,$3);
-		$$->nextlist=$4->nextlist;
+		// backpatch($1->nextlist,$3);
+		// $$->nextlist=$4->nextlist;
 		///
 	}
 	;
 
 parameter_declaration
 	: declaration_specifiers  declarator                  		{$$=make_node("parameter_declaration",$1,$2);
+		$$ -> size = $2 -> size;
 		s_entry* find = lookup_in_curr($2 -> nodeLex);
 		if(find){
 			yyerror("Error: redeclaration of variable.");
 		}
 		else{
-			make_symTable_entry2(temp_table,$2 -> nodeLex,$2 -> nodeType,1);
+			make_symTable_entry2(temp_table,$2 -> nodeLex,$2 -> nodeType,1,$$ -> size);
 		}
 		if(funcArg == ""){
 			funcArg += $2 -> nodeType;
@@ -1525,8 +1581,8 @@ initializer
 		
 		// $$->nodeType = $2 -> nodeType+"*"; //same in above //!doubt
 		///
-		$$->place=$2 -> place;
-		$$->nextlist=$2 -> nextlist;
+		// $$->place=$2 -> place;
+		// $$->nextlist=$2 -> nextlist;
 		///
 	}
 	;
@@ -1535,11 +1591,11 @@ initializer_list
 	: initializer											{$$=$1;
 		initializer_list_size++;
 	}
-	| initializer_list ',' M initializer						{$$=make_node("initializer_list",$1,$3);
+	| initializer_list ',' M initializer						{$$=make_node("initializer_list",$1,$4);
 		initializer_list_size++;
 		///
-		backpatch($1->nextlist,$3);
-		$$->nextlist=$4 -> nextlist;
+		// backpatch($1->nextlist,$3);
+		// $$->nextlist=$4 -> nextlist;
 		///
 	}
 	;
@@ -1558,18 +1614,18 @@ M9
 		simple_block = 1 - simple_block;
 	}
 labeled_statement
-	: IDENTIFIER ':' M statement			 		 {$$=make_node("labeled_statement",make_node($1),$3);
+	: IDENTIFIER ':' M statement			 		 {$$=make_node("labeled_statement",make_node($1),$4);
 		///
-		if(gotoindex($1,$3)){
-			string s="Error: "+string($1)+" is already defined";
-			char *x;
-			strcpy(x,s.c_str());
-			yyerror(x);
-		}
-		$$->nextlist=$4 -> nextlist;
-		$$->caselist = $4->caselist;
-		$$->continuelist = $4->continuelist;
-		$$->breaklist = $4->breaklist;
+		// if(gotoindex($1,$3)){
+		// 	string s="Error: "+string($1)+" is already defined";
+		// 	char *x;
+		// 	strcpy(x,s.c_str());
+		// 	yyerror(x);
+		// }
+		// $$->nextlist=$4 -> nextlist;
+		// $$->caselist = $4->caselist;
+		// $$->continuelist = $4->continuelist;
+		// $$->breaklist = $4->breaklist;
 		///
 	
 	}
@@ -1579,9 +1635,9 @@ labeled_statement
 	}
 	| DEFAULT ':' statement   			  		 {$$=make_node("labeled_statement",make_node("default"),$3);
 		///
-		$$->nextlist=$3 -> nextlist;
-		$$->continuelist = $3->continuelist;
-		$$->breaklist = $3->breaklist;
+		// $$->nextlist=$3 -> nextlist;
+		// $$->continuelist = $3->continuelist;
+		// $$->breaklist = $3->breaklist;
 		///
 	}
 	;
@@ -1732,7 +1788,7 @@ function_definition
 		if(funcMap.find($2 -> nodeLex) == funcMap.end()){
 			if(!lookup($2 -> nodeLex)){
 				 funcMap.insert({$2 -> nodeLex,funcArg});
-				 make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0);
+				 make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0,$2 -> size);
 			}
 			else{
 				yyerror("Error: redeclaration of the function.");
@@ -1746,6 +1802,7 @@ function_definition
 		tmp_map.clear();
 		var_type = "";
 		return_type = "";
+		accept2 = 0;
 	}
 	| M14 M4 compound_statement M4                        {$$=make_node("function_definition",$1,$3);
 		if(is_struct($2 -> nodeType) || is_struct(return_type)){
@@ -1798,7 +1855,7 @@ function_definition
 		if(funcMap.find($1 -> nodeLex) == funcMap.end()){
 			if(!lookup($1 -> nodeLex)){
 				 funcMap.insert({$1 -> nodeLex,funcArg});
-				 make_symTable_entry($1 -> nodeLex,"int",0);
+				 make_symTable_entry($1 -> nodeLex,"int",0,get_size("int"));
 			}
 			else{
 				yyerror("Error: redeclaration of the function.");
@@ -1810,6 +1867,7 @@ function_definition
 		funcArg = "";
 		tmpstr = "";
 		tmp_map.clear();
+		accept2 = 0;
 	}
 	| M15 M4 compound_statement M4                                              {$$=make_node("function_definition",$1,$3);
 		if(is_struct("int") || is_struct(return_type)){
@@ -1835,6 +1893,7 @@ M3
 		parent.insert({temp,curr_table});
 		curr_table = temp;
 		symTable_type[curr_table] = "function";
+		offset_table[curr_table] = 0;
 	}
 	;
 M11
@@ -1845,18 +1904,26 @@ M11
 		curr_struct_table = temp2;
 		parent.insert({temp,curr_table});
 		curr_table = temp;
-		symTable_type[curr_table] = "struct";
+		offset_table[curr_table] = 0;
+		if(is_union2){
+			symTable_type[curr_table] = "union";
+		}
+		else{
+			symTable_type[curr_table] = "struct";
+		}
+		is_union2 = 0;
 	}
 	;
 M12
 	:%empty		{
-	symTable * temp = new symTable();
-	struct_table * temp2 = new struct_table();
-	struct_parent.insert({temp2,curr_struct_table});
-	curr_struct_table = temp2;
-	parent.insert({temp,curr_table});
-	curr_table = temp;
-	symTable_type[curr_table] = "block";
+		symTable * temp = new symTable();
+		struct_table * temp2 = new struct_table();
+		struct_parent.insert({temp2,curr_struct_table});
+		curr_struct_table = temp2;
+		parent.insert({temp,curr_table});
+		curr_table = temp;
+		symTable_type[curr_table] = "block";
+		offset_table[curr_table] = 0;
 	}
 	;
 M4
@@ -1883,6 +1950,7 @@ M13
 		struct_parent[temp] = curr_struct_table;
 		curr_struct_table = temp;
 		symTable_type[temp_table]="function";
+		offset_table[curr_table] = 0;
 	}
 	;
 M14
@@ -1891,7 +1959,7 @@ M14
 		if(funcMap.find($2 -> nodeLex) == funcMap.end()){
 			if(!lookup($2 -> nodeLex)){
 				 funcMap.insert({$2 -> nodeLex,funcArg});
-				 make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0);
+				 make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0,$2 -> size);
 			}
 			else{
 				yyerror("Error: redeclaration of the function.");
@@ -1904,6 +1972,7 @@ M14
 		var_type = "";
 		parent[temp_table] = curr_table;
 		curr_table = temp_table;
+		accept2 = 0;
 	}
 	;
 M15
@@ -1912,7 +1981,7 @@ M15
 		if(funcMap.find($1 -> nodeLex) == funcMap.end()){
 			if(!lookup($1 -> nodeLex)){
 				 funcMap.insert({$1 -> nodeLex,funcArg});
-				 make_symTable_entry($1 -> nodeLex,"int",0);
+				 make_symTable_entry($1 -> nodeLex,"int",0,get_size("int"));
 			}
 			else{
 				yyerror("Error: redeclaration of the function.");
@@ -1924,6 +1993,7 @@ M15
 		funcArg = "";
 		parent[temp_table] = curr_table;
 		curr_table = temp_table;
+		accept2 = 0;
 	}
 	;
 %%
@@ -2029,11 +2099,11 @@ int main(int argc, char *argv[])
 	}
 	fclose(in);
 	in=freopen(filename,"r",stdin);
-
-
-
+	
 	BeginGraph();
 	yyparse();
 	EndGraph();
-	
+	symTable_type[GST] = "global_table";
+
+	printSymTable(GST,"Global","",st_line_no.back(),yylineno);
 } 

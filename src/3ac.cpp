@@ -18,14 +18,24 @@ int emit(comp op_code,comp op_1,comp op_2,comp result){
     p.op_1 = op_1;
     p.op_2 = op_2;
     p.result = result;
-    code.push_back(p);
-    return (int)code.size()-1;
+    emitted_code.push_back(p);
+    return (int)emitted_code.size()-1;
     //to do: could be changed as num could be of no use
     //todo : not storing statement number
 }
 
 void backpatch(list<int> l,int to_addr){
-    for(auto x:l) code[x].num = to_addr;
+    for(auto x:l) emitted_code[x].num = to_addr;
+}
+
+comp get_temp_label(string type){
+    comp p;
+    var_counter++;
+    p.first = "t_" + to_string(var_counter);
+    make_symTable_entry2(GST,p.first,type,0,get_size(type));
+    s_entry * find = lookup(p.first);
+    p.second = find;
+    return p;
 }
 
 

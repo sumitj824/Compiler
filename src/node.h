@@ -4,6 +4,7 @@
 #include<sstream>
 #include<string.h>
 #include "3ac.h"
+#include "type.h"
 #include<list>
 
 using namespace std;
@@ -19,8 +20,9 @@ typedef struct
     string nodeLex;
     int init;
     int is_union;
-
-
+    int size;
+    unsigned long long int offset;
+    int union_size;
     comp place;
     list<int> nextlist;
     list<int> breaklist;

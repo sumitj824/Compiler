@@ -14,20 +14,38 @@ map <string,symTable*> id_to_struct;
 FILE * csv_output = fopen("All_symbolTable.txt","w");
 map <symTable*,string> symTable_type;
 map <string,string> id_to_struct_name;
+map <string,int> structSize;
+map <symTable*,unsigned long long int> offset_table;
 
-void make_symTable_entry(string name,string type,int init){
+void make_symTable_entry(string name,string type,int init,int size){
    // cout << name << " with " << type << " init : " << init << endl;  
     s_entry * p = new s_entry();
     p -> type = type;
     p -> init = init;
+    p -> size = size;
+    if(symTable_type[curr_table] == "union"){
+        p -> offset = 0;
+    }
+    else{
+        p -> offset = offset_table[curr_table];
+        offset_table[curr_table] += size;
+    }
     (*curr_table).insert({name,p});
 }
 
-void make_symTable_entry2(symTable* table,string name,string type,int init){
+void make_symTable_entry2(symTable* table,string name,string type,int init,int size){
    // cout << name << " with " << type << " init : " << init << endl;  
     s_entry * p = new s_entry();
     p -> type = type;
     p -> init = init;
+    p -> size = size;
+    if(symTable_type[table] == "union"){
+        p -> offset = 0;
+    }
+    else{
+        p -> offset = offset_table[table];
+        offset_table[table] += size;
+    }
     (*table).insert({name,p});
 }
 
@@ -81,13 +99,13 @@ void start_new_block(string block_name,string block_type,int sline,int eline){
 
 void printSymTable(symTable* table,string block_name,string block_type,int sline,int eline){
     start_new_block(block_name,symTable_type[table],sline,eline);
-    fprintf(csv_output,"%-25s%-25s%-25s\n\n","Key","Type","Is_initialized");
+    fprintf(csv_output,"%-25s%-25s%-25s%-25s%-25s\n\n","Key","Type","Is_initialized","Size","Offset");
     for(auto it : (*table)){
         string type = (it.second) -> type;
         if(id_to_struct_name.count(type)){
             type = id_to_struct_name[type];
         }
-        fprintf(csv_output,"%-25s%-25s%-25d\n",(it.first).c_str(),type.c_str(),(it.second) -> init);
+        fprintf(csv_output,"%-25s%-25s%-25d%-25d%-25lld\n",(it.first).c_str(),type.c_str(),(it.second) -> init,(it.second -> size),(it.second) -> offset);
     }
 }
 
@@ -128,4 +146,34 @@ int check_type(string type1,string type2){
     else{
         return true;
     }
+}
+
+int get_size(string type){
+    if(structSize.count(type)) return structSize[type];
+    if(type ==  "int") return sizeof(int);
+    if(type ==  "long int") return sizeof(long int);
+    if(type ==  "long long") return sizeof(long long);
+    if(type ==  "long long int") return sizeof(long long int);
+    if(type ==  "unsigned int") return sizeof(unsigned int);
+    if(type ==  "unsigned long int") return sizeof(unsigned long int);
+    if(type ==  "unsigned long long") return sizeof(unsigned long long);
+    if(type ==  "unsigned long long int") return sizeof(unsigned long long int);
+    if(type ==  "signed int") return sizeof(signed int);
+    if(type ==  "signed long int") return sizeof(signed long int);
+    if(type ==  "signed long long") return sizeof(signed long long);
+    if(type ==  "signed long long int") return sizeof(signed long long int);
+    if(type ==  "short") return sizeof(short);
+    if(type ==  "short int") return sizeof(short int);
+    if(type ==  "unsigned short int") return sizeof(unsigned short int);
+    if(type ==  "signed short int") return sizeof(signed short int);
+
+
+    //float
+    if(type ==  "float") return sizeof(float);
+    if(type ==  "double") return sizeof(double);
+    if(type ==  "long double") return sizeof(long double);
+    // char 
+    if(type ==  "char") return sizeof(char);
+
+    return 8;
 }
