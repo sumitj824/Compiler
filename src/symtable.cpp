@@ -16,6 +16,9 @@ map <symTable*,string> symTable_type;
 map <string,string> id_to_struct_name;
 map <string,int> structSize;
 map <symTable*,unsigned long long int> offset_table;
+array_arg_table * curr_array_arg_table = new array_arg_table();
+map <array_arg_table*,array_arg_table*> parent_array_arg_table;
+map <s_entry*,vector <int>> array_symTable_entry;
 
 void make_symTable_entry(string name,string type,int init,int size){
    // cout << name << " with " << type << " init : " << init << endl;  
@@ -29,6 +32,17 @@ void make_symTable_entry(string name,string type,int init,int size){
     else{
         p -> offset = offset_table[curr_table];
         offset_table[curr_table] += size;
+    }
+    if((*curr_array_arg_table).count(name)){
+        string temp_type = type;
+        vector <int> temp = (*curr_array_arg_table)[name];
+        int i = 0;
+        while(i < temp.size()){
+            temp_type.pop_back();
+            i++;
+        }
+        (*curr_array_arg_table)[name].push_back(get_size(temp_type));
+        array_symTable_entry[p] = (*curr_array_arg_table)[name];
     }
     (*curr_table).insert({name,p});
 }

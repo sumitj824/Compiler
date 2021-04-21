@@ -20,3 +20,5 @@ string condition(string t1,string t2);
 string validAssign(string t1,string t2);
 string assign(string t1,string t2,string op);
 char* func_check(string user_arg,string func_arg);
+int product_of_dimensions(vector <int> dimensions);
+vector <int> remove_first(vector <int> dimensions);

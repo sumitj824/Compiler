@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include <list>
+#include <vector>
 using namespace std;
 
 
@@ -15,6 +16,7 @@ typedef struct{
 // curr_scope -> previous_scope -> previous_scope
 typedef map<string,s_entry*> symTable;
 typedef map<string,pair <int,int>> struct_table;
+typedef map<string,vector <int>> array_arg_table;
 extern map<symTable*,symTable*> parent;
 extern map<string,string> funcMap;
 extern symTable *curr_table;
@@ -27,6 +29,10 @@ extern map <symTable*,string> symTable_type;
 extern map <string,string> id_to_struct_name;
 extern map <string,int> structSize;
 extern map <symTable*,unsigned long long int> offset_table;
+extern array_arg_table * curr_array_arg_table;
+extern map <array_arg_table*,array_arg_table*> parent_array_arg_table;
+extern map <s_entry*,vector <int>> array_symTable_entry;
+
 s_entry* lookup(string a);
 
 void make_symTable_entry(string name,string type,int init,int size);

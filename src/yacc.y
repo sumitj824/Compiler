@@ -92,6 +92,11 @@ primary_expression
 						$$->init=t->init;
 						$$->nodeType=t->type;
 						$$ -> nodeLex = string($1);
+						$$ -> offset = t -> offset;
+						$$ -> size = t -> size;
+						if(array_symTable_entry.count(t)){
+							$$ -> dimensions = array_symTable_entry[t];
+						}
 						///
 						$$->place={string($1),t->offset,t->size};
 						$$->nextlist={};
@@ -188,12 +193,12 @@ postfix_expression
 					else{
 						yyerror("Error: array subscript is not an integer");
 					}
-
 				}
 				else{
 					yyerror("Error:  Identifier is not pointer type");
 				}
-
+				$$ -> offset = $1 -> offset + product_of_dimensions($1 -> dimensions)*($3 -> ival);
+				$$ -> dimensions = remove_first($1 -> dimensions);
 				///
 
 				///
@@ -1074,6 +1079,7 @@ init_declarator
 				if(initializer_list_size != 0 && $1 -> size == 0){
 					if(accept2){
 						$1 -> size = get_size("*")*initializer_list_size;
+						(*curr_array_arg_table).insert({$1 -> nodeLex,{initializer_list_size}});
 					}
 					else{
 						string tmp = $1 -> nodeType;
@@ -1081,6 +1087,7 @@ init_declarator
 							tmp.pop_back();
 						}
 						$1 -> size = get_size(tmp)*initializer_list_size; 
+						(*curr_array_arg_table).insert({$1 -> nodeLex,{initializer_list_size}});
 					}
 				}
 				make_symTable_entry($1->nodeLex,$1 -> nodeType,1,$1 -> size);
@@ -1204,6 +1211,7 @@ struct_or_union_specifier
 		id_to_struct[$1 -> nodeType] = curr_table;
 		id_to_struct_name[$1 -> nodeType] = $1 -> nodeType;
 		curr_table = parent[curr_table];
+		curr_array_arg_table = parent_array_arg_table[curr_array_arg_table];
 		complete[$1 -> nodeType] = 1;
 		$$ -> nodeType = $1 -> nodeType;
 		$$ -> nodeLex = $1 -> nodeLex;
@@ -1224,6 +1232,7 @@ struct_or_union_specifier
 		printSymTable(curr_table,name,"struct",st_line_no.back(),yylineno);
 		st_line_no.pop_back();
 		curr_table = parent[curr_table];
+		curr_array_arg_table = parent_array_arg_table[curr_array_arg_table];
 		id_to_struct_name[name] = name;
 		(*curr_struct_table)[name] = {struct_count,$1 -> is_union};
 		$$ -> nodeType = name;
@@ -1406,7 +1415,6 @@ direct_declarator
 		$$ -> nodeType = var_type;
 		$$ -> nodeLex = $1;
 		$$ -> size = 1;
-		cout << var_type << endl;
 		///
 		// $$ ->place={$1->nodeLex,NULL};
 		///
@@ -1415,6 +1423,13 @@ direct_declarator
 	| direct_declarator '[' constant_expression ']'        		{$$=make_node("direct_declarator",$1,$3);
 		$$ -> nodeType = $1 -> nodeType + "*";
 		$$ -> nodeLex = $1 -> nodeLex;
+		if((*curr_array_arg_table).count($1 -> nodeLex)){
+			(*curr_array_arg_table)[$1 -> nodeLex].push_back($3 -> ival);
+		}
+		else{
+			(*curr_array_arg_table).insert({$1 -> nodeLex,{}});
+			(*curr_array_arg_table)[$1 -> nodeLex].push_back($3 -> ival);
+		}
 		$$ -> size = ($1 -> size)*($3 -> ival);
 		///
 		// $$ ->place={$1->nodeLex,NULL};
@@ -1451,7 +1466,7 @@ direct_declarator
 
 	}
 	;
-
+	
 pointer
 	: '*'														{$$=make_node("*");
 		$$ -> nodeType = "*";
@@ -1686,6 +1701,7 @@ compound_statement
 			st_line_no.pop_back();
 		}
 		curr_table = parent[curr_table];
+		curr_array_arg_table = parent_array_arg_table[curr_array_arg_table];
 		curr_struct_table = struct_parent[curr_struct_table];
 	}
 	| M10 '{' statement_list '}'					{$$=make_node("compound_statement",$3);
@@ -1698,6 +1714,7 @@ compound_statement
 			st_line_no.pop_back();
 		}
 		curr_table = parent[curr_table];
+		curr_array_arg_table = parent_array_arg_table[curr_array_arg_table];
 		curr_struct_table = struct_parent[curr_struct_table];
 	}
 	| M10 '{' declaration_list '}'					{$$=make_node("compound_statement",$3);
@@ -1710,6 +1727,7 @@ compound_statement
 			st_line_no.pop_back();
 		}
 		curr_table = parent[curr_table];
+		curr_array_arg_table = parent_array_arg_table[curr_array_arg_table];
 		curr_struct_table = struct_parent[curr_struct_table];
 	}
 	| M10 '{' declaration_list statement_list '}'   {$$=make_node("compound_statement",$3,$4);
@@ -1722,6 +1740,7 @@ compound_statement
 			st_line_no.pop_back();
 		}
 		curr_table = parent[curr_table];
+		curr_array_arg_table = parent_array_arg_table[curr_array_arg_table];
 		curr_struct_table = struct_parent[curr_struct_table];
 	}
 	;
@@ -1927,6 +1946,9 @@ M3
 		curr_table = temp;
 		symTable_type[curr_table] = "function";
 		offset_table[curr_table] = 0;
+		array_arg_table * temp3 = new array_arg_table;
+		parent_array_arg_table[temp3] = curr_array_arg_table;
+		curr_array_arg_table = temp3;
 	}
 	;
 M11
@@ -1938,6 +1960,9 @@ M11
 		parent.insert({temp,curr_table});
 		curr_table = temp;
 		offset_table[curr_table] = 0;
+		array_arg_table * temp3 = new array_arg_table;
+		parent_array_arg_table[temp3] = curr_array_arg_table;
+		curr_array_arg_table = temp3;
 		if(is_union2){
 			symTable_type[curr_table] = "union";
 		}
@@ -1954,9 +1979,12 @@ M12
 		struct_parent.insert({temp2,curr_struct_table});
 		curr_struct_table = temp2;
 		parent.insert({temp,curr_table});
+		offset_table[temp] = offset_table[curr_table];
 		curr_table = temp;
 		symTable_type[curr_table] = "block";
-		offset_table[curr_table] = 0;
+		array_arg_table * temp3 = new array_arg_table;
+		parent_array_arg_table[temp3] = curr_array_arg_table;
+		curr_array_arg_table = temp3;
 	}
 	;
 M4
@@ -1984,6 +2012,9 @@ M13
 		curr_struct_table = temp;
 		symTable_type[temp_table]="function";
 		offset_table[curr_table] = 0;
+		array_arg_table * temp3 = new array_arg_table;
+		parent_array_arg_table[temp3] = curr_array_arg_table;
+		curr_array_arg_table = temp3;
 	}
 	;
 M14

@@ -1,26 +1,22 @@
+int a;
+
 struct x{
-    struct x* y;
-    struct x** t;
     int a;
     int b;
-    int c[5];
-    char d;
 };
 
-int a[10];
-
-float c;
-double d;
-long long int e;
-long int f;
-
 int main(){
-    int ** b;
-    char c[20];
-    char *d[20];
-    char ** e;
-    int* a[6] = {1,2,3,4,5,};
     struct x y;
-    int g;
+    int a[7];
+    {
+        struct x y;
+        int a[] = {1,2,3,4,5,6,8,7};
+        a[4] = 1;
+    }
+    a[5] = 1;
     return 0;
 }
+
+// offset
+// initializer_list_size
+// 
