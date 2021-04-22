@@ -28,6 +28,9 @@ typedef struct
     list<int> breaklist;
     list<int> continuelist;
     list<int> caselist;
+    list<int> truelist;
+    list<int> falselist;
+    int is_logical;
 }node;
 
 

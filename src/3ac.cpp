@@ -21,18 +21,22 @@ int emit(comp op_code,comp op_1,comp op_2,comp result){
 
 
 void backpatch(list<int> l,int to_addr){
-    for(auto x:l) emitted_code[x].num = to_addr;
+    for(auto x:l) emitted_code[x].result = {to_string(to_addr),0,0};
 }
 
-comp get_temp_label(string type){
+comp get_temp_label(){
     comp p;
     var_counter++;
-    p.name = "__t" + to_string(var_counter)+"__";
-    // make_symTable_entry2(GST,p.name,type,0,get_size(type));
-    s_entry * find = lookup(p.name);
-    p.offset=find->offset;
-    p.size=find->size;
+    p.name = "_t" + to_string(var_counter);
+    p.offset=0;
+    p.size=-1;
     return p;
+}
+
+void print_code(){
+    for(auto x:emitted_code){
+        cout<<x.op_code.name <<' '<<x.op_1.name<< ' ' << x.op_2.name<< ' '<<x.result.name<<endl;
+    }
 }
 
 
