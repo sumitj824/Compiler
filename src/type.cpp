@@ -1,6 +1,27 @@
 #include "type.h"
 #include "symtable.h"
 
+
+int product_of_dimensions(vector <int> dimensions){
+    int N = dimensions.size();
+    if(N == 0){
+        return 0;
+    }
+    int pro = 1;
+    for(int i = 1;i < N;i++){
+        pro *= dimensions[i];
+    }
+    return pro;
+}
+
+vector <int> remove_first(vector <int> dimensions){
+    vector <int> temp;
+    for(int i = 1;i < dimensions.size();i++){
+        temp.push_back(dimensions[i]);
+    }
+    return temp;
+}
+
 bool isInt(string t)
 {
     if(t=="int" || t=="long" || t=="long long" || t=="long long int" || t=="long int")return 1;

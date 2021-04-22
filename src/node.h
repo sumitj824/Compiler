@@ -23,6 +23,7 @@ typedef struct
     int size;
     unsigned long long int offset;
     int union_size;
+    vector <int> dimensions;
     comp place;
     list<int> nextlist;
     list<int> breaklist;
