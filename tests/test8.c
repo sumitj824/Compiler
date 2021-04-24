@@ -1,9 +1,15 @@
-int a = 5;
+float a = 5;
 int b=3;
-int c=5;
 int p=1;
+int c=1;
 
 int main(){
-    a>b || c<b && b==5;
+    while(b){
+        c++;
+        if(c) break;
+        //else continue;
+
+    }
+    
     return 0;
 }

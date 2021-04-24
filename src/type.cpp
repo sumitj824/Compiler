@@ -24,7 +24,7 @@ vector <int> remove_first(vector <int> dimensions){
 
 bool isInt(string t)
 {
-    if(t=="int" || t=="long" || t=="long long" || t=="long long int" || t=="long int")return 1;
+    if(t=="int" || t=="long" || t=="long long" || t=="long long int" || t=="long int" || t=="bool")return 1;
     if(t=="signed int" || t=="signed long" || t=="signed long long" || t=="signed long long int" || t=="signed long int")return 1;
     if(t=="unsigned int" || t=="unsigned long" || t=="unsigned long long" || t=="unsigned long long int" || t=="unsigned long int")return 1;
     if(t=="short" || t=="short int" || t=="signed short" || t=="unsigned short" || t=="unsigned short int" || t=="signed short int")return 1;
@@ -59,7 +59,7 @@ string postfix(string t, int num)
     }
     if (num==3)
     { // postfix_expression INC_OP/DEC_OP
-	    if(isInt(t))
+	    if(isInt(t) || isFloat(t) || t=="char")
         {
 	        return t;
 	    } 
@@ -72,11 +72,15 @@ string postfix(string t, int num)
 
 string validAssign(string t1,string t2)
 {   
+    if((isNum(t1) || t1 == "char") && t2 == "bool") return "true";
     if(t1==t2)return "true";
-    if((isNum(t1) || t1=="char") && isNum(t2)|| t1=="char")return "true";
-    if(t1.back()=='*' && isInt(t2))return "warning";
+    if((isNum(t1) || t1=="char") && (isNum(t2)|| t1=="char" ))return "true";
+   
+    if(t1.back()=='*' && (isInt(t2) || t2 == "bool"))return "warning";
     if(t2.back()=='*' && isInt(t1))return "warning";
+     
     if(t1=="void*" && t2.back()=='*')return "true";
+    
     if(t2=="void*" && t1.back()=='*')return "true";
     if(t1.back()=='*' && t2.back()=='*')return "void*";
     return "";

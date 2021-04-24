@@ -12,9 +12,14 @@
 // to do :
 // offset
 // 3AC
+//check if the $number are correct after introducing markers
+//make sure is_logical is flowing correctly
+// case should not be there without switch...
+//handle if(a==b,c==d).....
+//a=b || c...............
+//character addition,multi,.......
+//implement constant expression: for switch.....
 
-
-//difference between ++S and ++P??
 using namespace std;
 
 set <string> temp_arg; // to store identifier list in function declaration 1
@@ -54,6 +59,8 @@ int yylex();
 // abstract declaration
 // typechecking
 
+
+
 %token<str> IDENTIFIER I_CONSTANT F_CONSTANT  STRING_LITERAL SIZEOF
 %token<str> PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token<str> AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
@@ -71,7 +78,7 @@ int yylex();
 %right <str> '&' '=' '!' '~' ':' '?'
 
 
-%type <num> and_operator or_operator question_mark M N
+%type <num> and_operator or_operator question_mark M N N1 N2
 %type <ptr>  M2 M3 M4 M5	M6 M7 M8 M9 M10 M11 M12 M13 M14 M15
 %type <str>assignment_operator
 %type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression 
@@ -292,6 +299,7 @@ postfix_expression
 					 if(isFloat(s)){
 						 emit({"+float",0,-1},$1->place,{"1",0,0},$1->place);
 					 }else{
+						 //if()
 						 yyerror("increment operator with not int or float");
 					 }
 				 }	
@@ -958,18 +966,18 @@ logical_and_expression
 			$1->truelist.push_back($2-2);
 			$1->falselist.push_back($2-1);
 		}
-		is_logical = 1;
-		$$->is_logical = 1;
 		if($3->is_logical == 0){
 			emit({"if_goto",0,-1},$3->place,{"",0,0},{"",0,0});
 			emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
 			$3->truelist.push_back((int)emitted_code.size()-2);
-			$3->falselist.push_back((int)emitted_code.size()-2);
+			$3->falselist.push_back((int)emitted_code.size()-1);
 		}
 		$$->falselist = $1->falselist;
 		$$->falselist.merge($3->falselist);
 		backpatch($1->truelist,$2);
 		$$->truelist = $3->truelist;
+		is_logical = 1;
+		$$->is_logical = 1;
 		///
 	}
 	;
@@ -1027,7 +1035,25 @@ N
 	}
 
 conditional_expression
-	: logical_or_expression												{$$=$1; is_logical = $$->is_logical;}
+	: logical_or_expression												{$$=$1; is_logical = $$->is_logical;
+	comp temp = get_temp_label();
+	int n = emitted_code.size();
+	if($1->is_logical == 1){
+		emit({"",0,-1},{"1",0,0},{"",0,0},temp);
+		emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+		emit({"",0,-1},{"0",0,0},{"",0,0},temp);
+		emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+		backpatch($1->truelist,n);
+		backpatch($1->falselist,n+2);
+		$$->nextlist.push_back(n+1);
+		$$->nextlist.push_back(n+3);
+		$$->truelist={n+1};
+		$$->falselist={n+3};
+		$$->place = temp;
+		//$$->nextlist = $1->truelist;
+		//$$->nextlist.merge($1->falselist);
+		}
+	}
 	| logical_or_expression question_mark expression ':' N conditional_expression    {$$=make_node("conditional_expression",$1,$3,$6);
 		string s=condition($3->nodeType,$6->nodeType);
 		if(!s.empty()){
@@ -1057,6 +1083,7 @@ conditional_expression
 
 
 			is_logical = 0;
+			$$->is_logical = 0;
 			
 			///
 		}
@@ -1070,23 +1097,65 @@ conditional_expression
 
 	;
 assignment_expression
-	: conditional_expression													{$$=$1;}
+	: conditional_expression													{$$=$1; }
 	| unary_expression assignment_operator assignment_expression		    {$$=make_node("assignment_expression",$1,make_node($2),$3);
-		string s=assign($1->nodeType,$3->nodeType,$2);
-		if(!s.empty())
+
+		string p=assign($1->nodeType,$3->nodeType,$2);
+		//cout<<p<<"         .......................\n";
+		//string s = "int";
+		if(!p.empty())
 		{
 			$$->nodeType=$1->nodeType;
-			if(s=="warning"){
+			if(p=="warning"){
                 yyerror("Warning: Assignment with incompatible pointer type"); 
 			}
 			update_init($1 -> nodeLex,$3 -> init);
 			///
-			
+			//comp temp = get_temp_label();
+			int temp_addr = (int)emitted_code.size();
+			string s($2);
+			if(s == "="){
+				emit({"",0,-1},$3->place,{"",0,0},$1->place);
+			}else{
+				if(s[0] == '+' || s[0] == '-' || s[0] == '*' || s[0] == '/'){
+					if(isInt($1->nodeType) && isInt($3->nodeType)){
+						string op = s.substr(0,1);
+						op=op+"int";
+						//cout<<s<<' '<<op<<".........................."<<endl;
+						emit({op,0,-1},$1->place,$3->place,$1->place);
+					}else{
+						if(isInt($1->nodeType)){
+							emit({"inttoreal",0,0},$1->place,{"",0,0},$1->place);
+						}
+						if(isInt($3->nodeType)){
+							emit({"inttoreal",0,0},$3->place,{"",0,0},$3->place);
+						}
+
+
+						string op = s.substr(0,1)+"float";
+						emit({op,0,-1},$1->place,$3->place,$1->place);
+					}
+				}else{
+					string op="";
+					if(s.length() == 2) op+=s[0];
+					else{
+						if(s[0] == '>') op+="LEFT_OP";
+						else op+="RIGHT_OP";
+					}
+					emit({op,0,-1},$1->place,$3->place,$1->place);
+				}
+
+			}
+			$$->place = $1->place;
+			backpatch($3->nextlist,temp_addr);
+			is_logical = 0;
+			$$->is_logical = 0;
+
 			///
 		}
 		else{
-			s="Error: Incompatible types when assigning type " +$3->nodeType +" to "+$1->nodeType;
-			char *x;
+			string s="Error: Incompatible types when assigning type " +$3->nodeType +" to "+$1->nodeType;
+			char x[300];
 			strcpy(x,s.c_str());
 			yyerror(x);
 		}
@@ -1107,12 +1176,15 @@ assignment_operator
 	| OR_ASSIGN		   {$$="|=";}
 	;
 
+//need to handle truelist,......
 expression
 	: assignment_expression										{$$=$1;}
 	| expression ',' M assignment_expression						{$$=make_node("expression",$1,$4);
 		///
 		backpatch($1->nextlist,$3);
 		$$->nextlist=$4 -> nextlist;
+		$$->is_logical = 0;
+		is_logical = 0;
 		///
 	}
 	;
@@ -1751,8 +1823,8 @@ initializer
 		
 		// $$->nodeType = $2 -> nodeType+"*"; //same in above //!doubt
 		///
-		// $$->place=$2 -> place;
-		// $$->nextlist=$2 -> nextlist;
+		 $$->place=$2 -> place;
+		 $$->nextlist=$2 -> nextlist;
 		///
 	}
 	;
@@ -1764,19 +1836,20 @@ initializer_list
 	| initializer_list ',' M initializer						{$$=make_node("initializer_list",$1,$4);
 		initializer_list_size++;
 		///
-		// backpatch($1->nextlist,$3);
-		// $$->nextlist=$4 -> nextlist;
+		 backpatch($1->nextlist,$3);
+		 $$->nextlist=$4 -> nextlist;
 		///
 	}
 	;
 
 statement
-	: labeled_statement												{$$=$1;}
-	| M12 M9 compound_statement M9											{$$=$3;}
-	| expression_statement											{$$=$1;}
-	| selection_statement											{$$=$1;}
-	| iteration_statement											{$$=$1;}
-	| jump_statement												{$$=$1;}
+	: labeled_statement												{$$=$1; }
+	| M12 M9 compound_statement M9									{$$=$3; $$->is_case =0;}
+	| expression_statement											{$$=$1; $$->is_case =0;}
+	| selection_statement											{$$=$1; $$->is_case=0;
+	}
+	| iteration_statement											{$$=$1; $$->is_case=0;}
+	| jump_statement												{$$=$1; $$->is_case=0;}
 	;
 
 M9
@@ -1786,16 +1859,16 @@ M9
 labeled_statement
 	: IDENTIFIER ':' M statement			 		 {$$=make_node("labeled_statement",make_node($1),$4);
 		///
-		// if(gotoindex($1,$3)){
-		// 	string s="Error: "+string($1)+" is already defined";
-		// 	char *x;
-		// 	strcpy(x,s.c_str());
-		// 	yyerror(x);
-		// }
-		// $$->nextlist=$4 -> nextlist;
+		if(label_map.find(string($1)) != label_map.end()){
+			yyerror("use of duplicate label");
+		}else{
+			label_map[string($1)] = $3;
+			backpatch(label_list_map[string($1)],$3);
+		}
+		 $$->nextlist=$4 -> nextlist;
 		// $$->caselist = $4->caselist;
-		// $$->continuelist = $4->continuelist;
-		// $$->breaklist = $4->breaklist;
+		 $$->continuelist = $4->continuelist;
+		 $$->breaklist = $4->breaklist;
 		///
 	
 	}
@@ -1838,6 +1911,7 @@ compound_statement
 		curr_table = parent[curr_table];
 		curr_array_arg_table = parent_array_arg_table[curr_array_arg_table];
 		curr_struct_table = struct_parent[curr_struct_table];
+		$$->nextlist = $3->nextlist;
 	}
 	| M10 '{' declaration_list '}'					{$$=make_node("compound_statement",$3);
 		if(symTable_type[curr_table] == "function"){
@@ -1864,6 +1938,7 @@ compound_statement
 		curr_table = parent[curr_table];
 		curr_array_arg_table = parent_array_arg_table[curr_array_arg_table];
 		curr_struct_table = struct_parent[curr_struct_table];
+		$$->nextlist = $4->nextlist;
 	}
 	;
 
@@ -1880,37 +1955,193 @@ declaration_list
 
 statement_list
 	: statement												{$$=$1;}
-	| statement_list statement								{$$=make_node("statement_list",$1,$2);}
+	| statement_list M statement								{$$=make_node("statement_list",$1,$3);
+	$$->nextlist = $3->nextlist;
+	$$->continuelist = $1->continuelist; $$->continuelist.merge($3->continuelist);
+	$$->breaklist = $1->breaklist ; $$->breaklist.merge($3->breaklist );
+	backpatch($1->nextlist,$2);
+	
+	}
 	;
 
+
+
 expression_statement
-	: ';'														{$$=make_node(";");}
+	: ';'														{$$=make_node(";"); is_logical = 2;}
 	| expression ';'											{$$=$1;// complete typechecking
 	}
 	;
 
+N1
+	: %empty{
+		//if(is_logical == 0){
+		if(is_logical == 0){
+			emit({"if_goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+			emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+		}
+		if(is_logical == 2){
+			emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+		}
+		$$ = (int)emitted_code.size();
+		}
+	
+
+N2
+	: %empty{
+		emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+		return (int)(emitted_code.size()-1);
+	}
+
+
 selection_statement
-	: IF '(' expression ')' statement               		{$$=make_node("IF (expr) stmt",$3,$5);}
-	| IF '(' expression ')' statement ELSE statement     	{$$=make_node("IF (expr) stmt ELSE stmt",$3,$5,$7);}
+	: IF '(' expression ')' N1 statement               		{$$=make_node("IF (expr) stmt",$3,$6);
+	///
+	//cout<<"hello........................................\n";
+	//if($6->stmtType )
+		if(is_logical == 0){
+			emitted_code[$5-2].op_1 = $3->place;
+			//emitted_code[$5-2].result = $5;
+			$3->truelist.push_back($5-2);
+			$3->falselist.push_back($5-1);
+		}
+		$$->nextlist = $6->nextlist;
+		$$->nextlist.merge($3->falselist);
+		//for(auto x:$$->nextlist){
+		//	cout<<x<<' ';
+		//}
+		//cout<<"............................................\n";
+		backpatch($3->truelist,$5);
+		$$->breaklist = $6->breaklist;
+		$$->continuelist = $6->continuelist;
+	///
+	}
+	| IF '(' expression ')' N1 statement N2  ELSE statement     	{$$=make_node("IF (expr) stmt ELSE stmt",$3,$6,$9);
+		if(is_logical == 0){
+			emitted_code[$5-2].op_1 = $3->place;
+			//emitted_code[$5-2].result = $5;
+			$3->truelist.push_back($5-2);
+			$3->falselist.push_back($5-1);
+		}
+		$6->nextlist.push_back($7);
+		backpatch($3->truelist,$5);
+		backpatch($3->falselist,$7);
+		$$->nextlist = $6->nextlist;
+		$$->nextlist.merge($9->nextlist);
+		$$->breaklist = $6->breaklist; $$->breaklist.merge($9->breaklist);
+		$$->continuelist = $6->continuelist; $$->continuelist.merge($9->continuelist);
+
+	}
 	| SWITCH '(' expression ')' statement              	 	{$$=make_node("SWITCH (expr) stmt",$3,$5);}
 	;
 
 iteration_statement
-	: WHILE '(' expression ')' statement                                        	{$$=make_node("WHILE (expr) stmt",$3,$5);}
-	| DO statement WHILE '(' expression ')' ';'			                            {$$=make_node("DO stmt WHILE (expr)",$2,$5);}
-	| FOR '(' expression_statement expression_statement ')' statement               {$$=make_node("FOR (expr_stmt expr_stmt) stmt",$3,$4,$6);}
-	| FOR '(' expression_statement expression_statement expression ')' statement    {$$=make_node("FOR (expr_stmt expr_stmt expr) stmt",$3,$4,$5,$7);}
+	: WHILE '(' M expression ')' N1 statement                                     	{$$=make_node("WHILE (expr) stmt",$4,$7);
+	//: WHILE '(' M expression ')' N1 statement N2                                      	{$$=make_node("WHILE (expr) stmt",$4,$7);
+	///
+		emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+		//cout<<is_logical<<"is I am coming here....................................\n";
+		if(is_logical == 0){
+			emitted_code[$6-2].op_1 = $4->place;
+			//emitted_code[$6-2].result = $6;
+			$4->truelist.push_back($6-2);
+			$4->falselist.push_back($6-1);
+		}
+		$7->continuelist.push_back((int)emitted_code.size()-1);
+		$7->continuelist.merge($7->nextlist);
+		//for(auto x:$7->nextlist){
+		//	cout<<x<<' ';
+		//}
+		//cout<<"............................................\n";
+
+		backpatch($4->truelist,$6);
+		backpatch($7->continuelist,$3);
+		$$->nextlist = $4->falselist;
+		$$->nextlist = $7->breaklist;
+	///
+	}
+
+	| DO M statement N2 WHILE '(' M expression N1 ')' ';'			                            {$$=make_node("DO stmt WHILE (expr)",$3,$8);
+		if(is_logical == 0){
+			emitted_code[$9-2].op_1 = $8->place;
+			//emitted_code[$8-2].result = $6;
+			$8->truelist.push_back($9-2);
+			$8->falselist.push_back($9-1);
+		}
+		$3->continuelist.push_back($4);
+		$3->continuelist.merge($3->nextlist);
+		backpatch($8->truelist,$2);
+		backpatch($3->continuelist,$7);
+		$$->nextlist = $8->falselist;
+		$$->nextlist.merge($3->breaklist);
+
+	}
+	| FOR '(' expression_statement M expression_statement N1 ')' statement N2              {$$=make_node("FOR (expr_stmt expr_stmt) stmt",$3,$5,$8);
+		//need to deal with 2 cases,; and exp;
+		if(is_logical == 0){
+			emitted_code[$6-2].op_1 = $5->place;
+			//emitted_code[$8-2].result = $6;
+			$5->truelist.push_back($6-2);
+			$5->falselist.push_back($6-1);
+		}
+		if(is_logical == 2){
+			$5->truelist.push_back($6-1);
+		}
+		$8->continuelist.merge($8->nextlist);
+		$8->continuelist.push_back($9);
+		backpatch($8->continuelist,$4);
+		backpatch($5->truelist,$6);
+		$$->nextlist = $5->falselist;
+		$$->nextlist.merge($8->breaklist);
+
+	}
+	| FOR '(' expression_statement M expression_statement N1 expression N2 ')' statement N2   {$$=make_node("FOR (expr_stmt expr_stmt expr) stmt",$3,$5,$7,$10);
+		if(is_logical == 0){
+			emitted_code[$6-2].op_1 = $5->place;
+			//emitted_code[$8-2].result = $6;
+			$5->truelist.push_back($6-2);
+			$5->falselist.push_back($6-1);
+		}
+		if(is_logical == 2){
+			$5->truelist.push_back($6-1);
+		}
+		$10->continuelist.merge($10->nextlist);
+		$10->continuelist.push_back($11);
+		backpatch($10->continuelist,$6);
+		$7->nextlist.push_back($8);
+		backpatch($7->nextlist,$4);
+		backpatch($5->truelist,$8+1);
+		$$->nextlist = $5->falselist;
+		$$->nextlist.merge($10->breaklist);
+	}
 	;
 
 jump_statement
-	: GOTO IDENTIFIER ';'						{$$=make_node("jump_statement",make_node($1),make_node($2));}
-	| CONTINUE ';'						        {$$=make_node("continue");}
-	| BREAK ';'						            {$$=make_node("break");}
+	: GOTO IDENTIFIER ';'						{$$=make_node("jump_statement",make_node($1),make_node($2));
+	string s($2);
+	emit({"goto",0,0},{"",0,0},{"",0,0},{"",0,0});
+	if(label_map.find(s) != label_map.end()){
+		label_map[s];
+		
+		emitted_code[(int)emitted_code.size()-1].result = {to_string(label_map[s]),0,0};
+	}else{
+		label_list_map[s].push_back((int)emitted_code.size()-1);
+	}
+	}
+	| CONTINUE ';'						        {$$=make_node("continue");
+		emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+		$$->continuelist.push_back((int)emitted_code.size()-1);
+	}
+	| BREAK ';'						            {$$=make_node("break");
+		emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+		$$->breaklist.push_back((int)emitted_code.size()-1);
+	}
 	| RETURN ';'						        {$$=make_node("return");
 		return_type = "void";
+		///todo:
 	}
 	| RETURN expression ';'						{$$=make_node("jump_statement",make_node("return"),$2);
 		return_type = $2 -> nodeType;
+		///todo:
 	}
 	;
 

@@ -32,6 +32,7 @@ typedef struct
     list<int> truelist;
     list<int> falselist;
     int is_logical;
+    int is_case;
 }node;
 
 

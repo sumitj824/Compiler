@@ -1,5 +1,6 @@
 #include <vector>
 #include <string>
+#include <map>
 #include <list>
 using namespace std;
 
@@ -19,6 +20,8 @@ typedef struct{
 }quad;
 
 extern vector <quad> emitted_code;
+extern map<string,int> label_map;
+extern map<string,list<int>> label_list_map;
 int emit(comp op_code,comp op_1,comp op_2,comp result);
 void backpatch(list<int> l,int to_addr);
 comp get_temp_label();

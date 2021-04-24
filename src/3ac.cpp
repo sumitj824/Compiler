@@ -6,6 +6,8 @@
 
 int var_counter = 0;
 vector <quad> emitted_code;
+map<string,int> label_map;
+map<string,list<int>> label_list_map;
 
 int emit(comp op_code,comp op_1,comp op_2,comp result){
     quad p;
