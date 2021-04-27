@@ -262,9 +262,9 @@ postfix_expression
 				$$ -> nodeType = find -> type;
 				$$ -> init = find -> init;
 				$$ -> nodeLex = $1 -> nodeLex + "." + $3;
-				// comp temp = get_temp_label();	//type of id
-				// emit({".",NULL},$1->place,$3->place,temp);
-				// $$->place = temp;
+				comp temp = get_temp_label(find -> type);	//type of id
+				emit({".",NULL},$1->place,$3->place,temp);
+				$$->place = temp;
 			}
 			else{
 				yyerror("Error : Undefined attribute access in structure.");
@@ -283,9 +283,9 @@ postfix_expression
 				$$ -> nodeType = find -> type;
 				$$ -> init = find -> init;
 				$$ -> nodeLex = $1 -> nodeLex + $2 + $3;
-				// comp temp = get_temp_label();	//type of id
-				// emit({"ptr_op",NULL},$1->place,$3->place,temp);
-				// $$->place = temp;
+				comp temp = get_temp_label(find -> type);	//type of id
+				emit({"ptr_op",NULL},$1->place,$3->place,temp);
+				$$->place = temp;
 			}
 			else{
 				yyerror("Error : Undefined attribute access in structure.");
