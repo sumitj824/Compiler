@@ -53,7 +53,7 @@ int yylex();
 	int num;
 	node *ptr;
 	char *str;
-}
+};
 
 // offset
 // abstract declaration
@@ -108,7 +108,7 @@ primary_expression
 							$$ -> dimensions = array_symTable_entry[t];
 						}
 						///
-						$$->place={string($1),t->offset,t->size};
+						$$->place={string($1),t};
 						$$->nextlist={};
 						///
 					}
@@ -164,7 +164,7 @@ primary_expression
 		if(un) $$->nodeType = "unsigned "+$$->nodeType;
 		$$->init = 1;
 		///
-		 $$->place={string($1),0,0};
+		 $$->place={string($1),NULL};
 		 $$->nextlist={};
 		///
 
@@ -178,12 +178,13 @@ primary_expression
 		if(s[s.length()-1] == 'F') $$->nodeType = "float"; 
 		$$->init=1;
 		///
-		 $$->place={string($1),0,0};
+		 $$->place={string($1),NULL};
+		 $$->nextlist={};
 		///
 	}
 	| STRING_LITERAL										{$$=make_node($1);
 		///
-		 $$->place={string($1),0,0};
+		 $$->place={string($1),NULL};
 		 $$->nextlist={};
 		///
 	}
@@ -211,6 +212,13 @@ postfix_expression
 				$$ -> dimensions = remove_first($1 -> dimensions);
 				///
 
+
+
+				//3AC
+
+
+
+
 				///
 	}
 	| postfix_expression '(' ')'							{$$=$1;
@@ -228,9 +236,9 @@ postfix_expression
 					}
 				}
 				///
-				// comp temp = get_temp_label($$ -> nodeType);
-				// // todo : reference to parameters
-				// emit({"CALL_FUNC",NULL},$1 -> place,{"",NULL},temp);	
+				comp temp = get_temp_label($$ -> nodeType);
+				// todo : reference to parameters
+				emit({"CALL_FUNC",NULL},$1 -> place,{"",NULL},temp);	
 				///
 	}
 	| postfix_expression '(' argument_expression_list')'   {$$=make_node("postfix_expression", $1, $3);
@@ -256,6 +264,9 @@ postfix_expression
 				$$ -> nodeType = find -> type;
 				$$ -> init = find -> init;
 				$$ -> nodeLex = $1 -> nodeLex + "." + $3;
+				// comp temp = get_temp_label();	//type of id
+				// emit({".",NULL},$1->place,$3->place,temp);
+				// $$->place = temp;
 			}
 			else{
 				yyerror("Error : Undefined attribute access in structure.");
@@ -274,7 +285,9 @@ postfix_expression
 				$$ -> nodeType = find -> type;
 				$$ -> init = find -> init;
 				$$ -> nodeLex = $1 -> nodeLex + $2 + $3;
-				
+				// comp temp = get_temp_label();	//type of id
+				// emit({"ptr_op",NULL},$1->place,$3->place,temp);
+				// $$->place = temp;
 			}
 			else{
 				yyerror("Error : Undefined attribute access in structure.");
@@ -291,19 +304,25 @@ postfix_expression
 			{
 				$$->nodeType=s;
 				///
-				 comp temp = get_temp_label();
-				emit({"",0,-1},$1->place,{"",0,0},temp);
+				 
+				//emit({"",0,-1},$1->place,{"",0,0},temp);
 				 if(isInt(s)){
-					 emit({"+int",0,-1},$1->place,{"1",0,0},$1->place);
+					 comp temp = get_temp_label("int");
+					 emit({"+int",NULL},$1->place,{"1",NULL},temp);
+					 emit({"=",NULL},temp,{"",NULL},$1->place);
+					 $$->place=$1->place;
 				 }else{
 					 if(isFloat(s)){
-						 emit({"+float",0,-1},$1->place,{"1",0,0},$1->place);
+						 comp temp = get_temp_label("float");
+						 emit({"+float",NULL},$1->place,{"1",NULL},$1->place);
+						 emit({"=",NULL},temp,{"",NULL},$1->place);
+						 $$->place=$1->place;
 					 }else{
 						 //if()
 						 yyerror("increment operator with not int or float");
 					 }
 				 }	
-				 $$->place=temp;
+				 
 				///
 			}
 			else{
@@ -317,18 +336,24 @@ postfix_expression
 			{
 				$$->nodeType=s;
 				///
-				 comp temp = get_temp_label();
-				emit({"",0,-1},$1->place,{"",0,0},temp);
+				 
+				//emit({"",0,-1},$1->place,{"",0,0},temp);
 				 if(isInt(s)){
-					 emit({"-int",0,-1},$1->place,{"1",0,0},$1->place);
+					 comp temp = get_temp_label("int");
+					 emit({"-int",0,-1},$1->place,{"1",0,0},temp);
+					 emit({"=",NULL},temp,{"",NULL},$1->place);
+					 $$->place=$1->place;
 				 }else{
 					 if(isFloat(s)){
+						 comp temp = get_temp_label("float");
 						 emit({"-float",0,-1},$1->place,{"1",0,0},$1->place);
+						 emit({"=",NULL},temp,{"",NULL},$1->place);
+						 $$->place=$1->place;
 					 }else{
 						 yyerror("increment operator with not int or float");
 					 }
 				 }	
-				 $$->place=temp;
+				 
 				///
 			}
 			else{
@@ -369,19 +394,26 @@ unary_expression
 				$$->nodeType=s;
 				$$-> nodeLex = $2 -> nodeLex;
 				///
-				 comp temp = get_temp_label();
+				 
 				
 				 if(isInt(s)){
-					 emit({"+int",0,-1},$2->place,{"1",0,0},$2->place);
+					 comp temp = get_temp_label("int");
+					 emit({"+int",NULL},$2->place,{"1",NULL},temp);
+					 emit({"=",NULL},temp,{"",NULL},$2->place);
+					 $$->place = $2->place;
 				 }else{
 					 if(isFloat(s)){
-						 emit({"+float",0,-1},$2->place,{"1",0,0},$2->place);
+						 comp temp = get_temp_label("float");
+						 emit({"+float",NULL},$2->place,{"1",NULL},$2->place);
+						 emit({"=",NULL},temp,{"",NULL},$2->place);
+						 $$->place = $2->place;
 					 }else{
 						 yyerror("increment operator with not int or float");
 					 }
 				 }	
-				 emit({"",0,-1},$2->place,{"",0,0},temp);
-				 $$->place=temp;
+				//  emit({"",0,-1},$2->place,{"",0,0},temp);
+				//  $$->place=temp;
+				
 				///
 				
 
@@ -398,19 +430,25 @@ unary_expression
 			{
 				$$->nodeType=s;
 				$$-> nodeLex = $2 -> nodeLex;
-				 comp temp = get_temp_label();
+				 
 				
 				 if(isInt(s)){
-					 emit({"-int",0,-1},$2->place,{"1",0,0},$2->place);
+					 comp temp = get_temp_label("int");
+					 emit({"-int",NULL},$2->place,{"1",NULL},$2->place);
+					 emit({"=",NULL},temp,{"",NULL},$2->place);
+					 $$->place=$2->place;
 				 }else{
 					 if(isFloat(s)){
-						 emit({"-float",0,-1},$2->place,{"1",0,0},$2->place);
+						 comp temp = get_temp_label("float");
+						 emit({"-float",NULL},$2->place,{"1",NULL},$2->place);
+						 emit({"=",NULL},temp,{"",NULL},$2->place);
+						 $$->place=$2->place;
 					 }else{
 						 yyerror("increment operator with not int or float");
 					 }
 				 }	
-				 emit({"",0,-1},$2->place,{"",0,0},temp);
-				 $$->place=temp;
+				//  emit({"",0,-1},$2->place,{"",0,0},temp);
+				 
 			}
 			else{
 				yyerror("Error: Decrement operator not defined for this type");
@@ -427,10 +465,10 @@ unary_expression
 				$$->nodeType=s;
 				$$-> nodeLex = $2 -> nodeLex;
 				///
-				 comp temp = get_temp_label();
-				 emit($1->place,$2 -> place,{"",0,0},temp);	
+				 comp temp = get_temp_label(s);
+				 emit($1->place,$2 -> place,{"",NULL},temp);	
 				 $$->place=temp;
-				// $$->nextlist = {};
+				$$->nextlist = {};
 				///
 			}
 			else{
@@ -444,10 +482,10 @@ unary_expression
 			$$->init=1;
 			$$->nodeLex = $2 -> nodeLex;
 			///
-			 comp temp = get_temp_label();
-			 emit({"sizeof",0,-1},$2 -> place,{"",0,0},temp);	
+			 comp temp = get_temp_label("int");
+			 emit({"sizeof",NULL},$2 -> place,{"",NULL},temp);	
 			 $$->place=temp;
-			// $$->nextlist = {};
+			$$->nextlist = {};
 			///
 	
 	}
@@ -456,36 +494,36 @@ unary_expression
 			$$->init=1;
 			$$->nodeLex = $3 -> nodeLex;
 			///
-			 comp temp = get_temp_label();
-			 emit({"SIZEOF",0,-1},$3 -> place,{"",0,0},temp);	
-			// $$->place=temp;
-			// $$->nextlist = {};
+			 comp temp = get_temp_label("int");
+			 emit({"SIZEOF",NULL},$3 -> place,{"",NULL},temp);	
+			$$->place=temp;
+			$$->nextlist = {};
 			///
 	}
 	;
 
 unary_operator
 	: '&'		{$$=make_node("&");
-		$$->place={"&",0,-1};
+		$$->place={"&",NULL};
 	}
 	| '*'		{$$=make_node("*");
 		//s_entry *op=lookup("*");
-		$$->place={"*",0,-1};
+		$$->place={"unary*",NULL};
 	}
 	| '+'		{$$=make_node("+");
 		//s_entry *op=lookup("+");
-		$$->place={"unary+",0,-1};
+		$$->place={"unary+",NULL};
 	}
 	| '-'		{$$=make_node("-");
 		//s_entry *op=lookup("-");
-		$$->place={"unary-",0,-1};
+		$$->place={"unary-",NULL};
 	}
 	| '~'		{$$=make_node("~");
 		//s_entry *op=lookup("~");
-		$$->place={"~",0,-1};
+		$$->place={"~",NULL};
 	}
 	| '!'		{$$=make_node("!");
-		$$->place={"!",0,-1};
+		$$->place={"!",NULL};
 	}
 	;
 
@@ -496,8 +534,8 @@ cast_expression
 			$$->init=$4->init;
 			$$ -> nodeLex = $4 -> nodeLex;
 			///
-			 comp temp = get_temp_label();
-			 emit({$4->nodeType+"to"+$$->nodeType,0,-1},$4 -> place,{"",0,0},temp);	
+			 comp temp = get_temp_label($2->nodeType);
+			 emit({$4->nodeType+"to"+$2->nodeType,NULL},$4 -> place,{"",NULL},temp);	
 			 $$->place=temp;
 			// $$->nextlist = {};
 			///
@@ -511,9 +549,9 @@ multiplicative_expression
 			if(s=="int"){
 				$$->nodeType="long long";
 				///
-				comp temp = get_temp_label();
+				comp temp = get_temp_label("long long");
 
-				emit({"*int",0,-1},$1 -> place,$3 -> place,temp);	
+				emit({"*int",NULL},$1 -> place,$3 -> place,temp);	
 				$$->place=temp;
 				$$->nextlist = {};
 				///
@@ -521,20 +559,20 @@ multiplicative_expression
 			else if(s=="float"){
 				$$->nodeType="long double";
 				///
-				comp temp1 = get_temp_label();
+				comp temp1 = get_temp_label("long double");
 			    s_entry *op=lookup("*");
 				if(isInt($1->nodeType)){
-					comp temp2=get_temp_label();
-					emit({"inttoreal",0,-1},$1->place,{"",0,0},temp2);
-					emit({"*real",0,-1},temp2,$3 -> place,temp1);	
+					comp temp2=get_temp_label("long double");
+					emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
+					emit({"*real",NULL},temp2,$3 -> place,temp1);	
 				}
 				else if(isInt($3->nodeType)){
-					comp temp2=get_temp_label();
-					emit({"inttoreal",0,-1},$3->place,{"",0,0},temp2);
-					emit({"*real",0,-1},$1 -> place,temp2,temp1);
+					comp temp2=get_temp_label("long double");
+					emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
+					emit({"*real",NULL},$1 -> place,temp2,temp1);
 				}
 				else {
-					emit({"*real",0,-1},$1 -> place,$3->place,temp1);
+					emit({"*real",NULL},$1 -> place,$3->place,temp1);
 				}
 				$$->place=temp1;
 				$$->nextlist = {};
@@ -551,9 +589,9 @@ multiplicative_expression
 			if(s=="int"){
 				$$->nodeType="long long";
 				///
-				comp temp = get_temp_label();
+				comp temp = get_temp_label("long long");
 
-				emit({"/int",0,-1},$1 -> place,$3 -> place,temp);	
+				emit({"/int",NULL},$1 -> place,$3 -> place,temp);	
 				$$->place=temp;
 				$$->nextlist = {};
 				///
@@ -561,19 +599,19 @@ multiplicative_expression
 			else if(s=="float"){
 				$$->nodeType="long double";
 				///
-				comp temp1 = get_temp_label();
+				comp temp1 = get_temp_label("long double");
 				if(isInt($1->nodeType)){
-					comp temp2=get_temp_label();
-					emit({"inttoreal",0,0},$1->place,{"",0,0},temp2);
-					emit({"/real",0,-1},temp2,$3 -> place,temp1);	
+					comp temp2=get_temp_label("long double");
+					emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
+					emit({"/real",NULL},temp2,$3 -> place,temp1);	
 				}
 				else if(isInt($3->nodeType)){
-					comp temp2=get_temp_label();
-					emit({"inttoreal",0,0},$3->place,{"",0,0},temp2);
-					emit({"/real",0,-1},$1 -> place,temp2,temp1);
+					comp temp2=get_temp_label("long double");
+					emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
+					emit({"/real",NULL},$1 -> place,temp2,temp1);
 				}
 				else {
-					emit({"/real",0,-1},$1 -> place,$3->place,temp1);
+					emit({"/real",NULL},$1 -> place,$3->place,temp1);
 	
 				}
 				$$->place=temp1;
@@ -591,8 +629,8 @@ multiplicative_expression
 			if(s=="int"){
 				$$->nodeType="long long";
 				///
-				comp temp = get_temp_label();
-				emit({"%",0,-1},$1 -> place,$3 -> place,temp);	
+				comp temp = get_temp_label("long long");
+				emit({"%",NULL},$1 -> place,$3 -> place,temp);	
 				$$->place=temp;
 				$$->nextlist = {};
 				///
@@ -616,20 +654,20 @@ additive_expression
 			else $$->nodeType=s;
 
 			///
-			comp temp1 = get_temp_label();
+			comp temp1 = get_temp_label(s);
 
 			if(isInt($1->nodeType)&&isFloat($3->nodeType)){
-				comp temp2=get_temp_label();
-				emit({"inttoreal",0,0},$1 -> place,{"",0,0},temp2);	
-				emit({"+"+s,0,-1},temp2,$3 -> place,temp1);	
+				comp temp2=get_temp_label("long double");
+				emit({"inttoreal",NULL},$1 -> place,{"",NULL},temp2);	
+				emit({"+"+s,NULL},temp2,$3 -> place,temp1);	
 			}
 			else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
-				comp temp2=get_temp_label();
-				emit({"inttoreal",0,0},$3 -> place,{"",0,0},temp2);	
-				emit({"+"+s,0,-1},$1 -> place,temp2,temp1);	
+				comp temp2=get_temp_label("long double");
+				emit({"inttoreal",NULL},$3 -> place,{"",NULL},temp2);	
+				emit({"+"+s,NULL},$1 -> place,temp2,temp1);	
 			}
 			else{
-				emit({"+"+s,0,-1},$1 -> place,$3 -> place,temp1);	
+				emit({"+"+s,NULL},$1 -> place,$3 -> place,temp1);	
 			}
 			$$->place=temp1;
 			$$->nextlist = {};
@@ -650,20 +688,20 @@ additive_expression
 			else  $$->nodeType=s;
 
 			///
-			comp temp1 = get_temp_label();
+			comp temp1 = get_temp_label(s);
 
 			if(isInt($1->nodeType)&&isFloat($3->nodeType)){
-				comp temp2=get_temp_label();
-				emit({"inttoreal",0,0},$1 -> place,{"",0,0},temp2);	
-				emit({"-"+s,0,-1},temp2,$3 -> place,temp1);	
+				comp temp2=get_temp_label("long double");
+				emit({"inttoreal",NULL},$1 -> place,{"",NULL},temp2);	
+				emit({"-"+s,NULL},temp2,$3 -> place,temp1);	
 			}
 			else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
-				comp temp2=get_temp_label();
-				emit({"inttoreal",0,0},$3 -> place,{"",0,0},temp2);	
-				emit({"-"+s,0,-1},$1 -> place,temp2,temp1);	
+				comp temp2=get_temp_label("long double");
+				emit({"inttoreal",NULL},$3 -> place,{"",NULL},temp2);	
+				emit({"-"+s,NULL},$1 -> place,temp2,temp1);	
 			}
 			else{
-				emit({"-"+s,0,-1},$1 -> place,$3 -> place,temp1);	
+				emit({"-"+s,NULL},$1 -> place,$3 -> place,temp1);	
 			}
 			$$->place=temp1;
 			$$->nextlist = {};
@@ -686,8 +724,8 @@ shift_expression
 		if(isInt($1->nodeType) && isInt($3->nodeType)) {
 			$$->nodeType= $1->nodeType;
 			///
-			comp temp = get_temp_label();
-			emit({"LEFT_OP",0,-1},$1 -> place,$3 -> place,temp);	
+			comp temp = get_temp_label("int");
+			emit({"LEFT_OP",NULL},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
 			$$->nextlist = {};
 			///
@@ -705,8 +743,8 @@ shift_expression
 		if(isInt($1->nodeType) && isInt($3->nodeType)) {
 			$$->nodeType= $1->nodeType;
 			///
-			comp temp = get_temp_label();
-			emit({"RIGHT_OP",0,-1},$1 -> place,$3 -> place,temp);	
+			comp temp = get_temp_label("int");
+			emit({"RIGHT_OP",NULL},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
 			$$->nextlist = {};
 			///
@@ -730,8 +768,8 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label();
-			emit({"<",0,-1},$1 -> place,$3 -> place,temp);	
+			comp temp = get_temp_label("int");
+			emit({"<",NULL},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
 			$$->nextlist = {};
 			///
@@ -754,8 +792,8 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label();
-			emit({">",0,-1},$1 -> place,$3 -> place,temp);	
+			comp temp = get_temp_label("int");
+			emit({">",NULL},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
 			$$->nextlist = {};
 			///
@@ -776,8 +814,8 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label();
-			emit({"LE_OP",0,-1},$1 -> place,$3 -> place,temp);	
+			comp temp = get_temp_label("int");
+			emit({"LE_OP",NULL},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
 			$$->nextlist = {};
 			///
@@ -798,8 +836,8 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label();
-			emit({"GE_OP",0,-1},$1 -> place,$3 -> place,temp);	
+			comp temp = get_temp_label("int");
+			emit({"GE_OP",NULL},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
 			$$->nextlist = {};
 			///
@@ -823,9 +861,9 @@ equality_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label();
+			comp temp = get_temp_label("int");
 			//s_entry *op=lookup("==");
-			emit({"EQ_OP",0,-1},$1 -> place,$3 -> place,temp);	
+			emit({"EQ_OP",NULL},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
 			$$->nextlist = {};
 			///
@@ -847,8 +885,8 @@ equality_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label();
-			emit({"NE_OP",0,-1},$1 -> place,$3 -> place,temp);	
+			comp temp = get_temp_label("int");
+			emit({"NE_OP",NULL},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
 			$$->nextlist = {};
 			///
@@ -871,8 +909,8 @@ and_expression
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
 			///
-			comp temp = get_temp_label();
-			emit({"&",0,-1},$1 -> place,$3 -> place,temp);	
+			comp temp = get_temp_label("int");
+			emit({"&",NULL},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
 			$$->nextlist = {};
 			///
@@ -895,8 +933,8 @@ exclusive_or_expression
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
 			///
-			comp temp = get_temp_label();
-			emit({"^",0,-1},$1 -> place,$3 -> place,temp);	
+			comp temp = get_temp_label("int");
+			emit({"^",NULL},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
 			$$->nextlist = {};
 			///
@@ -919,8 +957,8 @@ inclusive_or_expression
 			if(s=="bool")$$->nodeType=s;
 			else $$->nodeType="long long";
 			///
-			comp temp = get_temp_label();
-			emit({"|",0,-1},$1 -> place,$3 -> place,temp);	
+			comp temp = get_temp_label("int");
+			emit({"|",NULL},$1 -> place,$3 -> place,temp);	
 			$$->place=temp;
 			$$->nextlist = {};
 			///
@@ -944,8 +982,8 @@ M
 and_operator
 	: AND_OP	{
 		if(is_logical == 0){
-			emit({"if_goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
-			emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+			emit({"if_goto",NULL},{"",NULL},{"",NULL},{"",NULL});
+			emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 		}
 		$$ = (int)emitted_code.size();
 	}
@@ -967,8 +1005,8 @@ logical_and_expression
 			$1->falselist.push_back($2-1);
 		}
 		if($3->is_logical == 0){
-			emit({"if_goto",0,-1},$3->place,{"",0,0},{"",0,0});
-			emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+			emit({"if_goto",NULL},$3->place,{"",NULL},{"",NULL});
+			emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 			$3->truelist.push_back((int)emitted_code.size()-2);
 			$3->falselist.push_back((int)emitted_code.size()-1);
 		}
@@ -985,8 +1023,8 @@ logical_and_expression
 or_operator
 	: OR_OP  			{
 		if(is_logical == 0){
-			emit({"if_goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
-			emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+			emit({"if_goto",NULL},{"",NULL},{"",NULL},{"",NULL});
+			emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 		}
 		$$ = (int)emitted_code.size();
 	}
@@ -1004,8 +1042,8 @@ logical_or_expression
 			$1->falselist.push_back($2-1);
 		}
 		if($3->is_logical == 0){
-			emit({"if_goto",0,-1},$3->place,{"",0,0},{"",0,0});
-			emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+			emit({"if_goto",NULL},$3->place,{"",NULL},{"",NULL});
+			emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 			$3->truelist.push_back((int)emitted_code.size()-2);
 			$3->falselist.push_back((int)emitted_code.size()-1);
 		}
@@ -1021,28 +1059,28 @@ logical_or_expression
 question_mark
 	:'?'			{
 		if(is_logical == 0){
-			emit({"if_goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
-			emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+			emit({"if_goto",NULL},{"",NULL},{"",NULL},{"",NULL});
+			emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 		}
 		$$ = (int)emitted_code.size();
 	}
 
 N
 	: %empty 		{
-		emit({"",0,-1},{"",0,0},{"",0,0},{"",0,0});
-		emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+		emit({"",NULL},{"",NULL},{"",NULL},{"",NULL});
+		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 		$$ = (int)emitted_code.size();
 	}
 
 conditional_expression
 	: logical_or_expression												{$$=$1; is_logical = $$->is_logical;
-	comp temp = get_temp_label();
+	comp temp = get_temp_label("int");
 	int n = emitted_code.size();
 	if($1->is_logical == 1){
-		emit({"",0,-1},{"1",0,0},{"",0,0},temp);
-		emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
-		emit({"",0,-1},{"0",0,0},{"",0,0},temp);
-		emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+		emit({"",NULL},{"1",NULL},{"",NULL},temp);
+		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
+		emit({"",NULL},{"0",NULL},{"",NULL},temp);
+		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 		backpatch($1->truelist,n);
 		backpatch($1->falselist,n+2);
 		$$->nextlist.push_back(n+1);
@@ -1050,8 +1088,8 @@ conditional_expression
 		$$->truelist={n+1};
 		$$->falselist={n+3};
 		$$->place = temp;
-		//$$->nextlist = $1->truelist;
-		//$$->nextlist.merge($1->falselist);
+		$$->nextlist = $1->truelist;
+		$$->nextlist.merge($1->falselist);
 		}
 	}
 	| logical_or_expression question_mark expression ':' N conditional_expression    {$$=make_node("conditional_expression",$1,$3,$6);
@@ -1059,13 +1097,13 @@ conditional_expression
 		if(!s.empty()){
 			$$->nodeType=s;
 			///
-			comp temp = get_temp_label();
+			comp temp = get_temp_label(s);
 
 			emitted_code[$5-2].op_1 = $3->place;		//(if true) setting the values
 			emitted_code[$5-2].result = temp;
 
-			emit({"",0,-1},$6->place,{"",0,0},temp);		//for (if false) equate to $6, and goto statement
-			emit({"goto,",0,-1},{"",0,0},{"",0,0},{"",0,0});
+			emit({"",NULL},$6->place,{"",NULL},temp);		//for (if false) equate to $6, and goto statement
+			emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 
 			backpatch($1->truelist,$2);
 			backpatch($1->falselist,$5);
@@ -1115,25 +1153,25 @@ assignment_expression
 			int temp_addr = (int)emitted_code.size();
 			string s($2);
 			if(s == "="){
-				emit({"",0,-1},$3->place,{"",0,0},$1->place);
+				emit({"=",NULL},$3->place,{"",NULL},$1->place);
 			}else{
 				if(s[0] == '+' || s[0] == '-' || s[0] == '*' || s[0] == '/'){
 					if(isInt($1->nodeType) && isInt($3->nodeType)){
 						string op = s.substr(0,1);
 						op=op+"int";
 						//cout<<s<<' '<<op<<".........................."<<endl;
-						emit({op,0,-1},$1->place,$3->place,$1->place);
+						emit({op,NULL},$1->place,$3->place,$1->place);
 					}else{
 						if(isInt($1->nodeType)){
-							emit({"inttoreal",0,0},$1->place,{"",0,0},$1->place);
+							emit({"inttoreal",NULL},$1->place,{"",NULL},$1->place);
 						}
 						if(isInt($3->nodeType)){
-							emit({"inttoreal",0,0},$3->place,{"",0,0},$3->place);
+							emit({"inttoreal",NULL},$3->place,{"",NULL},$3->place);
 						}
 
 
 						string op = s.substr(0,1)+"float";
-						emit({op,0,-1},$1->place,$3->place,$1->place);
+						emit({op,NULL},$1->place,$3->place,$1->place);
 					}
 				}else{
 					string op="";
@@ -1142,7 +1180,7 @@ assignment_expression
 						if(s[0] == '>') op+="LEFT_OP";
 						else op+="RIGHT_OP";
 					}
-					emit({op,0,-1},$1->place,$3->place,$1->place);
+					emit({op,NULL},$1->place,$3->place,$1->place);
 				}
 
 			}
@@ -1200,7 +1238,7 @@ declaration
 	| declaration_specifiers init_declarator_list ';'			{$$=make_node("declaration",$1,$2);
 		var_type = "";
 		///
-		$$->nextlist=$2 -> nextlist;
+		$$ -> nextlist = $2 -> nextlist;
 		///
 	}
 	;
@@ -1290,6 +1328,9 @@ init_declarator
 			initializer_list_size = 0;
 			array_case2 = 0;
 			accept2 = 0;
+
+
+			emit({"=",NULL},$3->place,{"",NULL},$1->place);
 		}
 		else{
 			yyerror("Error : unexpected initialisation of variable.");
@@ -1589,7 +1630,7 @@ declarator
 		accept = 1;
 		accept2 = 1;
 		///
-		// $$ ->place={$1->nodeLex,NULL};
+		$$ ->place={$$->nodeLex,NULL};
 		///
 	}
 	| direct_declarator											{$$=$1;
@@ -1599,7 +1640,7 @@ declarator
 		}
 		$$ -> size = get_size(tmp)*($1 -> size);
 		///
-		// $$ ->place={$1->nodeLex,NULL};
+		$$ ->place={$$->nodeLex,NULL};
 		///
 	}
 	;
@@ -1610,7 +1651,7 @@ direct_declarator
 		$$ -> nodeLex = $1;
 		$$ -> size = 1;
 		///
-		// $$ ->place={$1->nodeLex,NULL};
+		$$ ->place={$$->nodeLex,NULL};
 		///
 	}
 	| '(' declarator ')'										{$$=$2;}
@@ -1626,7 +1667,7 @@ direct_declarator
 		}
 		$$ -> size = ($1 -> size)*($3 -> ival);
 		///
-		// $$ ->place={$1->nodeLex,NULL};
+		$$ ->place={$1->nodeLex,NULL};
 		///
 	}
 	| direct_declarator '[' ']'							  		{$$=make_node("direct_declarator",$1,make_node("[]"));
@@ -1637,7 +1678,7 @@ direct_declarator
 			array_case2 = 1;
 		}
 		///
-		// $$ ->place={$1->nodeLex,NULL};
+		$$ ->place={$1->nodeLex,NULL};
 		///
 	}
 	| direct_declarator '(' M8 M13 parameter_type_list M8 ')'        		{$$=make_node("direct_declarator",$1,$5);
@@ -1699,8 +1740,8 @@ parameter_list
 	: parameter_declaration										{$$=$1;}
 	| parameter_list ',' M parameter_declaration                 	{$$=make_node("parameter_list",$1,$4);
 		///
-		// backpatch($1->nextlist,$3);
-		// $$->nextlist=$4->nextlist;
+		backpatch($1->nextlist,$3);
+		$$->nextlist=$4->nextlist;
 		///
 	}
 	;
@@ -1866,7 +1907,7 @@ labeled_statement
 			backpatch(label_list_map[string($1)],$3);
 		}
 		 $$->nextlist=$4 -> nextlist;
-		// $$->caselist = $4->caselist;
+		$$->caselist = $4->caselist;
 		 $$->continuelist = $4->continuelist;
 		 $$->breaklist = $4->breaklist;
 		///
@@ -1878,9 +1919,9 @@ labeled_statement
 	}
 	| DEFAULT ':' statement   			  		 {$$=make_node("labeled_statement",make_node("default"),$3);
 		///
-		// $$->nextlist=$3 -> nextlist;
-		// $$->continuelist = $3->continuelist;
-		// $$->breaklist = $3->breaklist;
+		$$->nextlist=$3 -> nextlist;
+		$$->continuelist = $3->continuelist;
+		$$->breaklist = $3->breaklist;
 		///
 	}
 	;
