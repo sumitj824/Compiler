@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include <list>
+#include "symtable.h"
 using namespace std;
 
 // typedef struct{

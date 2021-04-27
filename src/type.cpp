@@ -1,5 +1,4 @@
 #include "type.h"
-#include "symtable.h"
 
 
 int product_of_dimensions(vector <int> dimensions){

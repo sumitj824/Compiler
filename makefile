@@ -6,7 +6,7 @@ all: $(SRC)/compile
 	
 $(SRC)/compile:
 	   @mkdir -p $(BIN)
-	   yacc -dvt -Wnone $(SRC)/yacc.y -o $(BIN)/y.tab.c
+	   yacc -dvt $(SRC)/yacc.y -o $(BIN)/y.tab.c
 	   lex  -o $(BIN)/lex.yy.c $(SRC)/lex.l
 	   g++  -w -c $(SRC)/node.cpp -o $(BIN)/node.o -I$(SRC)
 	   g++  -w -c $(SRC)/symtable.cpp -o $(BIN)/sym.o -I$(SRC)

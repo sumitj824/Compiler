@@ -1,8 +1,4 @@
 #include "3ac.h"
-#include "symtable.h"
-
-#include <vector>
-#include <list>
 
 int var_counter = 0;
 vector <quad> emitted_code;

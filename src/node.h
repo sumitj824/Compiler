@@ -4,7 +4,6 @@
 #include<sstream>
 #include<string.h>
 #include "3ac.h"
-#include "type.h"
 #include<list>
 
 using namespace std;

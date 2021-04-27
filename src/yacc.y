@@ -5,8 +5,6 @@
 #include <cstring>
 #include "node.h"
 #include "type.h"
-#include "symtable.h"
-
 #include <fstream>
 #include<vector>
 // to do :
@@ -328,6 +326,7 @@ postfix_expression
 			else{
 				yyerror("Error: Increment operator not defined for this type");
 			}
+			// cout << "inside postfix for variable " << $1 -> nodeLex << endl; 
 	}
 	| postfix_expression DEC_OP								{$$=make_node($2, $1);
 			$$->init=$1->init;
@@ -340,13 +339,13 @@ postfix_expression
 				//emit({"",0,-1},$1->place,{"",0,0},temp);
 				 if(isInt(s)){
 					 comp temp = get_temp_label("int");
-					 emit({"-int",0,-1},$1->place,{"1",0,0},temp);
+					 emit({"-int",NULL},$1->place,{"1",NULL},temp);
 					 emit({"=",NULL},temp,{"",NULL},$1->place);
 					 $$->place=$1->place;
 				 }else{
 					 if(isFloat(s)){
 						 comp temp = get_temp_label("float");
-						 emit({"-float",0,-1},$1->place,{"1",0,0},$1->place);
+						 emit({"-float",NULL},$1->place,{"1",NULL},$1->place);
 						 emit({"=",NULL},temp,{"",NULL},$1->place);
 						 $$->place=$1->place;
 					 }else{
@@ -1885,10 +1884,9 @@ initializer_list
 
 statement
 	: labeled_statement												{$$=$1; }
-	| M12 M9 compound_statement M9									{$$=$3; $$->is_case =0;}
-	| expression_statement											{$$=$1; $$->is_case =0;}
-	| selection_statement											{$$=$1; $$->is_case=0;
-	}
+	| M12 M9 compound_statement M9									{$$=$3; $$->is_case=0;}
+	| expression_statement											{$$=$1; $$->is_case=0;}
+	| selection_statement											{$$=$1; $$->is_case=0;}
 	| iteration_statement											{$$=$1; $$->is_case=0;}
 	| jump_statement												{$$=$1; $$->is_case=0;}
 	;
@@ -2017,22 +2015,23 @@ N1
 	: %empty{
 		//if(is_logical == 0){
 		if(is_logical == 0){
-			emit({"if_goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
-			emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+			emit({"if_goto",NULL},{"",NULL},{"",NULL},{"",NULL});
+			emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 		}
 		if(is_logical == 2){
-			emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+			emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 		}
 		$$ = (int)emitted_code.size();
-		}
-	
+	}
+	;
 
 N2
 	: %empty{
-		emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
-		return (int)(emitted_code.size()-1);
+		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
+		$$ = (int)(emitted_code.size() - 1);
+		// return (int)(emitted_code.size()-1);
 	}
-
+	;
 
 selection_statement
 	: IF '(' expression ')' N1 statement               		{$$=make_node("IF (expr) stmt",$3,$6);
@@ -2079,7 +2078,7 @@ iteration_statement
 	: WHILE '(' M expression ')' N1 statement                                     	{$$=make_node("WHILE (expr) stmt",$4,$7);
 	//: WHILE '(' M expression ')' N1 statement N2                                      	{$$=make_node("WHILE (expr) stmt",$4,$7);
 	///
-		emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 		//cout<<is_logical<<"is I am coming here....................................\n";
 		if(is_logical == 0){
 			emitted_code[$6-2].op_1 = $4->place;
@@ -2159,21 +2158,21 @@ iteration_statement
 jump_statement
 	: GOTO IDENTIFIER ';'						{$$=make_node("jump_statement",make_node($1),make_node($2));
 	string s($2);
-	emit({"goto",0,0},{"",0,0},{"",0,0},{"",0,0});
+	emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 	if(label_map.find(s) != label_map.end()){
 		label_map[s];
 		
-		emitted_code[(int)emitted_code.size()-1].result = {to_string(label_map[s]),0,0};
+		emitted_code[(int)emitted_code.size()-1].result = {to_string(label_map[s]),NULL};
 	}else{
 		label_list_map[s].push_back((int)emitted_code.size()-1);
 	}
 	}
 	| CONTINUE ';'						        {$$=make_node("continue");
-		emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 		$$->continuelist.push_back((int)emitted_code.size()-1);
 	}
 	| BREAK ';'						            {$$=make_node("break");
-		emit({"goto",0,-1},{"",0,0},{"",0,0},{"",0,0});
+		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 		$$->breaklist.push_back((int)emitted_code.size()-1);
 	}
 	| RETURN ';'						        {$$=make_node("return");
@@ -2561,10 +2560,11 @@ int main(int argc, char *argv[])
 	BeginGraph();
 	yyparse();
 	EndGraph();
-	print_code();
+	
 	symTable_type[GST] = "global_table";
 
 	printSymTable(GST,"Global","",st_line_no.back(),yylineno);
 
-
+	freopen("3ac_code.txt","w",stdout);
+	print_code();
 } 

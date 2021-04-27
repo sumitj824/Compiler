@@ -6,7 +6,7 @@
 using namespace std;
 
 
-typedef struct{
+typedef struct symEntry{
     string type;
     int init;
     int size;
