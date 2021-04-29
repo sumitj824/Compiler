@@ -4,11 +4,10 @@ int p=1;
 int c=1;
 
 int main(){
-    while(b){
-        c++;
-        if(c) break;
-        //else continue;
-
+    if(a){
+        a++;
+    }else{
+        b++;
     }
     
     return 0;

@@ -263,7 +263,7 @@ postfix_expression
 				$$ -> init = find -> init;
 				$$ -> nodeLex = $1 -> nodeLex + "." + $3;
 				comp temp = get_temp_label(find -> type);	//type of id
-				emit({".",NULL},$1->place,$3->place,temp);
+				emit({".",NULL},$1->place,{string($3),lookup(string($3))},temp);
 				$$->place = temp;
 			}
 			else{
@@ -284,7 +284,7 @@ postfix_expression
 				$$ -> init = find -> init;
 				$$ -> nodeLex = $1 -> nodeLex + $2 + $3;
 				comp temp = get_temp_label(find -> type);	//type of id
-				emit({"ptr_op",NULL},$1->place,$3->place,temp);
+				emit({"ptr_op",NULL},$1->place,{string($3),lookup(string($3))},temp);
 				$$->place = temp;
 			}
 			else{
@@ -1888,7 +1888,9 @@ statement
 	| expression_statement											{$$=$1; $$->is_case=0;}
 	| selection_statement											{$$=$1; $$->is_case=0;}
 	| iteration_statement											{$$=$1; $$->is_case=0;}
-	| jump_statement												{$$=$1; $$->is_case=0;}
+	| jump_statement												{$$=$1;
+	/////for(auto x:$$->breaklist) cout<<x<<".............................";
+	}
 	;
 
 M9
@@ -1951,6 +1953,8 @@ compound_statement
 		curr_array_arg_table = parent_array_arg_table[curr_array_arg_table];
 		curr_struct_table = struct_parent[curr_struct_table];
 		$$->nextlist = $3->nextlist;
+		$$->breaklist = $3->breaklist;
+		$$->continuelist = $3->continuelist;
 	}
 	| M10 '{' declaration_list '}'					{$$=make_node("compound_statement",$3);
 		if(symTable_type[curr_table] == "function"){
@@ -1977,7 +1981,9 @@ compound_statement
 		curr_table = parent[curr_table];
 		curr_array_arg_table = parent_array_arg_table[curr_array_arg_table];
 		curr_struct_table = struct_parent[curr_struct_table];
-		$$->nextlist = $4->nextlist;
+		$$->nextlist = $3->nextlist;
+		$$->breaklist = $3->breaklist;
+		$$->continuelist = $3->continuelist;
 	}
 	;
 
@@ -2006,8 +2012,8 @@ statement_list
 
 
 expression_statement
-	: ';'														{$$=make_node(";"); is_logical = 2;}
-	| expression ';'											{$$=$1;// complete typechecking
+	: ';'														{$$=make_node(";"); is_logical = 2; $$->is_logical=2;}
+	| expression ';'											{$$=$1; is_logical=0; $$->is_logical=0;// complete typechecking
 	}
 	;
 
@@ -2037,10 +2043,10 @@ selection_statement
 	: IF '(' expression ')' N1 statement               		{$$=make_node("IF (expr) stmt",$3,$6);
 	///
 	//cout<<"hello........................................\n";
+	//for(auto x:$6->breaklist) cout<<x<<' '; cout<<endl;
 	//if($6->stmtType )
 		if(is_logical == 0){
 			emitted_code[$5-2].op_1 = $3->place;
-			//emitted_code[$5-2].result = $5;
 			$3->truelist.push_back($5-2);
 			$3->falselist.push_back($5-1);
 		}
@@ -2064,7 +2070,7 @@ selection_statement
 		}
 		$6->nextlist.push_back($7);
 		backpatch($3->truelist,$5);
-		backpatch($3->falselist,$7);
+		backpatch($3->falselist,$7+1);
 		$$->nextlist = $6->nextlist;
 		$$->nextlist.merge($9->nextlist);
 		$$->breaklist = $6->breaklist; $$->breaklist.merge($9->breaklist);
@@ -2088,15 +2094,15 @@ iteration_statement
 		}
 		$7->continuelist.push_back((int)emitted_code.size()-1);
 		$7->continuelist.merge($7->nextlist);
-		//for(auto x:$7->nextlist){
-		//	cout<<x<<' ';
-		//}
-		//cout<<"............................................\n";
+		for(auto x:$7->breaklist){
+			cout<<x<<' ';
+		}
+		cout<<"............................................inside actual\n";
 
 		backpatch($4->truelist,$6);
 		backpatch($7->continuelist,$3);
 		$$->nextlist = $4->falselist;
-		$$->nextlist = $7->breaklist;
+		$$->nextlist.merge($7->breaklist);
 	///
 	}
 
