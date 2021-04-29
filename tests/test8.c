@@ -4,11 +4,12 @@ int p=1;
 int c=1;
 
 int main(){
-    if(a){
-        a++;
-    }else{
+    a=0;
+    for(a=0;;){
         b++;
     }
+    //    b++;
+    //}
     
     return 0;
 }

@@ -2123,13 +2123,13 @@ iteration_statement
 	}
 	| FOR '(' expression_statement M expression_statement N1 ')' statement N2              {$$=make_node("FOR (expr_stmt expr_stmt) stmt",$3,$5,$8);
 		//need to deal with 2 cases,; and exp;
-		if(is_logical == 0){
+		if($5->is_logical == 0){
 			emitted_code[$6-2].op_1 = $5->place;
 			//emitted_code[$8-2].result = $6;
 			$5->truelist.push_back($6-2);
 			$5->falselist.push_back($6-1);
 		}
-		if(is_logical == 2){
+		if($5->is_logical == 2){
 			$5->truelist.push_back($6-1);
 		}
 		$8->continuelist.merge($8->nextlist);
@@ -2141,15 +2141,17 @@ iteration_statement
 
 	}
 	| FOR '(' expression_statement M expression_statement N1 expression N2 ')' statement N2   {$$=make_node("FOR (expr_stmt expr_stmt expr) stmt",$3,$5,$7,$10);
-		if(is_logical == 0){
+		if($5->is_logical == 0){
 			emitted_code[$6-2].op_1 = $5->place;
 			//emitted_code[$8-2].result = $6;
 			$5->truelist.push_back($6-2);
 			$5->falselist.push_back($6-1);
 		}
-		if(is_logical == 2){
+		if($5->is_logical == 2){
 			$5->truelist.push_back($6-1);
 		}
+		for(auto x:$5->truelist) cout<<x<<" ..................i for";
+		cout<<"..........................in for"<< $5->is_logical<<endl;
 		$10->continuelist.merge($10->nextlist);
 		$10->continuelist.push_back($11);
 		backpatch($10->continuelist,$6);
@@ -2158,6 +2160,7 @@ iteration_statement
 		backpatch($5->truelist,$8+1);
 		$$->nextlist = $5->falselist;
 		$$->nextlist.merge($10->breaklist);
+
 	}
 	;
 
