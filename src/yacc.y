@@ -206,18 +206,16 @@ postfix_expression
 				else{
 					yyerror("Error:  Identifier is not pointer type");
 				}
-				$$ -> offset = $1 -> offset + product_of_dimensions($1 -> dimensions)*($3 -> ival);
+				$$ -> offset = get_size($$ -> nodeType)*($3 -> ival);
 				$$ -> dimensions = remove_first($1 -> dimensions);
-				///
-
-
-
 				//3AC
-
-
-
-
-				///
+				string name = $1 -> nodeLex + "[" + to_string($3 -> ival) + "]";
+				s_entry * temp = new s_entry();
+				temp -> type = $$ -> nodeType;
+				temp -> offset = $$ -> offset;
+				temp -> size = get_size($$ -> nodeType);
+				$$ -> place = {name,temp};
+				//
 	}
 	| postfix_expression '(' ')'							{$$=$1;
 				$$->init=1;
@@ -235,8 +233,8 @@ postfix_expression
 				}
 				///
 				comp temp = get_temp_label($$ -> nodeType);
-				// todo : reference to parameters
 				emit({"CALL_FUNC",NULL},$1 -> place,{"",NULL},temp);	
+				$$ -> place = temp;
 				///
 	}
 	| postfix_expression '(' argument_expression_list')'   {$$=make_node("postfix_expression", $1, $3);
@@ -254,6 +252,7 @@ postfix_expression
 			}
 		}	 
 		arg_list = "";
+		emit({"CALL_FUNC",NULL},{$1 -> nodeLex,NULL},{"",NULL},{"",NULL});
 	}
 	| postfix_expression '.' IDENTIFIER						{$$=make_node("postfix_expression.IDENTIFIER", $1, make_node($3));
 		if(id_to_struct.count($1 -> nodeType)){
@@ -371,6 +370,7 @@ argument_expression_list
 			arg_list += ($1 -> nodeType);
 		}
 		//TODO:3ac
+		emit({"param",NULL},{$1 -> nodeLex,lookup($1 -> nodeLex)},{"",NULL},{"",NULL});
 	}
 	| argument_expression_list ',' assignment_expression    {$$=make_node("argument_expression_list", $1, $3);
 		if(arg_list == ""){
@@ -380,6 +380,7 @@ argument_expression_list
 			arg_list += ",";
 			arg_list += ($3 -> nodeType);
 		}
+		emit({"param",NULL},{$3 -> nodeLex,lookup($3 -> nodeLex)},{"",NULL},{"",NULL});
 	}
 	;
 
@@ -2093,10 +2094,10 @@ iteration_statement
 		}
 		$7->continuelist.push_back((int)emitted_code.size()-1);
 		$7->continuelist.merge($7->nextlist);
-		for(auto x:$7->breaklist){
-			cout<<x<<' ';
-		}
-		cout<<"............................................inside actual\n";
+		// for(auto x:$7->breaklist){
+		// 	cout<<x<<' ';
+		// }
+		// cout<<"............................................inside actual\n";
 
 		backpatch($4->truelist,$6);
 		backpatch($7->continuelist,$3);
@@ -2149,8 +2150,8 @@ iteration_statement
 		if($5->is_logical == 2){
 			$5->truelist.push_back($6-1);
 		}
-		for(auto x:$5->truelist) cout<<x<<" ..................i for";
-		cout<<"..........................in for"<< $5->is_logical<<endl;
+		// for(auto x:$5->truelist) cout<<x<<" ..................i for";
+		// cout<<"..........................in for"<< $5->is_logical<<endl;
 		$10->continuelist.merge($10->nextlist);
 		$10->continuelist.push_back($11);
 		backpatch($10->continuelist,$6);
@@ -2577,4 +2578,5 @@ int main(int argc, char *argv[])
 
 	freopen("3ac_code.txt","w",stdout);
 	print_code();
+	generate_code();
 } 

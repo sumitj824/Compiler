@@ -2,4 +2,6 @@
 
 extern string curr_Func;
 
-map <string,vector <string>> assembly_code;
+extern map <string,vector <string>> assembly_code;
+
+void push_line(string s);

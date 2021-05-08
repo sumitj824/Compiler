@@ -3,8 +3,8 @@ int f(int a,int b){
 }
 
 int main(){
-    int a = f(0,1);
-    int b = a;
-    int c = 5;
+    int b;
+    int c;
+    int a = f(c,b);
     return 0;
 }
