@@ -17,7 +17,6 @@ void generate_code(){
             // test for pointers
 
             int temp_off = 0;
-            // cout << "inside call_func" << endl;
             for(int i = 0;i < parameters.size();i++){
                 s_entry * temp = parameters[i].op_1.second;
                 string type = temp -> type;
