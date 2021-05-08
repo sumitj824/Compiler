@@ -71,6 +71,7 @@ string postfix(string t, int num)
 
 string validAssign(string t1,string t2)
 {   
+    cout << "type1 is" << t1 << " while type2 is " << t2 << endl;
     if((isNum(t1) || t1 == "char") && t2 == "bool") return "true";
     if(t1==t2)return "true";
     if((isNum(t1) || t1=="char") && (isNum(t2)|| t1=="char" ))return "true";
