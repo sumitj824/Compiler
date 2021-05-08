@@ -12,7 +12,9 @@ $(SRC)/compile:
 	   g++  -w -c $(SRC)/symtable.cpp -o $(BIN)/sym.o -I$(SRC)
 	   g++  -w -c $(SRC)/type.cpp -o $(BIN)/type.o -I$(SRC)
 	   g++  -w -c $(SRC)/3ac.cpp -o $(BIN)/3ac.o -I$(SRC)
-	   g++ $(BIN)/lex.yy.c $(BIN)/y.tab.c $(BIN)/node.o $(BIN)/sym.o $(BIN)/type.o $(BIN)/3ac.o -I$(SRC) -lfl -w  -o $(BIN)/parser
+	   g++  -w -c $(SRC)/codegeneration.cpp -o $(BIN)/codegeneration.o -I$(SRC)
+	   g++  -w -c $(SRC)/generation_aid.cpp -o $(BIN)/generation_aid.o -I$(SRC)
+	   g++ $(BIN)/lex.yy.c $(BIN)/y.tab.c $(BIN)/node.o $(BIN)/sym.o $(BIN)/type.o $(BIN)/3ac.o $(BIN)/generation_aid.o $(BIN)/codegeneration.o -I$(SRC) -lfl -w  -o $(BIN)/parser
 
 
 clean: 
