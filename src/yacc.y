@@ -1684,20 +1684,18 @@ direct_declarator
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> nodeType = $1 -> nodeType;
 		funcName = $1 -> nodeLex;
-		//TODO:3ac
+		emit({"FUNC_START",NULL},{$1 -> nodeLex,NULL},{"",NULL},{"",NULL});
 	}
 	| direct_declarator '(' identifier_list ')'       		    {$$=make_node("direct_declarator",$1,$3);
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> nodeType = $1 -> nodeType;
-		//TODO:3ac
-
+		emit({"FUNC_START",NULL},{$1 -> nodeLex,NULL},{"",NULL},{"",NULL});
 	}
 	| direct_declarator '(' M13 M3 ')'									{$$=make_node("direct_declarator",$1,make_node("()"));
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> nodeType = $1 -> nodeType;
 		funcName = $1 -> nodeLex;
-		//TODO:3ac
-
+		emit({"FUNC_START",NULL},{$1 -> nodeLex,NULL},{"",NULL},{"",NULL});
 	}
 	;
 	
@@ -1774,6 +1772,7 @@ parameter_declaration
 M8
 	:%empty{
 		in_param = 1 - in_param;
+		var_type = "";
 	}
 
 identifier_list
@@ -2187,10 +2186,12 @@ jump_statement
 	| RETURN ';'						        {$$=make_node("return");
 		return_type = "void";
 		///todo:
+		emit({"FUNC_END",NULL},{"",NULL},{"",NULL},{"",NULL});
 	}
 	| RETURN expression ';'						{$$=make_node("jump_statement",make_node("return"),$2);
 		return_type = $2 -> nodeType;
 		///todo:
+		emit({"FUNC_END",NULL},{"",NULL},{"",NULL},{"",NULL});
 	}
 	;
 
