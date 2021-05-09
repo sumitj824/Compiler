@@ -16,6 +16,14 @@ void load_array_element1(comp q);
 
 void load_array_element2(comp q);
 
+void load_normal_element0(comp q);
+
+void load_normal_element1(comp q);
+
+void load_normal_element2(comp q);
+
 bool is_parameter(string name);
 
 string get_array_name(string s);
+
+void save_all_registers();

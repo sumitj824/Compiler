@@ -1,11 +1,10 @@
-int f(int a,int b){
-    return 0;
+void f(int a,int b){
+    return;
 }
 
 int main(){
-    int a[5][4];
-    int i = 0;
-    int j = 3;
-    a[i][j] = 3;
+    int a = 5;
+    int b = 3;
+    f(a,b);
     return 0;
 }

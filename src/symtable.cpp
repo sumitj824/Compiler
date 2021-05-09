@@ -18,7 +18,9 @@ map <string,int> structSize;
 map <symTable*,unsigned long long int> offset_table;
 array_arg_table * curr_array_arg_table = new array_arg_table();
 map <array_arg_table*,array_arg_table*> parent_array_arg_table;
+map <string,int> funcSize;
 map <s_entry*,vector <int>> array_symTable_entry;
+string funcName = "";
 
 void make_symTable_entry(string name,string type,int init,int size){
    // cout << name << " with " << type << " init : " << init << endl;  
@@ -45,6 +47,7 @@ void make_symTable_entry(string name,string type,int init,int size){
         array_symTable_entry[p] = (*curr_array_arg_table)[name];
     }
     (*curr_table).insert({name,p});
+    funcSize[funcName] += size;
 }
 
 void make_symTable_entry2(symTable* table,string name,string type,int init,int size){
@@ -61,6 +64,7 @@ void make_symTable_entry2(symTable* table,string name,string type,int init,int s
         offset_table[table] += size;
     }
     (*table).insert({name,p});
+    funcSize[funcName] += size;
 }
 
 s_entry* lookup(string a)

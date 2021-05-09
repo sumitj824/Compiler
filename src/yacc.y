@@ -36,7 +36,6 @@ extern int yylineno;
 extern vector <quad> emitted_code;
 vector<int> st_line_no;
 string arg_list = "";
-string funcName = "";
 string return_type = "";
 int initializer_list_size = 0;
 int accept2 = 0;
@@ -384,8 +383,7 @@ argument_expression_list
 			arg_list += ",";
 			arg_list += ($1 -> nodeType);
 		}
-		//TODO:3ac
-		emit({"param",NULL},{$1 -> nodeLex,lookup($1 -> nodeLex)},{"",NULL},{"",NULL});
+		emit({"param",NULL},$1 -> place,{"",NULL},{"",NULL});
 	}
 	| argument_expression_list ',' assignment_expression    {$$=make_node("argument_expression_list", $1, $3);
 		if(arg_list == ""){
@@ -395,7 +393,7 @@ argument_expression_list
 			arg_list += ",";
 			arg_list += ($3 -> nodeType);
 		}
-		emit({"param",NULL},{$3 -> nodeLex,lookup($3 -> nodeLex)},{"",NULL},{"",NULL});
+		emit({"param",NULL},$3 -> place,{"",NULL},{"",NULL});
 	}
 	;
 
@@ -1067,7 +1065,7 @@ logical_or_expression
 		$$->truelist.merge($3->truelist);
 		$$->falselist = $3->falselist;
 		backpatch($1->falselist,$2);
-		
+		// temporary generate karna hai
 		///
 	}
 	;
@@ -1700,6 +1698,7 @@ direct_declarator
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> nodeType = $1 -> nodeType;
 		funcName = $1 -> nodeLex;
+		funcSize[funcName] += $5 -> size;
 		emit({"FUNC_START",NULL},{$1 -> nodeLex,NULL},{"",NULL},{"",NULL});
 	}
 	| direct_declarator '(' identifier_list ')'       		    {$$=make_node("direct_declarator",$1,$3);
@@ -1752,6 +1751,7 @@ parameter_type_list
 parameter_list
 	: parameter_declaration										{$$=$1;}
 	| parameter_list ',' M parameter_declaration                 	{$$=make_node("parameter_list",$1,$4);
+		$$ -> size = $1 -> size + $4 -> size;
 		///
 		backpatch($1->nextlist,$3);
 		$$->nextlist=$4->nextlist;
@@ -1761,13 +1761,13 @@ parameter_list
 
 parameter_declaration
 	: declaration_specifiers  declarator                  		{$$=make_node("parameter_declaration",$1,$2);
-		$$ -> size = $2 -> size;
+		$$ -> size = get_size($2 -> nodeType);
 		s_entry* find = lookup_in_curr($2 -> nodeLex);
 		if(find){
 			yyerror("Error: redeclaration of variable.");
 		}
 		else{
-			make_symTable_entry2(temp_table,$2 -> nodeLex,$2 -> nodeType,1,$$ -> size);
+			make_symTable_entry2(temp_table,$2 -> nodeLex,$2 -> nodeType,1,get_size($2 -> nodeType));
 		}
 		if(funcArg == ""){
 			funcArg += $2 -> nodeType;
@@ -2275,7 +2275,7 @@ function_definition
 		return_type = "";
 		accept2 = 0;
 	}
-	| M14 M4 compound_statement M4                        {$$=make_node("function_definition",$1,$3);
+	| M14 compound_statement                       {$$=make_node("function_definition",$1,$2);
 		if(is_struct($2 -> nodeType) || is_struct(return_type)){
 			if($2 -> nodeType != return_type){
 				yyerror("Error : Return type not consistent with output type of function.");
@@ -2287,6 +2287,7 @@ function_definition
 			}
 		}
 		return_type = "";
+		funcName = "";
 	}
 	| declarator M3 M4 declaration_list compound_statement M4                        {$$=make_node("function_definition",$1,$4,$5);
 		int x= 0;
@@ -2340,7 +2341,7 @@ function_definition
 		tmp_map.clear();
 		accept2 = 0;
 	}
-	| M15 M4 compound_statement M4                                              {$$=make_node("function_definition",$1,$3);
+	| M15 compound_statement                                              {$$=make_node("function_definition",$1,$2);
 		if(is_struct("int") || is_struct(return_type)){
 			if("int" != return_type){
 				yyerror("Error : Return type not consistent with output type of function.");
@@ -2352,6 +2353,7 @@ function_definition
 			}
 		}
 		return_type = "";
+		funcName = "";
 	}
 	;
 
