@@ -102,13 +102,17 @@ primary_expression
 						$$ -> nodeLex = string($1);
 						$$ -> offset = t -> offset;
 						$$ -> size = t -> size;
-						if(array_symTable_entry.count(t)){
-							$$ -> dimensions = array_symTable_entry[t];
-						}
 						///
 						$$->place={string($1),t};
 						$$->nextlist={};
 						///
+						if(array_symTable_entry.count(t)){
+							$$ -> dimensions = array_symTable_entry[t];
+							comp temp = get_temp_label("int");
+							($$ -> place).second -> size = (temp.second) -> offset;
+							$$ -> size = (temp.second) -> offset; 
+							emit({"=",NULL},{"0",NULL},{"",NULL},temp);
+						}
 					}
 					else 
 					{
@@ -162,8 +166,10 @@ primary_expression
 		if(un) $$->nodeType = "unsigned "+$$->nodeType;
 		$$->init = 1;
 		///
-		 $$->place={string($1),NULL};
 		 $$->nextlist={};
+		 comp temp = get_temp_label("int");
+		emit({"=",NULL},{to_string($$->ival),NULL},{"",NULL},temp);
+		$$->place=temp;
 		///
 
 	}
@@ -176,7 +182,9 @@ primary_expression
 		if(s[s.length()-1] == 'F') $$->nodeType = "float"; 
 		$$->init=1;
 		///
-		 $$->place={string($1),NULL};
+		 comp temp = get_temp_label("float");
+		emit({"=",NULL},{to_string($$->dval),NULL},{"",NULL},temp);
+		$$->place=temp;
 		 $$->nextlist={};
 		///
 	}
@@ -206,16 +214,23 @@ postfix_expression
 				else{
 					yyerror("Error:  Identifier is not pointer type");
 				}
-				$$ -> offset = get_size($$ -> nodeType)*($3 -> ival);
+				$$ -> offset = $1 -> offset;
+				$$ -> size = $1 -> size;
+				string type = $$ -> nodeType;
+				while(type.back() == '*'){
+					type.pop_back();
+				}
+				int product = product_of_dimensions($1 -> dimensions);
 				$$ -> dimensions = remove_first($1 -> dimensions);
 				//3AC
-				string name = $1 -> nodeLex + "[" + to_string($3 -> ival) + "]";
+				string name = $1 -> nodeLex + "[" + ($3 -> place).first + "]";
 				s_entry * temp = new s_entry();
 				temp -> type = $$ -> nodeType;
-				temp -> offset = $$ -> offset;
-				temp -> size = get_size($$ -> nodeType);
+				temp -> offset = $1 -> offset;
+				temp -> size = $1 -> size;
 				$$ -> place = {name,temp};
-				//
+				$$ -> nodeLex = name;
+				emit({"arr_element",NULL},$$ -> place,$3 -> place,{to_string(product),NULL});
 	}
 	| postfix_expression '(' ')'							{$$=$1;
 				$$->init=1;

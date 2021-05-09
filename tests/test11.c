@@ -3,8 +3,9 @@ int f(int a,int b){
 }
 
 int main(){
-    int b;
-    int c;
-    int a = f(c,b);
+    int a[5][4];
+    int i = 0;
+    int j = 3;
+    a[i][j] = 3;
     return 0;
 }
