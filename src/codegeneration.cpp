@@ -59,25 +59,25 @@ void generate_code(){
 
         // handle the return case for functions
 
-        // if(instruction == "="){
-        //     comp op1 = emitted_code[i].op_1;
-        //     comp op2 = emitted_code[i].op_2;
-        //     comp res = emitted_code[i].result;
-        //     if(is_array_element(op1)){  
-        //         load_array_element0(op1);
-        //     }
-        //     else{
-        //         load_normal_element0(op1);
-        //     }
-        //     if(is_array_element(res)){
-        //         load_array_element2(res);
-        //     }
-        //     else{
-        //         load_normal_element2(op1);
-        //     }
-        //     push_line("lw $t3, 0($t0)");
-        //     push_line("sw $t3, 0($t2)");
-        // }
+        if(instruction == "="){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            comp res = emitted_code[i].result;
+            if(is_array_element(op1)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(res)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("lw $t3, 0($t0)");
+            push_line("sw $t3, 0($t2)");
+        }
         if(instruction == "+int"){
             comp op1 = emitted_code[i].op_1;
             comp op2 = emitted_code[i].op_2;
@@ -104,6 +104,19 @@ void generate_code(){
             push_line("lw $t4, 0($t1)");
             push_line("add $t5, $t3, $t4");
             push_line("sw $t5, 0($t2)");
+        }
+        if(instruction == "store_int"){
+            comp op1 = emitted_code[i].op_1;
+            comp res = emitted_code[i].result;
+            push_line("li $t0, " + op1.first);
+            push_line("add $t1, $sp, " + to_string(res.second -> offset));
+            push_line("sw $t0, 0($t1)");
+        }
+        if(instruction == "store_float"){
+            // instructinos to store float in temp
+        }
+        if(instruction == "string_literal"){
+            // instructions to store string_literal in temp
         }
     }
 }

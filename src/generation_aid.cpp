@@ -104,7 +104,7 @@ void save_all_registers(){
     push_line("sub $sp, $sp, 80");
     push_line("sw $ra, 0($sp)");
     push_line("sw $fp, 4($sp)");
-    push_line("la $fp, 72($sp)");
+    push_line("la $fp, 80($sp)");
     push_line("sw $t0, 12($sp)");
     push_line("sw $t1, 16($sp)");
     push_line("sw $t2, 20($sp)");

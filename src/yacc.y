@@ -167,7 +167,7 @@ primary_expression
 		///
 		 $$->nextlist={};
 		 comp temp = get_temp_label("int");
-		emit({"=",NULL},{to_string($$->ival),NULL},{"",NULL},temp);
+		emit({"store_int",NULL},{to_string($$ -> ival),NULL},{"",NULL},temp);
 		$$->place=temp;
 		///
 
@@ -181,16 +181,18 @@ primary_expression
 		if(s[s.length()-1] == 'F') $$->nodeType = "float"; 
 		$$->init=1;
 		///
-		 comp temp = get_temp_label("float");
-		emit({"=",NULL},{to_string($$->dval),NULL},{"",NULL},temp);
+		comp temp = get_temp_label("float");
+		emit({"store_float",NULL},{to_string($$->dval),NULL},{"",NULL},temp);
 		$$->place=temp;
-		 $$->nextlist={};
+		$$->nextlist={};
 		///
 	}
 	| STRING_LITERAL										{$$=make_node($1);
 		///
-		 $$->place={string($1),NULL};
-		 $$->nextlist={};
+		comp temp = get_temp_label("char*");
+		emit({"string_literal",NULL},{string($1),NULL},{"",NULL},temp);
+		$$->place={string($1),NULL};
+		$$->nextlist={};
 		///
 	}
 	| '(' expression ')'									{$$=$2;}
@@ -2207,7 +2209,7 @@ jump_statement
 	| RETURN expression ';'						{$$=make_node("jump_statement",make_node("return"),$2);
 		return_type = $2 -> nodeType;
 		///todo:
-		emit({"FUNC_END",NULL},{"",NULL},{"",NULL},{"",NULL});
+		emit({"FUNC_END",NULL},$2 -> place,{"",NULL},{"",NULL});
 	}
 	;
 
