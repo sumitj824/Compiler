@@ -22,6 +22,8 @@ void generate_code(){
             push_line("Label"+to_string(i)+" :");
         }
         string instruction = emitted_code[i].op_code.first;
+        push_line("");
+        push_line("# "+ emitted_code[i].op_code.first+ " "+emitted_code[i].op_1.first +" "+ emitted_code[i].op_2.first+" "+emitted_code[i].result.first);
         if(instruction == "CALL_FUNC"){
             string call_func = emitted_code[i].op_1.first;
             int size = funcSize[call_func];
