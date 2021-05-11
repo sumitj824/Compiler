@@ -53,6 +53,14 @@ void generate_code(){
             }
             // jump to function called.
             push_line("jal " + call_func);
+            comp res = emitted_code[i].result;
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("sw $v0, 0($t2)");
         }
         if(instruction == "FUNC_START"){
             curr_Func = emitted_code[i].op_1.first; // changed the func_name
@@ -87,12 +95,12 @@ void generate_code(){
                 }
                 else{
                     if(is_array_element(op1.first)){
-                        load_array_element2(op1);
+                        load_array_element0(op1);
                     }
                     else{
-                        load_normal_element2(op1);
+                        load_normal_element0(op1);
                     }
-                    push_line("move $v0, $t2");
+                    push_line("move $v0, ($t0)");
                 }
                 push_line("b func_end");
                 load_prev_registers();
