@@ -211,6 +211,8 @@ void load_prev_registers(){
     push_line("lw $s2, 60($sp)");
     push_line("lw $s3, 64($sp)");
     push_line("lw $s4, 68($sp)");
+    push_line("lw $s5, 72($sp)");
+    push_line("lw $s6, 76($sp)");
     push_line("add $sp, $sp, 80");
     push_line("jal $ra");
     curr_Func = temp_func;
