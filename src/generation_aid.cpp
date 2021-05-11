@@ -1,7 +1,7 @@
 #include "generation_aid.h"
 
 map <string, vector <string>> assembly_code;
- map<int, string> basicBlock;
+map<int, string> basicBlock;
 
 void push_line(string s){
     assembly_code[curr_Func].push_back(s);
@@ -55,49 +55,67 @@ string get_array_name(string s){
 
 void load_array_element0(comp q){ // to load array_element in $t0
     string name = get_array_name(q.first);
-    if(is_parameter(name)){
-        push_line("add $t0, $sp, " + to_string(q.second -> offset));
-        push_line("move $t1, $t0");
-        push_line("add $t1, $t1, " + to_string(q.second -> size));
-        push_line("move $t0, $t1");
+    if(global_entry_set.count(q.second))
+    {
+
     }
     else{
-        push_line("add $t0, $sp, " + to_string(q.second -> offset));
-        push_line("lw $t1, " + to_string(q.second -> size) + "($sp)");
-        push_line("add $t1, $t1, $t0");
-        push_line("move $t0, $t1");
+        if(is_parameter(name)){
+            push_line("add $t0, $sp, " + to_string(q.second -> offset));
+            push_line("move $t1, $t0");
+            push_line("add $t1, $t1, " + to_string(q.second -> size));
+            push_line("move $t0, $t1");
+        }
+        else{
+            push_line("add $t0, $sp, " + to_string(q.second -> offset));
+            push_line("lw $t1, " + to_string(q.second -> size) + "($sp)");
+            push_line("add $t1, $t1, $t0");
+            push_line("move $t0, $t1");
+        }
     }
 }
 
 void load_array_element1(comp q){ // to load array_element in $t1
     string name = get_array_name(q.first);
-    if(is_parameter(name)){
-        push_line("add $t1, $sp, " + to_string(q.second -> offset));
-        push_line("move $t2, $t1");
-        push_line("add $t2, $t2, " + to_string(q.second -> size));
-        push_line("move $t1, $t2");
+    if(global_entry_set.count(q.second))
+    {
+
     }
     else{
-        push_line("add $t1, $sp, " + to_string(q.second -> offset));
-        push_line("lw $t2, " + to_string(q.second -> size) + "($sp)");
-        push_line("add $t2, $t2, $t1");
-        push_line("move $t1, $t2");
+        if(is_parameter(name)){
+            push_line("add $t1, $sp, " + to_string(q.second -> offset));
+            push_line("move $t2, $t1");
+            push_line("add $t2, $t2, " + to_string(q.second -> size));
+            push_line("move $t1, $t2");
+        }
+        else{
+            push_line("add $t1, $sp, " + to_string(q.second -> offset));
+            push_line("lw $t2, " + to_string(q.second -> size) + "($sp)");
+            push_line("add $t2, $t2, $t1");
+            push_line("move $t1, $t2");
+        }
     }
 }
 
 void load_array_element2(comp q){ // to load array_element in $t2
     string name = get_array_name(q.first);
-    if(is_parameter(name)){
-        push_line("add $t2, $sp, " + to_string(q.second -> offset));
-        push_line("move $t3, $t2");
-        push_line("add $t2, $t2, " + to_string(q.second -> size));
-        push_line("move $t2, $t3");
+    if(global_entry_set.count(q.second))
+    {
+
     }
     else{
-        push_line("add $t2, $sp, " + to_string(q.second -> offset));
-        push_line("lw $t3, " + to_string(q.second -> size) + "($sp)");
-        push_line("add $t3, $t3, $t2");
-        push_line("move $t2, $t3");
+        if(is_parameter(name)){
+            push_line("add $t2, $sp, " + to_string(q.second -> offset));
+            push_line("move $t3, $t2");
+            push_line("add $t2, $t2, " + to_string(q.second -> size));
+            push_line("move $t2, $t3");
+        }
+        else{
+            push_line("add $t2, $sp, " + to_string(q.second -> offset));
+            push_line("lw $t3, " + to_string(q.second -> size) + "($sp)");
+            push_line("add $t3, $t3, $t2");
+            push_line("move $t2, $t3");
+        }
     }
 }
 
@@ -119,44 +137,62 @@ bool is_special_struct_case(string name){
 }
 
 void load_normal_element0(comp q){
-    if(is_special_struct_case(q.first)){
-        string name = q.first;
-        while(name.back() != '.'){
-            name.pop_back();
-        }
-        q.first = name;
-        load_array_element0(q);
+    if(global_entry_set.count(q.second))
+    {
+
     }
     else{
-        push_line("add $t0, $sp, " + to_string(q.second -> offset));
+        if(is_special_struct_case(q.first)){
+            string name = q.first;
+            while(name.back() != '.'){
+                name.pop_back();
+            }
+            q.first = name;
+            load_array_element0(q);
+        }
+        else{
+            push_line("add $t0, $sp, " + to_string(q.second -> offset));
+        }
     }
 } 
 
 void load_normal_element1(comp q){
-    if(is_special_struct_case(q.first)){
-        string name = q.first;
-        while(name.back() != '.'){
-            name.pop_back();
-        }
-        q.first = name;
-        load_array_element1(q);
+    if(global_entry_set.count(q.second))
+    {
+
     }
     else{
-        push_line("add $t1, $sp, " + to_string(q.second -> offset));
+        if(is_special_struct_case(q.first)){
+            string name = q.first;
+            while(name.back() != '.'){
+                name.pop_back();
+            }
+            q.first = name;
+            load_array_element1(q);
+        }
+        else{
+            push_line("add $t1, $sp, " + to_string(q.second -> offset));
+        }
     }
 } 
 
 void load_normal_element2(comp q){
-    if(is_special_struct_case(q.first)){
-        string name = q.first;
-        while(name.back() != '.'){
-            name.pop_back();
-        }
-        q.first = name;
-        load_array_element2(q);
+    if(global_entry_set.count(q.second))
+    {
+
     }
     else{
-        push_line("add $t2, $sp, " + to_string(q.second -> offset));
+        if(is_special_struct_case(q.first)){
+            string name = q.first;
+            while(name.back() != '.'){
+                name.pop_back();
+            }
+            q.first = name;
+            load_array_element2(q);
+        }
+        else{
+            push_line("add $t2, $sp, " + to_string(q.second -> offset));
+        }
     }
 } 
 

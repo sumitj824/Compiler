@@ -34,6 +34,8 @@ int simple_block = 0;
 int is_union2 = 0;
 extern int yylineno;
 extern vector <quad> emitted_code;
+set<s_entry*> global_entry_set;
+
 vector<int> st_line_no;
 string arg_list = "";
 string return_type = "";
@@ -2485,11 +2487,14 @@ M15
 %%
 #include <stdio.h>
 #include <vector>
+#include <set>
+
 #define red   "\033[31;1m"
 #define reset   "\033[0m"
 extern char yytext[];
 extern int column;
 extern int line;
+
 char *filename;
 FILE *in=NULL;
 FILE *out=NULL;
@@ -2590,6 +2595,10 @@ int main(int argc, char *argv[]){
 	symTable_type[GST] = "global_table";
 
 	printSymTable(GST,"Global","",st_line_no.back(),yylineno);
+	for(auto p:*GST)
+	{
+		global_entry_set.insert(p.second);
+	}
 
 	freopen("3ac_code.txt","w",stdout);
 	print_code();

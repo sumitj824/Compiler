@@ -6,6 +6,7 @@ extern map <string,vector <string>> assembly_code;
 extern map<int, string> basicBlock;
 
 extern vector <quad> parameters;
+extern set<s_entry*> global_entry_set;
 
 void push_line(string s);
 
