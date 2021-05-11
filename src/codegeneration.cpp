@@ -192,19 +192,6 @@ void generate_code(){
             push_line("add $t5, $t3, $t4");
             push_line("sw $t5, 0($t2)");
         }
-        if(instruction == "store_int"){
-            comp op1 = emitted_code[i].op_1;
-            comp res = emitted_code[i].result;
-            push_line("li $t0, " + op1.first);
-            push_line("add $t1, $sp, " + to_string(res.second -> offset));
-            push_line("sw $t0, 0($t1)");
-        }
-        if(instruction == "store_float"){
-            // instructinos to store float in temp
-        }
-        if(instruction == "string_literal"){
-            // instructions to store string_literal in temp
-        }
 
         if(instruction == "*int"){  
             comp op1 = emitted_code[i].op_1;

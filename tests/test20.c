@@ -4,7 +4,7 @@ int main(){
   a[2] = 1;
   a[3] = 5;
   a[4]=a[2]+a[3];
-  //a++;
+  a[4]++;
   c = a[4];
-    return 0;
+  return 0;
 }
