@@ -3,6 +3,7 @@
 extern string curr_Func;
 
 extern map <string,vector <string>> assembly_code;
+extern map<int, string> basicBlock;
 
 extern vector <quad> parameters;
 
@@ -31,3 +32,6 @@ void save_all_registers();
 void load_prev_registers();
 
 void print_assembly_code();
+
+void formBasicBlocks();
+int findNext(int addr);

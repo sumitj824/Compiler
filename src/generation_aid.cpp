@@ -1,6 +1,7 @@
 #include "generation_aid.h"
 
 map <string, vector <string>> assembly_code;
+ map<int, string> basicBlock;
 
 void push_line(string s){
     assembly_code[curr_Func].push_back(s);
@@ -213,4 +214,21 @@ void load_prev_registers(){
     push_line("add $sp, $sp, 80");
     push_line("jal $ra");
     curr_Func = temp_func;
+}
+
+void formBasicBlocks(){
+    for(auto x:emitted_code){
+        if(x.op_code.first=="goto" || x.op_code.first=="if_goto"){
+            int addr = stoi(x.result.first);
+            addr = findNext(addr);
+            basicBlock[addr] = string("Label")+to_string(addr);
+        }
+    }
+}
+
+int findNext(int addr){
+    while(emitted_code[addr].op_code.first=="goto"){
+        addr = stoi(emitted_code[addr].result.first);
+    }
+    return addr;
 }
