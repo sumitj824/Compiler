@@ -120,7 +120,6 @@ primary_expression
 	}				
 	| I_CONSTANT												{
 		$$=make_node($1);
-		
 		char * ptr = $1;
 		int num = strlen(ptr);
 		//for L'ab' type
@@ -188,6 +187,7 @@ primary_expression
 	}
 	| STRING_LITERAL										{$$=make_node($1);
 		///
+		$$ -> nodeType = "char*";
 		comp temp = get_temp_label("char*");
 		emit({"string_literal",NULL},{string($1),NULL},{"",NULL},temp);
 		$$->place={string($1),NULL};
@@ -267,7 +267,9 @@ postfix_expression
 			}
 		}	 
 		arg_list = ""; // here do we need to store the value of function of call_func in a temporaray.
-		emit({"CALL_FUNC",NULL},{$1 -> nodeLex,NULL},{"",NULL},{"",NULL});
+		comp temp = get_temp_label($$ -> nodeType);
+		emit({"CALL_FUNC",NULL},{$1 -> nodeLex,NULL},{"",NULL},temp);
+		$$ -> place = temp;
 	}
 	| postfix_expression '.' IDENTIFIER						{$$=make_node("postfix_expression.IDENTIFIER", $1, make_node($3));
 		if(id_to_struct.count($1 -> nodeType)){
@@ -312,6 +314,7 @@ postfix_expression
 		else{
 			yyerror("Error : Use of undeclared structure.");
 		}
+		// TODO : 3AC
 	}
 	| postfix_expression INC_OP							    {$$=make_node($2, $1);
 			$$->init=$1->init;
@@ -344,7 +347,6 @@ postfix_expression
 			else{
 				yyerror("Error: Increment operator not defined for this type");
 			}
-			// cout << "inside postfix for variable " << $1 -> nodeLex << endl; 
 	}
 	| postfix_expression DEC_OP								{$$=make_node($2, $1);
 			$$->init=$1->init;
@@ -1157,8 +1159,6 @@ assignment_expression
 	| unary_expression assignment_operator assignment_expression		    {$$=make_node("assignment_expression",$1,make_node($2),$3);
 
 		string p=assign($1->nodeType,$3->nodeType,$2);
-		//cout<<p<<"         .......................\n";
-		//string s = "int";
 		if(!p.empty())
 		{
 			$$->nodeType=$1->nodeType;
@@ -1177,7 +1177,6 @@ assignment_expression
 					if(isInt($1->nodeType) && isInt($3->nodeType)){
 						string op = s.substr(0,1);
 						op=op+"int";
-						//cout<<s<<' '<<op<<".........................."<<endl;
 						emit({op,NULL},$1->place,$3->place,$1->place);
 					}else{
 						if(isInt($1->nodeType)){
@@ -1717,7 +1716,7 @@ direct_declarator
 		$$ -> nodeType = $1 -> nodeType;
 		emit({"FUNC_START",NULL},{$1 -> nodeLex,NULL},{"",NULL},{"",NULL});
 	}
-	| direct_declarator '(' M13 M3 ')'									{$$=make_node("direct_declarator",$1,make_node("()"));
+	| direct_declarator '(' M13 ')'									{$$=make_node("direct_declarator",$1,make_node("()"));
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> nodeType = $1 -> nodeType;
 		funcName = $1 -> nodeLex;
@@ -1914,9 +1913,7 @@ statement
 	| expression_statement											{$$=$1; $$->is_case=0;}
 	| selection_statement											{$$=$1; $$->is_case=0;}
 	| iteration_statement											{$$=$1; $$->is_case=0;}
-	| jump_statement												{$$=$1;
-	/////for(auto x:$$->breaklist) cout<<x<<".............................";
-	}
+	| jump_statement												{$$=$1;}
 	;
 
 M9
@@ -2027,11 +2024,10 @@ declaration_list
 statement_list
 	: statement												{$$=$1;}
 	| statement_list M statement								{$$=make_node("statement_list",$1,$3);
-	$$->nextlist = $3->nextlist;
-	$$->continuelist = $1->continuelist; $$->continuelist.merge($3->continuelist);
-	$$->breaklist = $1->breaklist ; $$->breaklist.merge($3->breaklist );
-	backpatch($1->nextlist,$2);
-	
+		$$->nextlist = $3->nextlist;
+		$$->continuelist = $1->continuelist; $$->continuelist.merge($3->continuelist);
+		$$->breaklist = $1->breaklist ; $$->breaklist.merge($3->breaklist );
+		backpatch($1->nextlist,$2);
 	}
 	;
 
@@ -2067,10 +2063,6 @@ N2
 
 selection_statement
 	: IF '(' expression ')' N1 statement               		{$$=make_node("IF (expr) stmt",$3,$6);
-	///
-	//cout<<"hello........................................\n";
-	//for(auto x:$6->breaklist) cout<<x<<' '; cout<<endl;
-	//if($6->stmtType )
 		if(is_logical == 0){
 			emitted_code[$5-2].op_1 = $3->place;
 			$3->truelist.push_back($5-2);
@@ -2078,10 +2070,6 @@ selection_statement
 		}
 		$$->nextlist = $6->nextlist;
 		$$->nextlist.merge($3->falselist);
-		//for(auto x:$$->nextlist){
-		//	cout<<x<<' ';
-		//}
-		//cout<<"............................................\n";
 		backpatch($3->truelist,$5);
 		$$->breaklist = $6->breaklist;
 		$$->continuelist = $6->continuelist;
@@ -2111,7 +2099,6 @@ iteration_statement
 	//: WHILE '(' M expression ')' N1 statement N2                                      	{$$=make_node("WHILE (expr) stmt",$4,$7);
 	///
 		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
-		//cout<<is_logical<<"is I am coming here....................................\n";
 		if(is_logical == 0){
 			emitted_code[$6-2].op_1 = $4->place;
 			//emitted_code[$6-2].result = $6;
@@ -2192,15 +2179,16 @@ iteration_statement
 
 jump_statement
 	: GOTO IDENTIFIER ';'						{$$=make_node("jump_statement",make_node($1),make_node($2));
-	string s($2);
-	emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
-	if(label_map.find(s) != label_map.end()){
-		label_map[s];
-		
-		emitted_code[(int)emitted_code.size()-1].result = {to_string(label_map[s]),NULL};
-	}else{
-		label_list_map[s].push_back((int)emitted_code.size()-1);
-	}
+		string s($2);
+		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
+		if(label_map.find(s) != label_map.end()){
+			label_map[s];
+			
+			emitted_code[(int)emitted_code.size()-1].result = {to_string(label_map[s]),NULL};
+		}
+		else{
+			label_list_map[s].push_back((int)emitted_code.size()-1);
+		}
 	}
 	| CONTINUE ';'						        {$$=make_node("continue");
 		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
@@ -2223,12 +2211,14 @@ jump_statement
 	;
 
 translation_unit
-	: external_declaration										   {$$=$1;}
+	: external_declaration										   {$$=$1;
+	}
 	| translation_unit external_declaration                        {$$=make_node("translation_unit",$1,$2);}
 	;
 
 external_declaration
-	: function_definition									{$$=$1;}
+	: function_definition									{$$=$1;
+	}
 	| declaration											{$$=$1;}
 	;
 
@@ -2287,13 +2277,13 @@ function_definition
 		accept2 = 0;
 	}
 	| M14 compound_statement                       {$$=make_node("function_definition",$1,$2);
-		if(is_struct($2 -> nodeType) || is_struct(return_type)){
-			if($2 -> nodeType != return_type){
+		if(is_struct($1 -> nodeType) || is_struct(return_type)){
+			if($1 -> nodeType != return_type){
 				yyerror("Error : Return type not consistent with output type of function.");
 			}
 		}
 		else{
-			if($2 -> nodeType != return_type){
+			if($1 -> nodeType != return_type){
 				yyerror("Warning : Implicit typecasting at return type.");
 			}
 		}
@@ -2451,8 +2441,8 @@ M13
 	;
 M14
 	:declaration_specifiers declarator		{ $$ = make_node("Marker14",$1,$2);
-		$$ -> nodeType = $1 -> nodeType;
-		if(funcMap.find($2 -> nodeLex) == funcMap.end()){
+		$$ -> nodeType = $2 -> nodeType;
+		if(funcMap.find($2 -> nodeLex) == funcMap.end()){	
 			if(!lookup($2 -> nodeLex)){
 				 funcMap.insert({$2 -> nodeLex,funcArg});
 				 make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0,$2 -> size);
@@ -2518,7 +2508,7 @@ void help(int f){
 }
 
 
-int main(int argc, char *argv[]){	
+int main(int argc, char *argv[]){
 	complete[""] = 1;
 	if(argc==1)
 	{
