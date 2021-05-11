@@ -63,6 +63,17 @@ void make_symTable_entry2(symTable* table,string name,string type,int init,int s
         p -> offset = offset_table[table];
         offset_table[table] += size;
     }
+    if((*curr_array_arg_table).count(name)){
+        string temp_type = type;
+        vector <int> temp = (*curr_array_arg_table)[name];
+        int i = 0;
+        while(i < temp.size()){
+            temp_type.pop_back();
+            i++;
+        }
+        (*curr_array_arg_table)[name].push_back(get_size(temp_type));
+        array_symTable_entry[p] = (*curr_array_arg_table)[name];
+    }
     (*table).insert({name,p});
     funcSize[funcName] += size;
 }

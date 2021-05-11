@@ -76,8 +76,8 @@ int yylex();
 
 
 %type <num> and_operator or_operator question_mark M N N1 N2
-%type <ptr>  M2 M3 M4 M5	M6 M7 M8 M9 M10 M11 M12 M13 M14 M15
-%type <str>assignment_operator
+%type <ptr> M2 M3 M4 M5 M6 M7 M8 M9 M10 M11 M12 M13 M14 M15
+%type <str> assignment_operator
 %type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression 
 %type <ptr> shift_expression relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
 %type <ptr> conditional_expression assignment_expression  expression constant_expression declaration declaration_specifiers init_declarator_list init_declarator
@@ -88,8 +88,6 @@ int yylex();
 
 %start translation_unit
 %%
-// file -> quadraple -> op_code, op1, op2, result
-
 primary_expression
 	: IDENTIFIER											{$$=make_node($1);
 					string s($1);
@@ -105,12 +103,13 @@ primary_expression
 						$$->place={string($1),t};
 						$$->nextlist={};
 						///
-						if(array_symTable_entry.count(t)){
+						string type = $$ -> nodeType;
+						if(type.back() == '*'){
 							$$ -> dimensions = array_symTable_entry[t];
 							comp temp = get_temp_label("int");
 							($$ -> place).second -> size = (temp.second) -> offset;
 							$$ -> size = (temp.second) -> offset; 
-							emit({"=",NULL},{"0",NULL},{"",NULL},temp);
+							emit({"store_int",NULL},{"0",NULL},{"",NULL},temp);
 						}
 					}
 					else 
@@ -267,7 +266,7 @@ postfix_expression
 				yyerror(x);
 			}
 		}	 
-		arg_list = "";
+		arg_list = ""; // here do we need to store the value of function of call_func in a temporaray.
 		emit({"CALL_FUNC",NULL},{$1 -> nodeLex,NULL},{"",NULL},{"",NULL});
 	}
 	| postfix_expression '.' IDENTIFIER						{$$=make_node("postfix_expression.IDENTIFIER", $1, make_node($3));
@@ -277,9 +276,16 @@ postfix_expression
 				$$ -> nodeType = find -> type;
 				$$ -> init = find -> init;
 				$$ -> nodeLex = $1 -> nodeLex + "." + $3;
-				comp temp = get_temp_label(find -> type);	//type of id
-				emit({".",NULL},$1->place,{string($3),lookup(string($3))},temp);
-				$$->place = temp;
+				if(is_array_element($1 -> nodeLex)){
+					emit({"struct_array",NULL},$1 -> place,{to_string(find -> offset),NULL},{"",NULL});
+					$$ -> place = {$$ -> nodeLex,($1 -> place).second};
+				}
+				else{
+					int offset = ($1 -> place).second -> offset;
+					offset += find -> offset;
+					find -> offset = offset;
+					$$ -> place = {$$ -> nodeLex,find};
+				}
 			}
 			else{
 				yyerror("Error : Undefined attribute access in structure.");
@@ -298,9 +304,6 @@ postfix_expression
 				$$ -> nodeType = find -> type;
 				$$ -> init = find -> init;
 				$$ -> nodeLex = $1 -> nodeLex + $2 + $3;
-				comp temp = get_temp_label(find -> type);	//type of id
-				emit({"ptr_op",NULL},$1->place,{string($3),lookup(string($3))},temp);
-				$$->place = temp;
 			}
 			else{
 				yyerror("Error : Undefined attribute access in structure.");
@@ -1343,7 +1346,7 @@ init_declarator
 			initializer_list_size = 0;
 			array_case2 = 0;
 			accept2 = 0;
-
+			$1 -> place = {$1 -> nodeLex,lookup($1 -> nodeLex)};
 
 			emit({"=",NULL},$3->place,{"",NULL},$1->place);
 		}
@@ -1351,7 +1354,6 @@ init_declarator
 			yyerror("Error : unexpected initialisation of variable.");
 		}
 			//TODO:3ac
-
 	}
 	;
 
@@ -1689,6 +1691,13 @@ direct_declarator
 		$$ -> nodeType = $1 -> nodeType + "*";
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> size = ($1 -> size)*initializer_list_size;
+		if((*curr_array_arg_table).count($1 -> nodeLex)){
+			(*curr_array_arg_table)[$1 -> nodeLex].push_back(1);
+		}
+		else{
+			(*curr_array_arg_table).insert({$1 -> nodeLex,{}});
+			(*curr_array_arg_table)[$1 -> nodeLex].push_back(1);
+		}
 		if(!in_param){
 			array_case2 = 1;
 		}
@@ -2369,7 +2378,7 @@ M3
 		curr_table = temp;
 		symTable_type[curr_table] = "function";
 		offset_table[curr_table] = 0;
-		array_arg_table * temp3 = new array_arg_table;
+		array_arg_table * temp3 = new array_arg_table();
 		parent_array_arg_table[temp3] = curr_array_arg_table;
 		curr_array_arg_table = temp3;
 	}
@@ -2383,7 +2392,7 @@ M11
 		parent.insert({temp,curr_table});
 		curr_table = temp;
 		offset_table[curr_table] = 0;
-		array_arg_table * temp3 = new array_arg_table;
+		array_arg_table * temp3 = new array_arg_table();
 		parent_array_arg_table[temp3] = curr_array_arg_table;
 		curr_array_arg_table = temp3;
 		if(is_union2){
@@ -2405,7 +2414,7 @@ M12
 		offset_table[temp] = offset_table[curr_table];
 		curr_table = temp;
 		symTable_type[curr_table] = "block";
-		array_arg_table * temp3 = new array_arg_table;
+		array_arg_table * temp3 = new array_arg_table();
 		parent_array_arg_table[temp3] = curr_array_arg_table;
 		curr_array_arg_table = temp3;
 	}
@@ -2430,12 +2439,12 @@ M4
 M13 
 	:%empty		{
 		temp_table = new symTable();
-		struct_table * temp = new struct_table;
+		struct_table * temp = new struct_table();
 		struct_parent[temp] = curr_struct_table;
 		curr_struct_table = temp;
 		symTable_type[temp_table]="function";
 		offset_table[curr_table] = 0;
-		array_arg_table * temp3 = new array_arg_table;
+		array_arg_table * temp3 = new array_arg_table();
 		parent_array_arg_table[temp3] = curr_array_arg_table;
 		curr_array_arg_table = temp3;
 	}
@@ -2495,24 +2504,21 @@ char *filename;
 FILE *in=NULL;
 FILE *out=NULL;
 vector<string> code;
-void yyerror(char *s)
-{	
+void yyerror(char *s){	
 	fflush(stdout);
 	fprintf(stderr,"%s:%d:%d:%s %s%s\n",filename,line,column,red,s,reset);
 	cerr<<code[line-1];
 	fprintf(stderr,"\n%s%*s%s\n", red,column,"^~~~~",reset);
 }
 
-void help(int f)
-{	
+void help(int f){	
 	if(f) printf("%sError: %s\n",red,reset);
 	printf("Give Input file with -i flag\n");
 	printf("Give Output file with -o flag\n");
 }
 
 
-int main(int argc, char *argv[])
-{	
+int main(int argc, char *argv[]){	
 	complete[""] = 1;
 	if(argc==1)
 	{
@@ -2597,5 +2603,7 @@ int main(int argc, char *argv[])
 
 	freopen("3ac_code.txt","w",stdout);
 	print_code();
+	freopen("code.asm","w",stdout);
 	generate_code();
+	print_assembly_code();
 } 

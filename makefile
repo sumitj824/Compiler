@@ -19,4 +19,4 @@ $(SRC)/compile:
 
 clean: 
 		rm -rf $(BIN)
-		rm -f *.dot *.png *.txt
+		rm -f *.dot *.png *.txt *.asm

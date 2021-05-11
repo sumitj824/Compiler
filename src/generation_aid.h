@@ -8,7 +8,7 @@ extern vector <quad> parameters;
 
 void push_line(string s);
 
-bool is_array_element(comp q);
+bool is_array_element(string q);
 
 void load_array_element0(comp q);
 
@@ -27,3 +27,7 @@ bool is_parameter(string name);
 string get_array_name(string s);
 
 void save_all_registers();
+
+void load_prev_registers();
+
+void print_assembly_code();

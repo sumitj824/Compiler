@@ -2,7 +2,7 @@
 
 using namespace std;
 
-string curr_Func;
+string curr_Func = "__global";
 
 vector <quad> parameters;
 
@@ -49,7 +49,7 @@ void generate_code(){
 
         if(instruction == "arr_element"){
             // load temporary
-            push_line("arr_element lw $t0, " + to_string(emitted_code[i].op_1.second -> size) + "($sp)");// t0 has value of temp
+            push_line("lw $t0, " + to_string(emitted_code[i].op_1.second -> size) + "($sp)");// t0 has value of temp
             push_line("lw $t1, " + to_string(emitted_code[i].op_2.second -> offset) + "($sp)"); // t1 has value of expression
             push_line("li $t2, " + emitted_code[i].result.first); //  has the offset to be added
             push_line("mul $t3, $t1 , $t2"); // multiply 
@@ -59,17 +59,42 @@ void generate_code(){
 
         // handle the return case for functions
 
+        if(instruction == "FUNC_END"){
+            if(curr_Func == "main"){
+                push_line("li $a0, 0");
+                push_line("li $v0, 10");
+                push_line("syscall");
+            }
+            else{
+                comp op1 = emitted_code[i].op_1;
+                if(op1.second == NULL){
+                    push_line("li $v0, 0");
+                }
+                else{
+                    if(is_array_element(op1.first)){
+                        load_array_element2(op1);
+                    }
+                    else{
+                        load_normal_element2(op1);
+                    }
+                    push_line("move $v0, $t2");
+                }
+                push_line("b func_end");
+                load_prev_registers();
+            }
+            curr_Func = "__global";
+        }
+
         if(instruction == "="){
             comp op1 = emitted_code[i].op_1;
-            comp op2 = emitted_code[i].op_2;
-            comp res = emitted_code[i].result;
-            if(is_array_element(op1)){  
+            comp res = emitted_code[i].result; 
+            if(is_array_element(op1.first)){  
                 load_array_element0(op1);
             }
             else{
                 load_normal_element0(op1);
             }
-            if(is_array_element(res)){
+            if(is_array_element(res.first)){
                 load_array_element2(res);
             }
             else{
@@ -78,23 +103,23 @@ void generate_code(){
             push_line("lw $t3, 0($t0)");
             push_line("sw $t3, 0($t2)");
         }
-        if(instruction == "+int"){
+        if(instruction == "+int"){            
             comp op1 = emitted_code[i].op_1;
             comp op2 = emitted_code[i].op_2;
             comp res = emitted_code[i].result;
-            if(is_array_element(op1)){  
+            if(is_array_element(op1.first)){  
                 load_array_element0(op1);
             }
             else{
                 load_normal_element0(op1);
             }
-            if(is_array_element(op2)){
+            if(is_array_element(op2.first)){
                 load_array_element1(op2);
             }
             else{
                 load_normal_element1(op2);
             }
-            if(is_array_element(res)){
+            if(is_array_element(res.first)){
                 load_array_element2(res);
             }
             else{
@@ -118,5 +143,14 @@ void generate_code(){
         if(instruction == "string_literal"){
             // instructions to store string_literal in temp
         }
+        if(instruction == "struct_array"){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            push_line("li $t0, " + op2.first);
+            push_line("lw $t1, " + to_string(op1.second -> size) + "($sp)");
+            push_line("add $t1, $t1, $t0");
+            push_line("sw $t1, " + to_string(op1.second -> size) + "($sp)");
+        }
+        
     }
 }

@@ -4,11 +4,23 @@ map <string, vector <string>> assembly_code;
 
 void push_line(string s){
     assembly_code[curr_Func].push_back(s);
-    cout << s << endl;
 }
 
-bool is_array_element(comp q){
-    if((q.first).back() == ']'){
+void print_assembly_code(){
+    for(auto a : assembly_code){
+        if(a.first == "__global") continue;
+        cout << a.first << ":" << endl;
+        cout << endl;
+        for(auto i : a.second){
+            cout << "       " << i << endl;
+        }
+        cout << endl;
+        cout << endl;
+    }
+}
+
+bool is_array_element(string q){
+    if(q.back() == ']'){
         return true;
     }
     else{
@@ -44,15 +56,15 @@ void load_array_element0(comp q){ // to load array_element in $t1
     string name = get_array_name(q.first);
     if(is_parameter(name)){
         push_line("add $t0, $sp, " + to_string(q.second -> offset));
-        push_line("lw $t1, $t0");
+        push_line("move $t1, $t0");
         push_line("add $t1, $t1, " + to_string(q.second -> size));
-        push_line("lw $t0, $t1");
+        push_line("move $t0, $t1");
     }
     else{
         push_line("add $t0, $sp, " + to_string(q.second -> offset));
         push_line("lw $t1, " + to_string(q.second -> size) + "($sp)");
         push_line("add $t1, $t1, $t0");
-        push_line("lw $t0, $t1");
+        push_line("move $t0, $t1");
     }
 }
 
@@ -60,15 +72,15 @@ void load_array_element1(comp q){ // to load array_element in $t1
     string name = get_array_name(q.first);
     if(is_parameter(name)){
         push_line("add $t1, $sp, " + to_string(q.second -> offset));
-        push_line("lw $t2, $t1");
+        push_line("move $t2, $t1");
         push_line("add $t2, $t2, " + to_string(q.second -> size));
-        push_line("lw $t1, $t2");
+        push_line("move $t1, $t2");
     }
     else{
         push_line("add $t1, $sp, " + to_string(q.second -> offset));
         push_line("lw $t2, " + to_string(q.second -> size) + "($sp)");
         push_line("add $t2, $t2, $t1");
-        push_line("lw $t1, $t2");
+        push_line("move $t1, $t2");
     }
 }
 
@@ -76,28 +88,75 @@ void load_array_element2(comp q){ // to load array_element in $t2
     string name = get_array_name(q.first);
     if(is_parameter(name)){
         push_line("add $t2, $sp, " + to_string(q.second -> offset));
-        push_line("lw $t3, $t2");
+        push_line("move $t3, $t2");
         push_line("add $t2, $t2, " + to_string(q.second -> size));
-        push_line("lw $t2, $t3");
+        push_line("move $t2, $t3");
     }
     else{
         push_line("add $t2, $sp, " + to_string(q.second -> offset));
         push_line("lw $t3, " + to_string(q.second -> size) + "($sp)");
         push_line("add $t3, $t3, $t2");
-        push_line("lw $t2, $t3");
+        push_line("move $t2, $t3");
     }
 }
 
+bool is_special_struct_case(string name){
+    for(int i = 0;i < (name.size()-1);i++){
+        if(name[i] == '.'){
+            if(name[i - 1] == ']'){
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        else if(name[i] == '-' && name[i + 1] == '>'){
+            return true;
+        }
+    }
+    return false;
+}
+
 void load_normal_element0(comp q){
-    push_line("add $t0, $sp, " + to_string(q.second -> offset));
+    if(is_special_struct_case(q.first)){
+        string name = q.first;
+        while(name.back() != '.'){
+            name.pop_back();
+        }
+        q.first = name;
+        load_array_element0(q);
+    }
+    else{
+        push_line("add $t0, $sp, " + to_string(q.second -> offset));
+    }
 } 
 
 void load_normal_element1(comp q){
-    push_line("add $t1, $sp, " + to_string(q.second -> offset));
+    if(is_special_struct_case(q.first)){
+        string name = q.first;
+        while(name.back() != '.'){
+            name.pop_back();
+        }
+        q.first = name;
+        load_array_element1(q);
+    }
+    else{
+        push_line("add $t1, $sp, " + to_string(q.second -> offset));
+    }
 } 
 
 void load_normal_element2(comp q){
-    push_line("add $t2, $sp, " + to_string(q.second -> offset));
+    if(is_special_struct_case(q.first)){
+        string name = q.first;
+        while(name.back() != '.'){
+            name.pop_back();
+        }
+        q.first = name;
+        load_array_element2(q);
+    }
+    else{
+        push_line("add $t2, $sp, " + to_string(q.second -> offset));
+    }
 } 
 
 void save_all_registers(){
@@ -123,4 +182,35 @@ void save_all_registers(){
     push_line("sw $s5, 72($sp)");
     push_line("sw $s6, 76($sp)");
     push_line("add $sp, $sp, 80");
+}
+
+void load_prev_registers(){
+    if(assembly_code.count("func_end")){
+        return;
+    }
+    string temp_func = curr_Func;
+    int size = funcSize[curr_Func];
+    push_line("add $sp, $sp, " + to_string(size));
+    curr_Func = "func_end";
+    push_line("lw $ra, 0($sp)");
+    push_line("lw $fp, 4($sp)");
+    push_line("lw $a0, 8($sp)");
+    push_line("lw $t0, 12($sp)");
+    push_line("lw $t1, 16($sp)");
+    push_line("lw $t2, 20($sp)");
+    push_line("lw $t3, 24($sp)");
+    push_line("lw $t4, 28($sp)");
+    push_line("lw $t5, 32($sp)");
+    push_line("lw $t6, 36($sp)");
+    push_line("lw $t7, 40($sp)");
+    push_line("lw $t8, 44($sp)");
+    push_line("lw $t9, 48($sp)");
+    push_line("lw $s0, 52($sp)");
+    push_line("lw $s1, 56($sp)");
+    push_line("lw $s2, 60($sp)");
+    push_line("lw $s3, 64($sp)");
+    push_line("lw $s4, 68($sp)");
+    push_line("add $sp, $sp, 80");
+    push_line("jal $ra");
+    curr_Func = temp_func;
 }
