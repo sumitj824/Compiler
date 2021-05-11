@@ -434,7 +434,7 @@ unary_expression
 					 emit({"store_int",NULL},{"1",NULL},{"",NULL},temp2);
 					 emit({"+int",NULL},$2->place,temp2,temp);
 					 emit({"=",NULL},temp,{"",NULL},$2->place);
-					 $$->place = $2->place;
+					 $$->place = temp;
 				 }else{
 					 if(isFloat(s)){
 						 comp temp = get_temp_label("float");
@@ -442,7 +442,7 @@ unary_expression
 						 emit({"store_float",NULL},{"1",NULL},{"",NULL},temp2);
 						 emit({"+float",NULL},$2->place,temp2,temp);
 						 emit({"=",NULL},temp,{"",NULL},$2->place);
-						 $$->place = $2->place;
+						 $$->place = temp;
 					 }else{
 						 yyerror("Error: Increment operator with not int or float");
 					 }
@@ -474,7 +474,7 @@ unary_expression
 					 emit({"store_int",NULL},{"1",NULL},{"",NULL},temp2);
 					 emit({"-int",NULL},$2->place,temp2,temp);
 					 emit({"=",NULL},temp,{"",NULL},$2->place);
-					 $$->place=$2->place;
+					 $$->place=temp;
 				 }else{
 					 if(isFloat(s)){
 						 comp temp = get_temp_label("float");
@@ -482,7 +482,7 @@ unary_expression
 							emit({"store_float",NULL},{"1",NULL},{"",NULL},temp2);
 							emit({"-float",NULL},$2->place,temp2,temp);
 						 emit({"=",NULL},temp,{"",NULL},$2->place);
-						 $$->place=$2->place;
+						 $$->place=temp;
 					 }else{
 						 yyerror("Error: Decrement operator with not int or float");
 					 }

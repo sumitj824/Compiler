@@ -279,7 +279,7 @@ void generate_code(){
             }
             push_line("lw $t3, 0($t0)");
             push_line("lw $t4, 0($t1)");
-            push_line("lw $t6, $t4");
+            push_line("neg $t6, $t4");
             push_line("add $t5, $t3, $t6");            // negative hona chahiye
             push_line("sw $t5, 0($t2)");
         }
