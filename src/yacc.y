@@ -526,7 +526,7 @@ unary_expression
 
 unary_operator
 	: '&'		{$$=make_node("&");
-		$$->place={"&",NULL};
+		$$->place={"unary&",NULL};
 	}
 	| '*'		{$$=make_node("*");
 		//s_entry *op=lookup("*");

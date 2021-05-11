@@ -7,6 +7,11 @@ string curr_Func = "__global";
 vector <quad> parameters;
 
 void generate_code(){
+    curr_Func = ".data";
+    for(auto i : *GST){
+        push_line(to_string(i.first) + " :");
+    }
+    curr_Func = "__global";
     formBasicBlocks();
     for(int i = 0;i < emitted_code.size();i++){
         if(basicBlock.find(i)!=basicBlock.end()){
@@ -274,7 +279,7 @@ void generate_code(){
             push_line("lw $t3, 0($t0)");
             push_line("lw $t4, 0($t1)");
             push_line("lw $t6, $t4");
-            push_line("add $t5, $t3, $t6");
+            push_line("add $t5, $t3, $t6");            // negative hona chahiye
             push_line("sw $t5, 0($t2)");
         }
         if(instruction == ">"){
