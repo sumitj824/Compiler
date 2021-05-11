@@ -33,6 +33,7 @@ extern array_arg_table * curr_array_arg_table;
 extern map <array_arg_table*,array_arg_table*> parent_array_arg_table;
 extern map <s_entry*,vector <int>> array_symTable_entry;
 extern map <string,int> funcSize;
+extern map <string,string> funcParams;
 extern string funcName;
 
 s_entry* lookup(string a);

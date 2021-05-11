@@ -18,6 +18,12 @@ void generate_code(){
     // }
     load_prev_registers();
     curr_Func = "printf";
+    int size = funcSize[curr_Func];
+    push_line("li $t1, " + to_string(80));
+    push_line("add $t1, $t1, " + to_string(size));
+    push_line("add $sp, $sp, $t1");
+    save_all_registers();
+    push_line("sub $sp, $sp, $t1");
     push_line("lw $t0, 0($sp)");
     push_line("li $v0, 1");
     push_line("move $a0, $t0");
@@ -38,8 +44,8 @@ void generate_code(){
         if(instruction == "store_in_global_variable"){
             curr_Func = ".data";
             if(!is_array_element(emitted_code[i].result.first)){
-                push_line(emitted_code[i].result.first + " : .word" + emitted_code[i].op_1.first);
-                global_variables_completed.insert(emitted_code[i].result.first)
+                push_line(emitted_code[i].result.first + " : .word " + emitted_code[i].op_1.first);
+                global_variables_completed.insert(emitted_code[i].result.first);
             }
             curr_Func = "__global";
         }        
@@ -47,7 +53,6 @@ void generate_code(){
         if(instruction == "CALL_FUNC"){
             string call_func = emitted_code[i].op_1.first;
             int size = funcSize[call_func];
-            save_all_registers();
             // copy the previous stack pointer to s0
             push_line("li $t1, " + to_string(80));
             push_line("add $t1, $t1, " + to_string(size));
@@ -77,15 +82,28 @@ void generate_code(){
                     temp_off += get_size(type);
                 }
             }
-            parameters.clear();
             push_line("move $sp, $s0");
             // jump to function called.
             push_line("jal " + call_func);
+            comp res = emitted_code[i].result;
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            parameters.clear();
+            push_line("sw $v0, 0($t2)");
         }
 
         if(instruction == "FUNC_START"){
             curr_Func = emitted_code[i].op_1.first; // changed the func_name
-
+            int size = funcSize[curr_Func];
+            push_line("li $t1, " + to_string(80));
+            push_line("add $t1, $t1, " + to_string(size));
+            push_line("add $sp, $sp, $t1");
+            save_all_registers();
+            push_line("sub $sp, $sp, $t1");
             if(curr_Func == "main"){
                 curr_Func = ".data";
                 for(auto i : *GST){
@@ -134,7 +152,7 @@ void generate_code(){
                     else{
                         load_normal_element2(op1);
                     }
-                    push_line("move $v0, ($t2)");
+                    push_line("lw $v0, 0($t2)");
                 }
                 int size = funcSize[curr_Func];
                 push_line("add $sp, $sp, " + to_string(size));
@@ -189,6 +207,7 @@ void generate_code(){
             push_line("add $t5, $t3, $t4");
             push_line("sw $t5, 0($t2)");
         }
+
         if(instruction == "store_int"){
             comp op1 = emitted_code[i].op_1;
             comp res = emitted_code[i].result;
@@ -196,12 +215,15 @@ void generate_code(){
             push_line("add $t1, $sp, " + to_string(res.second -> offset));
             push_line("sw $t0, 0($t1)");
         }
+
         if(instruction == "store_float"){
             // instructinos to store float in temp
         }
+
         if(instruction == "string_literal"){
-            // instructions to store string_literal in temp
+            // instructions to store string_literal in temp.
         }
+
         if(instruction == "struct_array"){
             comp op1 = emitted_code[i].op_1;
             comp op2 = emitted_code[i].op_2;
@@ -209,34 +231,6 @@ void generate_code(){
             push_line("lw $t1, " + to_string(op1.second -> size) + "($sp)");
             push_line("add $t1, $t1, $t0");
             push_line("sw $t1, " + to_string(op1.second -> size) + "($sp)");
-        }
-
-        if(instruction == "+int"){            
-            comp op1 = emitted_code[i].op_1;
-            comp op2 = emitted_code[i].op_2;
-            comp res = emitted_code[i].result;
-            if(is_array_element(op1.first)){  
-                load_array_element0(op1);
-            }
-            else{
-                load_normal_element0(op1);
-            }
-            if(is_array_element(op2.first)){
-                load_array_element1(op2);
-            }
-            else{
-                load_normal_element1(op2);
-            }
-            if(is_array_element(res.first)){
-                load_array_element2(res);
-            }
-            else{
-                load_normal_element2(res);
-            }
-            push_line("lw $t3, 0($t0)");
-            push_line("lw $t4, 0($t1)");
-            push_line("add $t5, $t3, $t4");
-            push_line("sw $t5, 0($t2)");
         }
 
         if(instruction == "*int"){  

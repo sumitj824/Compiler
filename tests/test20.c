@@ -1,8 +1,11 @@
 int main(){
-  int a = 1;
-  int b = 2;
-  b = a++;
-  //a[4]++;
-  //sc = a[4];
+  int a = 0;
+  if(a == 1){
+    a = 7;
+  }
+  else{
+    a = 3;
+  }
+  printf(a);
   return 0;
 }

@@ -20,6 +20,7 @@ array_arg_table * curr_array_arg_table = new array_arg_table();
 map <array_arg_table*,array_arg_table*> parent_array_arg_table;
 map <string,int> funcSize;
 map <s_entry*,vector <int>> array_symTable_entry;
+map <string,string> funcParams;
 string funcName = "";
 
 void make_symTable_entry(string name,string type,int init,int size){
@@ -179,30 +180,30 @@ int check_type(string type1,string type2){
 
 int get_size(string type){
     if(structSize.count(type)) return structSize[type];
-    if(type ==  "int") return sizeof(int);
-    if(type ==  "long int") return sizeof(long int);
-    if(type ==  "long long") return sizeof(long long);
-    if(type ==  "long long int") return sizeof(long long int);
-    if(type ==  "unsigned int") return sizeof(unsigned int);
-    if(type ==  "unsigned long int") return sizeof(unsigned long int);
-    if(type ==  "unsigned long long") return sizeof(unsigned long long);
-    if(type ==  "unsigned long long int") return sizeof(unsigned long long int);
-    if(type ==  "signed int") return sizeof(signed int);
-    if(type ==  "signed long int") return sizeof(signed long int);
-    if(type ==  "signed long long") return sizeof(signed long long);
-    if(type ==  "signed long long int") return sizeof(signed long long int);
-    if(type ==  "short") return sizeof(short);
-    if(type ==  "short int") return sizeof(short int);
-    if(type ==  "unsigned short int") return sizeof(unsigned short int);
-    if(type ==  "signed short int") return sizeof(signed short int);
+    // if(type ==  "int") return sizeof(int);
+    // if(type ==  "long int") return sizeof(long int);
+    // if(type ==  "long long") return sizeof(long long);
+    // if(type ==  "long long int") return sizeof(long long int);
+    // if(type ==  "unsigned int") return sizeof(unsigned int);
+    // if(type ==  "unsigned long int") return sizeof(unsigned long int);
+    // if(type ==  "unsigned long long") return sizeof(unsigned long long);
+    // if(type ==  "unsigned long long int") return sizeof(unsigned long long int);
+    // if(type ==  "signed int") return sizeof(signed int);
+    // if(type ==  "signed long int") return sizeof(signed long int);
+    // if(type ==  "signed long long") return sizeof(signed long long);
+    // if(type ==  "signed long long int") return sizeof(signed long long int);
+    // if(type ==  "short") return sizeof(short);
+    // if(type ==  "short int") return sizeof(short int);
+    // if(type ==  "unsigned short int") return sizeof(unsigned short int);
+    // if(type ==  "signed short int") return sizeof(signed short int);
 
 
-    //float
-    if(type ==  "float") return sizeof(float);
-    if(type ==  "double") return sizeof(double);
-    if(type ==  "long double") return sizeof(long double);
-    // char 
-    if(type ==  "char") return sizeof(char);
+    // //float
+    // if(type ==  "float") return sizeof(float);
+    // if(type ==  "double") return sizeof(double);
+    // if(type ==  "long double") return sizeof(long double);
+    // // char 
+    // if(type ==  "char") return sizeof(char);
 
-    return 8;
+    return 4;
 }

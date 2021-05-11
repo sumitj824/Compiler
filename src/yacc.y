@@ -32,6 +32,7 @@ int array_case2 = 0;
 int in_param = 0;
 int simple_block = 0;
 int is_union2 = 0;
+string param_names = "";
 extern int yylineno;
 extern vector <quad> emitted_code;
 set<s_entry*> global_entry_set;
@@ -204,8 +205,8 @@ primary_expression
 		///
 		$$ -> nodeType = "char*";
 		if(curr_table == GST){
-			 value_in_global_variables = to_string($1);
-		 }
+			 value_in_global_variables = string($1);
+		}
 		 else{
 			comp temp = get_temp_label("char*");
 			emit({"string_literal",NULL},{string($1),NULL},{"",NULL},temp);
@@ -1766,7 +1767,9 @@ direct_declarator
 		$$ -> nodeLex = $1 -> nodeLex;
 		$$ -> nodeType = $1 -> nodeType;
 		funcName = $1 -> nodeLex;
+		funcParams[funcName] = param_names;
 		funcSize[funcName] += $5 -> size;
+		param_names = "";
 		emit({"FUNC_START",NULL},{$1 -> nodeLex,NULL},{"",NULL},{"",NULL});
 	}
 	| direct_declarator '(' identifier_list ')'       		    {$$=make_node("direct_declarator",$1,$3);
@@ -1817,9 +1820,12 @@ parameter_type_list
 	;
 
 parameter_list
-	: parameter_declaration										{$$=$1;}
+	: parameter_declaration										{$$=$1;
+		param_names += ($$ -> nodeLex);
+	}
 	| parameter_list ',' M parameter_declaration                 	{$$=make_node("parameter_list",$1,$4);
 		$$ -> size = $1 -> size + $4 -> size;
+		param_names += ("," + ($4 -> nodeLex));
 		///
 		backpatch($1->nextlist,$3);
 		$$->nextlist=$4->nextlist;
@@ -1830,6 +1836,7 @@ parameter_list
 parameter_declaration
 	: declaration_specifiers  declarator                  		{$$=make_node("parameter_declaration",$1,$2);
 		$$ -> size = get_size($2 -> nodeType);
+		$$ -> nodeLex = $2 -> nodeLex;
 		s_entry* find = lookup_in_curr($2 -> nodeLex);
 		if(find){
 			yyerror("Error: redeclaration of variable.");

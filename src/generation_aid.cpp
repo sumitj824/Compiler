@@ -30,12 +30,22 @@ bool is_array_element(string q){
 }
 
 bool is_parameter(string name){
-    for(auto i : parameters){
-        if(i.op_1.first == name){
-            return true;
+    string params = funcParams[curr_Func];
+    int i = 0;
+    string temp = "";
+    while(i < params.size()){
+        if(params[i] == ','){
+            if(name == temp){
+                return true;
+            }
+            temp = "";
         }
+        else{
+            temp += params[i];
+        }
+        i++;
     }
-    return false;
+    return (temp == name);
 }
 
 string get_array_name(string s){
@@ -57,7 +67,7 @@ void load_array_element0(comp q){ // to load array_element in $t0
     string name = get_array_name(q.first);
     if(is_parameter(name)){
         push_line("add $t0, $sp, " + to_string(q.second -> offset));
-        push_line("move $t1, $t0");
+        push_line("lw $t1, ($t0)");
         push_line("add $t1, $t1, " + to_string(q.second -> size));
         push_line("move $t0, $t1");
     }
@@ -78,7 +88,7 @@ void load_array_element1(comp q){ // to load array_element in $t1
     string name = get_array_name(q.first);
     if(is_parameter(name)){
         push_line("add $t1, $sp, " + to_string(q.second -> offset));
-        push_line("move $t2, $t1");
+        push_line("lw $t2, ($t1)");
         push_line("add $t2, $t2, " + to_string(q.second -> size));
         push_line("move $t1, $t2");
     }
@@ -99,8 +109,8 @@ void load_array_element2(comp q){ // to load array_element in $t2
     string name = get_array_name(q.first);
     if(is_parameter(name)){
         push_line("add $t2, $sp, " + to_string(q.second -> offset));
-        push_line("move $t3, $t2");
-        push_line("add $t2, $t2, " + to_string(q.second -> size));
+        push_line("lw $t3, ($t2)");
+        push_line("add $t3, $t3, " + to_string(q.second -> size));
         push_line("move $t2, $t3");
     }
     else{
