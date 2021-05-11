@@ -508,9 +508,9 @@ unary_expression
 				if(($1->place).first == "!"){
 					int curr = (int)emitted_code.size();
 					emit({"if_goto",NULL},$2->place,{"",NULL},{to_string(curr+3),NULL});
-					emit({"=",NULL},{"0",NULL},{"",NULL},temp);
+					emit({"store_int",NULL},{"0",NULL},{"",NULL},temp);
 					emit({"goto",NULL},{"",NULL},{"",NULL},{to_string(curr+4),NULL});
-					emit({"=",NULL},{"1",NULL},{"",NULL},temp);
+					emit({"store_int",NULL},{"1",NULL},{"",NULL},temp);
 					$$->place = temp;
 				}else{
 					

@@ -9,8 +9,12 @@ vector <quad> parameters;
 void generate_code(){
     curr_Func = ".data";
     for(auto i : *GST){
+        if(funcMap.count(i.first)){
+            continue;
+        }
         push_line(i.first + " :");
     }
+    cout << ".text" << endl;
     curr_Func = "__global";
     formBasicBlocks();
     for(int i = 0;i < emitted_code.size();i++){
