@@ -331,17 +331,19 @@ postfix_expression
 					 comp temp = get_temp_label("int");
 					 comp temp2 = get_temp_label("int");
 					 emit({"store_int",NULL},{"1",NULL},{"",NULL},temp2);
-					 emit({"+int",NULL},$1->place,temp2,temp);
-					 emit({"=",NULL},temp,{"",NULL},$1->place);
-					 $$->place=$1->place;
+					emit({"=",NULL},$1->place,{"",NULL},temp);
+					 emit({"+int",NULL},$1->place,temp2,$1->place);
+					 //emit({"=",NULL},temp,{"",NULL},$1->place);
+					 $$->place=temp;
 				 }else{
 					 if(isFloat(s)){
 							comp temp = get_temp_label("float");
 							comp temp2 = get_temp_label("float");
 							emit({"store_float",NULL},{"1",NULL},{"",NULL},temp2);
-							emit({"+float",NULL},$1->place,temp2,temp);
-							emit({"=",NULL},temp,{"",NULL},$1->place);
-							$$->place=$1->place;
+							emit({"=",NULL},$1->place,{"",NULL},temp);
+							emit({"+float",NULL},$1->place,temp2,$1->place);
+							
+							$$->place=temp;
 					 }else{
 						 //if()
 						 yyerror("Error: Increment operator with not int or float");
@@ -367,17 +369,17 @@ postfix_expression
 					 comp temp = get_temp_label("int");
 					 comp temp2 = get_temp_label("int");
 					 emit({"store_int",NULL},{"1",NULL},{"",NULL},temp2);
-					 emit({"-int",NULL},$1->place,temp2,temp);
-					 emit({"=",NULL},temp,{"",NULL},$1->place);
-					 $$->place=$1->place;
+					emit({"=",NULL},$1->place,{"",NULL},temp);
+					 emit({"-int",NULL},$1->place,temp2,$1->place);
+					 $$->place=temp;
 				 }else{
 					 if(isFloat(s)){
 							comp temp = get_temp_label("float");
 							comp temp2 = get_temp_label("float");
 							emit({"store_float",NULL},{"1",NULL},{"",NULL},temp2);
-							emit({"-float",NULL},$1->place,temp2,temp);
-							emit({"=",NULL},temp,{"",NULL},$1->place);
-							$$->place=$1->place;
+							emit({"=",NULL},$1->place,{"",NULL},temp);
+							emit({"-float",NULL},$1->place,temp2,$1->place);
+							$$->place=temp;
 					 }else{
 						 yyerror("Error: Decrement operator with not int or float");
 					 }
