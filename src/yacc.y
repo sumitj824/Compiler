@@ -333,12 +333,12 @@ postfix_expression
 				 }else{
 					 if(isFloat(s)){
 						 comp temp = get_temp_label("float");
-						 emit({"+float",NULL},$1->place,{"1",NULL},$1->place);
+						 emit({"+float",NULL},$1->place,{"1",NULL},temp);
 						 emit({"=",NULL},temp,{"",NULL},$1->place);
 						 $$->place=$1->place;
 					 }else{
 						 //if()
-						 yyerror("increment operator with not int or float");
+						 yyerror("Error: Increment operator with not int or float");
 					 }
 				 }	
 				 
@@ -365,11 +365,11 @@ postfix_expression
 				 }else{
 					 if(isFloat(s)){
 						 comp temp = get_temp_label("float");
-						 emit({"-float",NULL},$1->place,{"1",NULL},$1->place);
+						 emit({"-float",NULL},$1->place,{"1",NULL},temp);
 						 emit({"=",NULL},temp,{"",NULL},$1->place);
 						 $$->place=$1->place;
 					 }else{
-						 yyerror("increment operator with not int or float");
+						 yyerror("Error: Decrement operator with not int or float");
 					 }
 				 }	
 				 
@@ -424,11 +424,11 @@ unary_expression
 				 }else{
 					 if(isFloat(s)){
 						 comp temp = get_temp_label("float");
-						 emit({"+float",NULL},$2->place,{"1",NULL},$2->place);
+						 emit({"+float",NULL},$2->place,{"1",NULL},temp);
 						 emit({"=",NULL},temp,{"",NULL},$2->place);
 						 $$->place = $2->place;
 					 }else{
-						 yyerror("increment operator with not int or float");
+						 yyerror("Error: Increment operator with not int or float");
 					 }
 				 }	
 				//  emit({"",0,-1},$2->place,{"",0,0},temp);
@@ -454,17 +454,17 @@ unary_expression
 				
 				 if(isInt(s)){
 					 comp temp = get_temp_label("int");
-					 emit({"-int",NULL},$2->place,{"1",NULL},$2->place);
+					 emit({"-int",NULL},$2->place,{"1",NULL},temp);
 					 emit({"=",NULL},temp,{"",NULL},$2->place);
 					 $$->place=$2->place;
 				 }else{
 					 if(isFloat(s)){
 						 comp temp = get_temp_label("float");
-						 emit({"-float",NULL},$2->place,{"1",NULL},$2->place);
+						 emit({"-float",NULL},$2->place,{"1",NULL},temp);
 						 emit({"=",NULL},temp,{"",NULL},$2->place);
 						 $$->place=$2->place;
 					 }else{
-						 yyerror("increment operator with not int or float");
+						 yyerror("Error: Decrement operator with not int or float");
 					 }
 				 }	
 				//  emit({"",0,-1},$2->place,{"",0,0},temp);

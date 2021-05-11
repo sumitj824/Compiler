@@ -53,7 +53,7 @@ string get_array_name(string s){
     return temp;
 }
 
-void load_array_element0(comp q){ // to load array_element in $t1
+void load_array_element0(comp q){ // to load array_element in $t0
     string name = get_array_name(q.first);
     if(is_parameter(name)){
         push_line("add $t0, $sp, " + to_string(q.second -> offset));
@@ -214,7 +214,7 @@ void load_prev_registers(){
     push_line("lw $s5, 72($sp)");
     push_line("lw $s6, 76($sp)");
     push_line("add $sp, $sp, 80");
-    push_line("jal $ra");
+    push_line("jr $ra");
     curr_Func = temp_func;
 }
 
