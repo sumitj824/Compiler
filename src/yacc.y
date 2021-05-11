@@ -47,6 +47,8 @@ symTable * temp_table;
 void yyerror(char *s);
 int yylex();
 
+string value_in_global_variables = "";
+
 %}
 %union{
 	int num;
@@ -165,10 +167,16 @@ primary_expression
 		if(un) $$->nodeType = "unsigned "+$$->nodeType;
 		$$->init = 1;
 		///
-		 $$->nextlist={};
-		 comp temp = get_temp_label("int");
-		emit({"store_int",NULL},{to_string($$ -> ival),NULL},{"",NULL},temp);
-		$$->place=temp;
+		$$->nextlist={};
+
+		if(curr_table == GST){
+			 value_in_global_variables = to_string($$->ival);
+		}
+		else{
+			comp temp = get_temp_label("int");
+			emit({"store_int",NULL},{to_string($$ -> ival),NULL},{"",NULL},temp);
+			$$->place=temp;
+		}
 		///
 
 	}
@@ -181,18 +189,28 @@ primary_expression
 		if(s[s.length()-1] == 'F') $$->nodeType = "float"; 
 		$$->init=1;
 		///
-		comp temp = get_temp_label("float");
-		emit({"store_float",NULL},{to_string($$->dval),NULL},{"",NULL},temp);
-		$$->place=temp;
+		if(curr_table == GST){
+			 value_in_global_variables = to_string($$->dval);
+		 }
+		 else{
+			comp temp = get_temp_label("float");
+			emit({"store_float",NULL},{to_string($$->dval),NULL},{"",NULL},temp);
+			$$->place=temp;
+		 }
 		$$->nextlist={};
 		///
 	}
 	| STRING_LITERAL										{$$=make_node($1);
 		///
 		$$ -> nodeType = "char*";
-		comp temp = get_temp_label("char*");
-		emit({"string_literal",NULL},{string($1),NULL},{"",NULL},temp);
-		$$->place={string($1),NULL};
+		if(curr_table == GST){
+			 value_in_global_variables = to_string($1);
+		 }
+		 else{
+			comp temp = get_temp_label("char*");
+			emit({"string_literal",NULL},{string($1),NULL},{"",NULL},temp);
+			$$->place={string($1),NULL};
+		 }
 		$$->nextlist={};
 		///
 	}
@@ -1379,9 +1397,15 @@ init_declarator
 			initializer_list_size = 0;
 			array_case2 = 0;
 			accept2 = 0;
-			$1 -> place = {$1 -> nodeLex,lookup($1 -> nodeLex)};
 
-			emit({"=",NULL},$3->place,{"",NULL},$1->place);
+			if(curr_table == GST){
+				emit({"store_in_global_variable",NULL},{value_in_global_variables, NULL},{"",NULL},{$1->nodeLex, NULL});
+				value_in_global_variables = "";
+			}
+			else{
+				$1 -> place = {$1 -> nodeLex,lookup($1 -> nodeLex)};
+				emit({"=",NULL},$3->place,{"",NULL},$1->place);
+			}
 		}
 		else{
 			yyerror("Error : unexpected initialisation of variable.");
@@ -2546,6 +2570,9 @@ void help(int f){
 
 
 int main(int argc, char *argv[]){
+	make_symTable_entry("printf","void",0,0);
+	funcMap.insert({"printf","int"});
+	funcSize.insert({"printf",20});
 	complete[""] = 1;
 	if(argc==1)
 	{

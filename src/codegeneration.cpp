@@ -4,17 +4,27 @@ using namespace std;
 
 string curr_Func = "__global";
 
+set<string> global_variables_completed;
+
 vector <quad> parameters;
 
 void generate_code(){
-    curr_Func = ".data";
-    for(auto i : *GST){
-        if(funcMap.count(i.first)){
-            continue;
-        }
-        push_line(i.first + " :");
-    }
-    cout << ".text" << endl;
+    // curr_Func = ".data";
+    // for(auto i : *GST){
+    //     if(funcMap.count(i.first)){
+    //         continue;
+    //     }
+    //     push_line(i.first + " :");
+    // }
+    load_prev_registers();
+    curr_Func = "printf";
+    push_line("lw $t0, 0($sp)");
+    push_line("li $v0, 1");
+    push_line("move $a0, $t0");
+    push_line("syscall");
+    push_line("li $v0, 0");
+    push_line("add $sp, $sp, 20");
+    push_line("b func_end");
     curr_Func = "__global";
     formBasicBlocks();
     for(int i = 0;i < emitted_code.size();i++){
@@ -24,15 +34,24 @@ void generate_code(){
         string instruction = emitted_code[i].op_code.first;
         push_line("");
         push_line("# "+ emitted_code[i].op_code.first+ " "+emitted_code[i].op_1.first +" "+ emitted_code[i].op_2.first+" "+emitted_code[i].result.first);
+        
+        if(instruction == "store_in_global_variable"){
+            curr_Func = ".data";
+            if(!is_array_element(emitted_code[i].result.first)){
+                push_line(emitted_code[i].result.first + " : .word" + emitted_code[i].op_1.first);
+                global_variables_completed.insert(emitted_code[i].result.first)
+            }
+            curr_Func = "__global";
+        }        
+        
         if(instruction == "CALL_FUNC"){
             string call_func = emitted_code[i].op_1.first;
             int size = funcSize[call_func];
             save_all_registers();
-            push_line("move $s0, $sp");
             // copy the previous stack pointer to s0
             push_line("li $t1, " + to_string(80));
             push_line("add $t1, $t1, " + to_string(size));
-            push_line("sub $sp, $sp, $t1");
+            push_line("sub $s0, $sp, $t1");
             // move the stack_pointer to func_size + space_required_for_registers
             // TODO : test whether value of pointer is copied or not in case of a parameter.
             int temp_off = 0;
@@ -41,29 +60,44 @@ void generate_code(){
                 string type = temp -> type;
                 if(type.back() == '*'){
                     push_line("li $t0, " + to_string(temp -> offset));
-                    push_line("add $t0, $s0, $t0");
-                    push_line("sw $t0, " + to_string(temp_off)+ "($sp)");
+                    push_line("add $t0, $sp, $t0");
+                    push_line("sw $t0, " + to_string(temp_off)+ "($s0)");
                     temp_off += get_size(type);
                 }
                 else{
-                    push_line("lw $t0, " + to_string(temp -> offset) + "($s0)");
-                    push_line("sw $t0, " + to_string(temp_off)+ "($sp)");
+                    comp op1 = parameters[i].op_1;
+                    if(is_array_element(op1.first)){
+                        load_array_element0(op1);
+                    }
+                    else{
+                        load_normal_element0(op1);
+                    }
+                    push_line("lw $t1, 0($t0)");
+                    push_line("sw $t1, " + to_string(temp_off) + "($s0)");
                     temp_off += get_size(type);
                 }
             }
+            parameters.clear();
+            push_line("move $sp, $s0");
             // jump to function called.
             push_line("jal " + call_func);
-            comp res = emitted_code[i].result;
-            if(is_array_element(res.first)){
-                load_array_element2(res);
-            }
-            else{
-                load_normal_element2(res);
-            }
-            push_line("sw $v0, 0($t2)");
         }
+
         if(instruction == "FUNC_START"){
             curr_Func = emitted_code[i].op_1.first; // changed the func_name
+
+            if(curr_Func == "main"){
+                curr_Func = ".data";
+                for(auto i : *GST){
+                    if(funcMap.count(i.first)){
+                        continue;
+                    }
+                    if(!global_variables_completed.count(i.first)){
+                        push_line(i.first + " : .space 4");
+                    }
+                }
+                curr_Func = "main";
+            }
         }
         if(instruction == "param"){
             parameters.push_back(emitted_code[i]);
@@ -95,13 +129,15 @@ void generate_code(){
                 }
                 else{
                     if(is_array_element(op1.first)){
-                        load_array_element0(op1);
+                        load_array_element2(op1);
                     }
                     else{
-                        load_normal_element0(op1);
+                        load_normal_element2(op1);
                     }
-                    push_line("move $v0, ($t0)");
+                    push_line("move $v0, ($t2)");
                 }
+                int size = funcSize[curr_Func];
+                push_line("add $sp, $sp, " + to_string(size));
                 push_line("b func_end");
                 load_prev_registers();
             }
@@ -280,7 +316,7 @@ void generate_code(){
             push_line("lw $t3, 0($t0)");
             push_line("lw $t4, 0($t1)");
             push_line("neg $t6, $t4");
-            push_line("add $t5, $t3, $t6");            // negative hona chahiye
+            push_line("add $t5, $t3, $t6");
             push_line("sw $t5, 0($t2)");
         }
         if(instruction == ">"){

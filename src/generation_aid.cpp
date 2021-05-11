@@ -214,9 +214,7 @@ void load_prev_registers(){
         return;
     }
     string temp_func = curr_Func;
-    int size = funcSize[curr_Func];
     curr_Func = "func_end";
-    push_line("add $sp, $sp, " + to_string(size));
     push_line("lw $ra, 0($sp)");
     push_line("lw $fp, 4($sp)");
     push_line("lw $a0, 8($sp)");
