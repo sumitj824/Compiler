@@ -503,10 +503,21 @@ unary_expression
 				$$->nodeType=s;
 				$$-> nodeLex = $2 -> nodeLex;
 				///
-				 comp temp = get_temp_label(s);
-				 emit($1->place,$2 -> place,{"",NULL},temp);	
-				 $$->place=temp;
-				$$->nextlist = {};
+				comp temp = get_temp_label(s);
+				//todo
+				if(($1->place).first == "!"){
+					int curr = (int)emitted_code.size();
+					emit({"if_goto",NULL},$2->place,{"",NULL},{to_string(curr+3),NULL});
+					emit({"=",NULL},{"0",NULL},{"",NULL},temp);
+					emit({"goto",NULL},{"",NULL},{"",NULL},{to_string(curr+4),NULL});
+					emit({"=",NULL},{"1",NULL},{"",NULL},temp);
+					$$->place = temp;
+				}else{
+					
+					emit($1->place,$2 -> place,{"",NULL},temp);	
+					$$->place=temp;
+					$$->nextlist = {};
+				}
 				///
 			}
 			else{
