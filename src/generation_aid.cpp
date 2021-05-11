@@ -62,7 +62,7 @@ void load_array_element0(comp q){ // to load array_element in $t0
         push_line("move $t0, $t1");
     }
     else{
-        if(global_entry_set.count()){
+        if(global_entry_set.count(q.second)){
 
         }
         else{
@@ -83,7 +83,7 @@ void load_array_element1(comp q){ // to load array_element in $t1
         push_line("move $t1, $t2");
     }
     else{
-        if(global_entry_set.count()){
+        if(global_entry_set.count(q.second)){
 
         }
         else{
@@ -104,7 +104,7 @@ void load_array_element2(comp q){ // to load array_element in $t2
         push_line("move $t2, $t3");
     }
     else{
-        if(global_entry_set.count()){
+        if(global_entry_set.count(q.second)){
 
         }
         else{
@@ -143,7 +143,7 @@ void load_normal_element0(comp q){
         load_array_element0(q);
     }
     else{
-        if(global_entry_set.count()){
+        if(global_entry_set.count(q.second)){
             push_line("la $t0, " + q.first);
         }
         else push_line("add $t0, $sp, " + to_string(q.second -> offset));
@@ -160,7 +160,7 @@ void load_normal_element1(comp q){
         load_array_element1(q);
     }
     else{
-        if(global_entry_set.count()){
+        if(global_entry_set.count(q.second)){
             push_line("la $t1, " + q.first);
         }
         else push_line("add $t1, $sp, " + to_string(q.second -> offset));
@@ -177,7 +177,7 @@ void load_normal_element2(comp q){
         load_array_element2(q);
     }
     else{
-        if(global_entry_set.count()){
+        if(global_entry_set.count(q.second)){
             push_line("la $t2, " + q.first);
         }
         else push_line("add $t2, $sp, " + to_string(q.second -> offset));

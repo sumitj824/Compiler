@@ -329,15 +329,19 @@ postfix_expression
 				//emit({"",0,-1},$1->place,{"",0,0},temp);
 				 if(isInt(s)){
 					 comp temp = get_temp_label("int");
-					 emit({"+int",NULL},$1->place,{"1",NULL},temp);
+					 comp temp2 = get_temp_label("int");
+					 emit({"store_int",NULL},{"1",NULL},{"",NULL},temp2);
+					 emit({"+int",NULL},$1->place,temp2,temp);
 					 emit({"=",NULL},temp,{"",NULL},$1->place);
 					 $$->place=$1->place;
 				 }else{
 					 if(isFloat(s)){
-						 comp temp = get_temp_label("float");
-						 emit({"+float",NULL},$1->place,{"1",NULL},temp);
-						 emit({"=",NULL},temp,{"",NULL},$1->place);
-						 $$->place=$1->place;
+							comp temp = get_temp_label("float");
+							comp temp2 = get_temp_label("float");
+							emit({"store_float",NULL},{"1",NULL},{"",NULL},temp2);
+							emit({"+float",NULL},$1->place,temp2,temp);
+							emit({"=",NULL},temp,{"",NULL},$1->place);
+							$$->place=$1->place;
 					 }else{
 						 //if()
 						 yyerror("Error: Increment operator with not int or float");
@@ -361,15 +365,19 @@ postfix_expression
 				//emit({"",0,-1},$1->place,{"",0,0},temp);
 				 if(isInt(s)){
 					 comp temp = get_temp_label("int");
-					 emit({"-int",NULL},$1->place,{"1",NULL},temp);
+					 comp temp2 = get_temp_label("int");
+					 emit({"store_int",NULL},{"1",NULL},{"",NULL},temp2);
+					 emit({"-int",NULL},$1->place,temp2,temp);
 					 emit({"=",NULL},temp,{"",NULL},$1->place);
 					 $$->place=$1->place;
 				 }else{
 					 if(isFloat(s)){
-						 comp temp = get_temp_label("float");
-						 emit({"-float",NULL},$1->place,{"1",NULL},temp);
-						 emit({"=",NULL},temp,{"",NULL},$1->place);
-						 $$->place=$1->place;
+							comp temp = get_temp_label("float");
+							comp temp2 = get_temp_label("float");
+							emit({"store_float",NULL},{"1",NULL},{"",NULL},temp2);
+							emit({"-float",NULL},$1->place,temp2,temp);
+							emit({"=",NULL},temp,{"",NULL},$1->place);
+							$$->place=$1->place;
 					 }else{
 						 yyerror("Error: Decrement operator with not int or float");
 					 }
@@ -420,13 +428,17 @@ unary_expression
 				
 				 if(isInt(s)){
 					 comp temp = get_temp_label("int");
-					 emit({"+int",NULL},$2->place,{"1",NULL},temp);
+					 comp temp2 = get_temp_label("int");
+					 emit({"store_int",NULL},{"1",NULL},{"",NULL},temp2);
+					 emit({"+int",NULL},$2->place,temp2,temp);
 					 emit({"=",NULL},temp,{"",NULL},$2->place);
 					 $$->place = $2->place;
 				 }else{
 					 if(isFloat(s)){
 						 comp temp = get_temp_label("float");
-						 emit({"+float",NULL},$2->place,{"1",NULL},temp);
+						 comp temp2 = get_temp_label("float");
+						 emit({"store_float",NULL},{"1",NULL},{"",NULL},temp2);
+						 emit({"+float",NULL},$2->place,temp2,temp);
 						 emit({"=",NULL},temp,{"",NULL},$2->place);
 						 $$->place = $2->place;
 					 }else{
@@ -456,13 +468,17 @@ unary_expression
 				
 				 if(isInt(s)){
 					 comp temp = get_temp_label("int");
-					 emit({"-int",NULL},$2->place,{"1",NULL},temp);
+					 comp temp2 = get_temp_label("int");
+					 emit({"store_int",NULL},{"1",NULL},{"",NULL},temp2);
+					 emit({"-int",NULL},$2->place,temp2,temp);
 					 emit({"=",NULL},temp,{"",NULL},$2->place);
 					 $$->place=$2->place;
 				 }else{
 					 if(isFloat(s)){
 						 comp temp = get_temp_label("float");
-						 emit({"-float",NULL},$2->place,{"1",NULL},temp);
+						 comp temp2 = get_temp_label("float");
+							emit({"store_float",NULL},{"1",NULL},{"",NULL},temp2);
+							emit({"-float",NULL},$2->place,temp2,temp);
 						 emit({"=",NULL},temp,{"",NULL},$2->place);
 						 $$->place=$2->place;
 					 }else{
@@ -1099,9 +1115,12 @@ conditional_expression
 	comp temp = get_temp_label("int");
 	int n = emitted_code.size();
 	if($1->is_logical == 1){
-		emit({"",NULL},{"1",NULL},{"",NULL},temp);
+		comp temp2 = get_temp_label("int");
+		emit({"store_int",NULL},{"1",NULL},{"",NULL},temp2);
+		emit({"=",NULL},temp2,{"",NULL},temp);
 		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
-		emit({"",NULL},{"0",NULL},{"",NULL},temp);
+		emit({"store_int",NULL},{"0",NULL},{"",NULL},temp2);
+		emit({"=",NULL},temp2,{"",NULL},temp);
 		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 		backpatch($1->truelist,n);
 		backpatch($1->falselist,n+2);

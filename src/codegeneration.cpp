@@ -9,7 +9,7 @@ vector <quad> parameters;
 void generate_code(){
     curr_Func = ".data";
     for(auto i : *GST){
-        push_line(to_string(i.first) + " :");
+        push_line(i.first + " :");
     }
     curr_Func = "__global";
     formBasicBlocks();
