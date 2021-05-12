@@ -18,6 +18,6 @@ int main ()
   int n = 9;
   int b;
   b=fib(n);
-//   printf("%d", b);
+  printf(b);
   return 0;
 }

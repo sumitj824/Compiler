@@ -112,7 +112,7 @@ void generate_code(){
                         continue;
                     }
                     if(!global_variables_completed.count(i.first)){
-                        push_line(i.first + " : .space " + i.second -> size);
+                        push_line(i.first + " : .space " + to_string(i.second -> size));
                     }
                 }
                 curr_Func = "main";

@@ -1,18 +1,9 @@
 
-void f(){
-    int a = 0;
-    if(!a){
-        printf(1);
-    }
-    if(a){
-        printf(2);
-    }
-    return ;
-
-}
+int a;
+int c[7];
 
 int main ()
 {
-    f();
+   a=5;
   return 0;
 }

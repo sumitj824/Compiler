@@ -621,9 +621,9 @@ multiplicative_expression
 	| multiplicative_expression '*' cast_expression        {$$=make_node("*", $1, $3);
 			string s=multiply($1->nodeType, $3->nodeType,'*');
 			if(s=="int"){
-				$$->nodeType="long long";
+				$$->nodeType="int";
 				///
-				comp temp = get_temp_label("long long");
+				comp temp = get_temp_label("int");
 
 				emit({"*int",NULL},$1 -> place,$3 -> place,temp);	
 				$$->place=temp;
@@ -631,17 +631,17 @@ multiplicative_expression
 				///
 			}
 			else if(s=="float"){
-				$$->nodeType="long double";
+				$$->nodeType="float";
 				///
-				comp temp1 = get_temp_label("long double");
+				comp temp1 = get_temp_label("float");
 			    s_entry *op=lookup("*");
 				if(isInt($1->nodeType)){
-					comp temp2=get_temp_label("long double");
+					comp temp2=get_temp_label("float");
 					emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
 					emit({"*real",NULL},temp2,$3 -> place,temp1);	
 				}
 				else if(isInt($3->nodeType)){
-					comp temp2=get_temp_label("long double");
+					comp temp2=get_temp_label("float");
 					emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
 					emit({"*real",NULL},$1 -> place,temp2,temp1);
 				}
@@ -661,9 +661,9 @@ multiplicative_expression
 	| multiplicative_expression '/' cast_expression        {$$=make_node("/", $1, $3);
 			string s=multiply($1->nodeType, $3->nodeType,'/');
 			if(s=="int"){
-				$$->nodeType="long long";
+				$$->nodeType="int";
 				///
-				comp temp = get_temp_label("long long");
+				comp temp = get_temp_label("int");
 
 				emit({"/int",NULL},$1 -> place,$3 -> place,temp);	
 				$$->place=temp;
@@ -671,16 +671,16 @@ multiplicative_expression
 				///
 			}
 			else if(s=="float"){
-				$$->nodeType="long double";
+				$$->nodeType="int";
 				///
-				comp temp1 = get_temp_label("long double");
+				comp temp1 = get_temp_label("int");
 				if(isInt($1->nodeType)){
-					comp temp2=get_temp_label("long double");
+					comp temp2=get_temp_label("int");
 					emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
 					emit({"/real",NULL},temp2,$3 -> place,temp1);	
 				}
 				else if(isInt($3->nodeType)){
-					comp temp2=get_temp_label("long double");
+					comp temp2=get_temp_label("int");
 					emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
 					emit({"/real",NULL},$1 -> place,temp2,temp1);
 				}
@@ -701,9 +701,9 @@ multiplicative_expression
 	| multiplicative_expression '%' cast_expression        {$$=make_node("%", $1, $3);
 			string s=multiply($1->nodeType, $3->nodeType,'%');
 			if(s=="int"){
-				$$->nodeType="long long";
+				$$->nodeType="int";
 				///
-				comp temp = get_temp_label("long long");
+				comp temp = get_temp_label("int");
 				emit({"%",NULL},$1 -> place,$3 -> place,temp);	
 				$$->place=temp;
 				$$->nextlist = {};
@@ -723,20 +723,20 @@ additive_expression
 	| additive_expression '+' multiplicative_expression     {$$=make_node("+", $1, $3);
 		string s= addition($1->nodeType, $3->nodeType);
 		if(!s.empty()){
-			if(s=="int")$$->nodeType="long long";
-			else if(s=="float")$$->nodeType="long double";
+			if(s=="int")$$->nodeType="int";
+			else if(s=="float")$$->nodeType="float";
 			else $$->nodeType=s;
 
 			///
 			comp temp1 = get_temp_label(s);
 
 			if(isInt($1->nodeType)&&isFloat($3->nodeType)){
-				comp temp2=get_temp_label("long double");
+				comp temp2=get_temp_label("float");
 				emit({"inttoreal",NULL},$1 -> place,{"",NULL},temp2);	
 				emit({"+"+s,NULL},temp2,$3 -> place,temp1);	
 			}
 			else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
-				comp temp2=get_temp_label("long double");
+				comp temp2=get_temp_label("float");
 				emit({"inttoreal",NULL},$3 -> place,{"",NULL},temp2);	
 				emit({"+"+s,NULL},$1 -> place,temp2,temp1);	
 			}
@@ -757,20 +757,20 @@ additive_expression
 	| additive_expression '-' multiplicative_expression     {$$=make_node("-", $1, $3);
 		string s= addition($1->nodeType, $3->nodeType);
 		if(!s.empty()){
-			if(s=="int")$$->nodeType="long long";
-			else if(s=="float")$$->nodeType="long double";
+			if(s=="int")$$->nodeType="int";
+			else if(s=="float")$$->nodeType="float";
 			else  $$->nodeType=s;
 
 			///
 			comp temp1 = get_temp_label(s);
 
 			if(isInt($1->nodeType)&&isFloat($3->nodeType)){
-				comp temp2=get_temp_label("long double");
+				comp temp2=get_temp_label("float");
 				emit({"inttoreal",NULL},$1 -> place,{"",NULL},temp2);	
 				emit({"-"+s,NULL},temp2,$3 -> place,temp1);	
 			}
 			else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
-				comp temp2=get_temp_label("long double");
+				comp temp2=get_temp_label("float");
 				emit({"inttoreal",NULL},$3 -> place,{"",NULL},temp2);	
 				emit({"-"+s,NULL},$1 -> place,temp2,temp1);	
 			}
@@ -981,7 +981,7 @@ and_expression
 		if(!s.empty())
 		{
 			if(s=="bool")$$->nodeType=s;
-			else $$->nodeType="long long";
+			else $$->nodeType="int";
 			///
 			comp temp = get_temp_label("int");
 			emit({"&",NULL},$1 -> place,$3 -> place,temp);	
@@ -1005,7 +1005,7 @@ exclusive_or_expression
 		if(!s.empty())
 		{
 			if(s=="bool")$$->nodeType=s;
-			else $$->nodeType="long long";
+			else $$->nodeType="int";
 			///
 			comp temp = get_temp_label("int");
 			emit({"^",NULL},$1 -> place,$3 -> place,temp);	
@@ -1029,7 +1029,7 @@ inclusive_or_expression
 		if(!s.empty())
 		{
 			if(s=="bool")$$->nodeType=s;
-			else $$->nodeType="long long";
+			else $$->nodeType="int";
 			///
 			comp temp = get_temp_label("int");
 			emit({"|",NULL},$1 -> place,$3 -> place,temp);	
