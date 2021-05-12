@@ -1,7 +1,7 @@
 
 
 int func1(){
-    printf("func1 is called\n");
+    // printf("func1 is called\n");
     return 1;
 }
 
@@ -19,5 +19,5 @@ int main(){
        //this should not call  funct1
 
    }
-
+   return 0;
 }
