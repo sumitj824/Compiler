@@ -36,8 +36,10 @@ comp get_temp_label(string type){
 }
 
 void print_code(){
+    int i=0;
     for(auto x:emitted_code){
-        cout<<x.op_code.first <<' '<<x.op_1.first<< ' ' << x.op_2.first<< ' '<<x.result.first<<endl;
+        cout<<"["<<i<<"]"<<"  "<<x.op_code.first <<' '<<x.op_1.first<< ' ' << x.op_2.first<< ' '<<x.result.first<<endl;
+        i++;
     }
 }
 

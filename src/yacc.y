@@ -1154,8 +1154,8 @@ conditional_expression
 		emit({"store_int",NULL},{"0",NULL},{"",NULL},temp2);
 		emit({"=",NULL},temp2,{"",NULL},temp);
 		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
-		backpatch($1->truelist,n+1);
-		backpatch($1->falselist,n+4);
+		backpatch($1->truelist,n);
+		backpatch($1->falselist,n+3);
 		$$->nextlist.push_back(n+2);
 		$$->nextlist.push_back(n+5);
 		$$->truelist={n+2};

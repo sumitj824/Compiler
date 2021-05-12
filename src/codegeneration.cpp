@@ -776,8 +776,9 @@ void generate_code(){
             else{
                 load_normal_element0(op1);
             }
+            push_line("lw $t1 0($t0)");
             //load("$t0",(emitted_code[i].op_1.second)->offset);
-            push_line("bnez $t0, Label" + to_string(addr));  
+            push_line("bnez $t1, Label" + to_string(addr));  
         }
         if(instruction == ">>"){
             comp op1 = emitted_code[i].op_1;
