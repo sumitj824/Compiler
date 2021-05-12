@@ -1747,6 +1747,7 @@ direct_declarator
 		$$ -> size = ($1 -> size)*($3 -> ival);
 		///
 		$$ ->place={$1->nodeLex,NULL};
+		if(curr_table == GST) value_in_global_variables = "";
 		///
 	}
 	| direct_declarator '[' ']'							  		{$$=make_node("direct_declarator",$1,make_node("[]"));
