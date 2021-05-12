@@ -1,18 +1,13 @@
 
-void f(){
-    int a = 0;
-    if(!a){
-        printf(1);
-    }
-    if(a){
-        printf(2);
-    }
-    return ;
-
-}
 
 int main ()
 {
-    f();
+    float a=1.1;
+    float b=2.1;
+    if(a<b){
+        printf(1);
+    }else{
+        printf(2);
+    }
   return 0;
 }

@@ -528,20 +528,31 @@ unary_expression
 				///
 				comp temp = get_temp_label(s);
 				
-				if(($1->place).first == "!"){
-					int curr = (int)emitted_code.size();
-					emit({"if_goto",NULL},$2->place,{"",NULL},{to_string(curr+3),NULL});
-					emit({"store_int",NULL},{"1",NULL},{"",NULL},temp);
-					emit({"goto",NULL},{"",NULL},{"",NULL},{to_string(curr+4),NULL});
-					emit({"store_int",NULL},{"0",NULL},{"",NULL},temp);
-					//$$->nextlist = $1->nextlist;
-					//$$->nextlist.push_back(curr+2);
+				if(isFloat($$->nodeType)){
+					string op = "float_"+($1->place).first;
+					emit({op,NULL},$2->place,{"",NULL},temp);
 					$$->place = temp;
-				}else{
-					
-					emit($1->place,$2 -> place,{"",NULL},temp);	
-					$$->place=temp;
 					$$->nextlist = {};
+				}else{
+					if(isInt($$->nodeType)){
+						if(($1->place).first == "!"){
+							int curr = (int)emitted_code.size();
+							emit({"if_goto",NULL},$2->place,{"",NULL},{to_string(curr+3),NULL});
+							emit({"store_int",NULL},{"1",NULL},{"",NULL},temp);
+							emit({"goto",NULL},{"",NULL},{"",NULL},{to_string(curr+4),NULL});
+							emit({"store_int",NULL},{"0",NULL},{"",NULL},temp);
+							//$$->nextlist = $1->nextlist;
+							//$$->nextlist.push_back(curr+2);
+							$$->place = temp;
+						}else{
+							
+							emit($1->place,$2 -> place,{"",NULL},temp);	
+							$$->place=temp;
+							$$->nextlist = {};
+						}
+					}else{
+						yyerror("cast expression must be of type integer or float");
+					}
 				}
 				///
 			}
@@ -842,10 +853,25 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label("int");
-			emit({"<",NULL},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			//if(($1->nodeType).back()=='*') ($1)->nodeType="int";
+			//if(($2->nodeType).back()=='*') ($2)->nodeType="int";
+			if(isInt($1->nodeType) && isInt($3->nodeType)){
+				comp temp = get_temp_label("int");
+				emit({"<",NULL},$1 -> place,$3 -> place,temp);	
+				$$->place=temp;
+				$$->nextlist = {};
+			}else{
+				if(isInt($1->nodeType)){
+					emit({"inttoreal",NULL},$1->place,{},$1->place);
+				}
+				if(isInt($3->nodeType)){
+					emit({"inttoreal",NULL},$3->place,{},$3->place);
+				}
+				comp temp = get_temp_label("int");
+				emit({"float_<",NULL},$1->place,$3->place,temp);
+				$$->place=temp;
+				$$->nextlist = {};
+			}
 			///
 			
 		}
@@ -866,10 +892,23 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label("int");
-			emit({">",NULL},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			if(isInt($1->nodeType) && isInt($3->nodeType)){
+				comp temp = get_temp_label("int");
+				emit({">",NULL},$1 -> place,$3 -> place,temp);	
+				$$->place=temp;
+				$$->nextlist = {};
+			}else{
+				if(isInt($1->nodeType)){
+					emit({"inttoreal",NULL},$1->place,{},$1->place);
+				}
+				if(isInt($3->nodeType)){
+					emit({"inttoreal",NULL},$3->place,{},$3->place);
+				}
+				comp temp = get_temp_label("int");
+				emit({"float_>",NULL},$1->place,$3->place,temp);
+				$$->place=temp;
+				$$->nextlist = {};
+			}
 			///
 		}
 		else{
@@ -888,10 +927,23 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label("int");
-			emit({"<=",NULL},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			if(isInt($1->nodeType) && isInt($3->nodeType)){
+				comp temp = get_temp_label("int");
+				emit({"<=",NULL},$1 -> place,$3 -> place,temp);	
+				$$->place=temp;
+				$$->nextlist = {};
+			}else{
+				if(isInt($1->nodeType)){
+					emit({"inttoreal",NULL},$1->place,{},$1->place);
+				}
+				if(isInt($3->nodeType)){
+					emit({"inttoreal",NULL},$3->place,{},$3->place);
+				}
+				comp temp = get_temp_label("int");
+				emit({"float_<=",NULL},$1->place,$3->place,temp);
+				$$->place=temp;
+				$$->nextlist = {};
+			}
 			///
 		}
 		else{
@@ -910,10 +962,23 @@ relational_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label("int");
-			emit({">=",NULL},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			if(isInt($1->nodeType) && isInt($3->nodeType)){
+				comp temp = get_temp_label("int");
+				emit({">=",NULL},$1 -> place,$3 -> place,temp);	
+				$$->place=temp;
+				$$->nextlist = {};
+			}else{
+				if(isInt($1->nodeType)){
+					emit({"inttoreal",NULL},$1->place,{},$1->place);
+				}
+				if(isInt($3->nodeType)){
+					emit({"inttoreal",NULL},$3->place,{},$3->place);
+				}
+				comp temp = get_temp_label("int");
+				emit({"float_>=",NULL},$1->place,$3->place,temp);
+				$$->place=temp;
+				$$->nextlist = {};
+			}
 			///
 		}
 		else{
@@ -937,9 +1002,23 @@ equality_expression
 			///
 			comp temp = get_temp_label("int");
 			//s_entry *op=lookup("==");
-			emit({"==",NULL},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			if(isInt($1->nodeType) && isInt($3->nodeType)){
+				comp temp = get_temp_label("int");
+				emit({"==",NULL},$1 -> place,$3 -> place,temp);	
+				$$->place=temp;
+				$$->nextlist = {};
+			}else{
+				if(isInt($1->nodeType)){
+					emit({"inttoreal",NULL},$1->place,{},$1->place);
+				}
+				if(isInt($3->nodeType)){
+					emit({"inttoreal",NULL},$3->place,{},$3->place);
+				}
+				comp temp = get_temp_label("int");
+				emit({"float_==",NULL},$1->place,$3->place,temp);
+				$$->place=temp;
+				$$->nextlist = {};
+			}
 			///
 		}
 		else{
@@ -959,10 +1038,23 @@ equality_expression
 				 yyerror("Warning: comparison between pointer and integer");
 			}
 			///
-			comp temp = get_temp_label("int");
-			emit({"NE_OP",NULL},$1 -> place,$3 -> place,temp);	
-			$$->place=temp;
-			$$->nextlist = {};
+			if(isInt($1->nodeType) && isInt($3->nodeType)){
+				comp temp = get_temp_label("int");
+				emit({"!=",NULL},$1 -> place,$3 -> place,temp);	
+				$$->place=temp;
+				$$->nextlist = {};
+			}else{
+				if(isInt($1->nodeType)){
+					emit({"inttoreal",NULL},$1->place,{},$1->place);
+				}
+				if(isInt($3->nodeType)){
+					emit({"inttoreal",NULL},$3->place,{},$3->place);
+				}
+				comp temp = get_temp_label("int");
+				emit({"!=",NULL},$1->place,$3->place,temp);
+				$$->place=temp;
+				$$->nextlist = {};
+			}
 			///
 		}
 		else{
@@ -1148,14 +1240,17 @@ N
 
 conditional_expression
 	: logical_or_expression												{$$=$1; is_logical = $$->is_logical;
-	comp temp = get_temp_label("int");
+	comp temp = get_temp_label($1->nodeType);
 	int n = emitted_code.size();
 	if($1->is_logical == 1){
-		comp temp2 = get_temp_label("int");
-		emit({"store_int",NULL},{"1",NULL},{"",NULL},temp2);
+		comp temp2 = get_temp_label($1->nodeType);
+		string type = "store_";
+		if(isInt($1->nodeType)) type+="int";
+		else type+="float";
+		emit({type,NULL},{"1",NULL},{"",NULL},temp2);
 		emit({"=",NULL},temp2,{"",NULL},temp);
 		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
-		emit({"store_int",NULL},{"0",NULL},{"",NULL},temp2);
+		emit({type,NULL},{"0",NULL},{"",NULL},temp2);
 		emit({"=",NULL},temp2,{"",NULL},temp);
 		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 		backpatch($1->truelist,n);

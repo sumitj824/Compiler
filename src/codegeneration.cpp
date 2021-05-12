@@ -458,6 +458,291 @@ void generate_code(){
             push_line("slt $t5, $t3, $t4");
             push_line("sw $t5, 0($t2)");
         }
+        if(instruction == "inttoreal"){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            comp res = emitted_code[i].result;
+            if(is_array_element(op1.first)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("lw $t3, 0($t0)");
+            push_line("mtc1 $t3, $f0 ");
+            push_line("swc1 $f0, 0($t2)");
+            //push_line("lwc1.s $f1, 0($t2)");
+
+        }
+        if(instruction == "realtoint"){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            comp res = emitted_code[i].result;
+            if(is_array_element(op1.first)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("lwc1 $f0, 0($t0)");
+            push_line("mfc1 $t3, $f0 ");
+            push_line("sw $f3, 0($t2)");
+            //push_line("lwc1.s $f1, 0($t2)");
+
+        }
+        if(instruction == "float_<"){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            comp res = emitted_code[i].result;
+            if(is_array_element(op1.first)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(op2.first)){
+                load_array_element1(op2);
+            }
+            else{
+                load_normal_element1(op2);
+            }
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("lwc1 $f0, 0($t0)");
+            push_line("lwc1 $f1, 0($t1)");
+            push_line("c.lt.s $f0, $f1");
+            push_line("cfc1 $t5,$25");
+            push_line("andi $t5, 1");
+            push_line("sw $t5, 0($t2)");
+        }
+        if(instruction == "float_>"){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            comp res = emitted_code[i].result;
+            if(is_array_element(op1.first)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(op2.first)){
+                load_array_element1(op2);
+            }
+            else{
+                load_normal_element1(op2);
+            }
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("lwc1 $f0, 0($t0)");
+            push_line("lwc1 $f1, 0($t1)");
+            push_line("c.gt.s $f0, $f1");
+            push_line("cfc1 $t5,$25");
+            push_line("andi $t5, 1");
+            push_line("sw $t5, 0($t2)");
+        }
+        if(instruction == "float_<="){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            comp res = emitted_code[i].result;
+            if(is_array_element(op1.first)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(op2.first)){
+                load_array_element1(op2);
+            }
+            else{
+                load_normal_element1(op2);
+            }
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("lwc1 $f0, 0($t0)");
+            push_line("lwc1 $f1, 0($t1)");
+            push_line("c.le.s $f0, $f1");
+            push_line("cfc1 $t5,$25");
+            push_line("andi $t5, 1");
+            push_line("sw $t5, 0($t2)");
+        }
+        if(instruction == "float_>="){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            comp res = emitted_code[i].result;
+            if(is_array_element(op1.first)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(op2.first)){
+                load_array_element1(op2);
+            }
+            else{
+                load_normal_element1(op2);
+            }
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("lwc1 $f0, 0($t0)");
+            push_line("lwc1 $f1, 0($t1)");
+            push_line("c.ge.s $f0, $f1");
+            push_line("cfc1 $t5,$25");
+            push_line("andi $t5, 1");
+            push_line("sw $t5, 0($t2)");
+        }
+        if(instruction == "float_=="){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            comp res = emitted_code[i].result;
+            if(is_array_element(op1.first)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(op2.first)){
+                load_array_element1(op2);
+            }
+            else{
+                load_normal_element1(op2);
+            }
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("lwc1 $f0, 0($t0)");
+            push_line("lwc1 $f1, 0($t1)");
+            push_line("c.eq.s $f0, $f1");
+            push_line("cfc1 $t5,$25");
+            push_line("andi $t5, 1");
+            push_line("sw $t5, 0($t2)");
+        }
+        if(instruction == "float_!="){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            comp res = emitted_code[i].result;
+            if(is_array_element(op1.first)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(op2.first)){
+                load_array_element1(op2);
+            }
+            else{
+                load_normal_element1(op2);
+            }
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("lwc1 $f0, 0($t0)");
+            push_line("lwc1 $f1, 0($t1)");
+            push_line("c.ne.s $f0, $f1");
+            push_line("cfc1 $t5,$25");
+            push_line("andi $t5, 1");
+            push_line("sw $t5, 0($t2)");
+        }
+        if(instruction == "float_unary+"){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            comp res = emitted_code[i].result;
+            if(is_array_element(op1.first)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("lwc1 $f0, 0($t0)");
+            push_line("swc1 $f0, 0($t2)");
+        }
+        if(instruction == "float_unary-"){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            comp res = emitted_code[i].result;
+            if(is_array_element(op1.first)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("lwc1 $f0, 0($t0)");
+            push_line("neg.s $f1, $f0");
+            push_line("swc1 $f1, 0($t2)");
+        }
+        
+        if(instruction == "%"){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            comp res = emitted_code[i].result;
+            if(is_array_element(op1.first)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(op2.first)){
+                load_array_element1(op2);
+            }
+            else{
+                load_normal_element1(op2);
+            }
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("lw $t3, 0($t0)");
+            push_line("lw $t4, 0($t1)");
+            push_line("rem $t5, $t3, $t4");
+            push_line("sw $t5, 0($t2)");
+        }
         if(instruction == "<="){
             comp op1 = emitted_code[i].op_1;
             comp op2 = emitted_code[i].op_2;
@@ -568,7 +853,6 @@ void generate_code(){
         }
         if(instruction == "~"){
              comp op1 = emitted_code[i].op_1;
-            //comp op2 = emitted_code[i].op_2;
             comp res = emitted_code[i].result;
             if(is_array_element(op1.first)){  
                 load_array_element0(op1);
@@ -576,12 +860,6 @@ void generate_code(){
             else{
                 load_normal_element0(op1);
             }
-            //if(is_array_element(op2.first)){
-            //    load_array_element1(op2);
-            //}
-            //else{
-            //    load_normal_element1(op2);
-            //}
             if(is_array_element(res.first)){
                 load_array_element2(res);
             }
