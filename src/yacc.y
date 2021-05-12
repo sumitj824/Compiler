@@ -1489,7 +1489,7 @@ init_declarator
 				yyerror("Error: redeclaration of the variable."); 
 			}
 			else{
-				if(initializer_list_size != 0 && $1 -> size == 0){
+				if(initializer_list_size != 0 && $1 -> size == 0){	//initialization of array
 					if(accept2){
 						$1 -> size = get_size("*")*initializer_list_size;
 						(*curr_array_arg_table).insert({$1 -> nodeLex,{initializer_list_size}});
@@ -1502,6 +1502,8 @@ init_declarator
 						$1 -> size = get_size(tmp)*initializer_list_size; 
 						(*curr_array_arg_table).insert({$1 -> nodeLex,{initializer_list_size}});
 					}
+					emit({"array_initialized",NULL},{$1 -> nodeLex, NULL},{"",NULL},{"",NULL});
+					value_in_global_variables = "";
 				}
 				make_symTable_entry($1->nodeLex,$1 -> nodeType,1,$1 -> size);
 				$$ -> init = 1;
@@ -2079,11 +2081,13 @@ initializer
 initializer_list
 	: initializer											{$$=$1;
 		initializer_list_size++;
+		emit({"initializer_list",NULL},$1 -> place,{"",NULL},{"",NULL});
 	}
 	| initializer_list ',' M initializer						{$$=make_node("initializer_list",$1,$4);
 		initializer_list_size++;
 		///
 		 backpatch($1->nextlist,$3);
+		 emit({"initializer_list",NULL},$3 -> place,{"",NULL},{"",NULL});
 		 $$->nextlist=$4 -> nextlist;
 		///
 	}

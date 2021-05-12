@@ -8,6 +8,8 @@ set<string> global_variables_completed;
 
 vector <quad> parameters;
 
+vector <quad> initializer_list_vec;
+
 void generate_code(){
     // curr_Func = ".data";
     // for(auto i : *GST){
@@ -42,6 +44,25 @@ void generate_code(){
         push_line("# "+ emitted_code[i].op_code.first+ " "+emitted_code[i].op_1.first +" "+ emitted_code[i].op_2.first+" "+emitted_code[i].result.first);
        // cout<<("# "+ emitted_code[i].op_code.first+ " "+emitted_code[i].op_1.first +" "+ emitted_code[i].op_2.first+" "+emitted_code[i].result.first)<<endl;;
         
+        if(instruction == "initializer_list"){
+            initializer_list_vec.push_back(emitted_code[i]);
+        }
+
+        if(instruction == "array_initialized"){
+            int curr_temp_off = 0; 
+            for(int j = 0; j < initializer_list_vec.size(); j++){
+                //push_line("lw $t0, " + to_string(initializer_list_vec[j].op1.second -> offset) + "($sp)");
+                load_normal_element0(initializer_list_vec[j].op1);  //value to be passed is in $t0
+                push_line("add $t2, $sp, " + to_string(emitted_code[i].op1.second -> offset));
+                push_line("lw $t3, " + curr_temp_off + "($sp)");
+                push_line("add $t3, $t3, $t2");
+                push_line("move $t2, $t3");
+                curr_temp_off += 4;
+                push_line("lw $t3, 0($t0)");
+                push_line("sw $t3, 0($t2)");
+            }
+        }
+
         if(instruction == "store_in_global_variable"){
             curr_Func = ".data";
             if(!is_array_element(emitted_code[i].result.first)){
