@@ -39,4 +39,5 @@ int main(){
     v.z='C';
     func1(p,v);
     func2(p,v);
+    return 0;
 }

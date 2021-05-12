@@ -5,8 +5,9 @@ int partition (int arr[], int low, int high)
     int pivot = arr[high]; 
     int temp;
     int i = (low - 1); 
+    int j;
  
-    for (int j = low; j <= high - 1; j++)
+    for (j = low; j <= high - 1; j++)
     {
         
         if (arr[j] < pivot)
@@ -32,6 +33,7 @@ void quickSort(int arr[], int low, int high)
         quickSort(arr, low, pi - 1);
         quickSort(arr, pi + 1, high);
     }
+    return ;
 }
  
 
@@ -46,7 +48,8 @@ void quickSort(int arr[], int low, int high)
 // Driver Code
 int main()
 {
-    int arr[] = {10, 7, 8, 9, 1, 5};
+    // int arr[] = {10, 7, 8, 9, 1, 5};
+    int *arr;
     int n = 6;
     quickSort(arr, 0, n - 1);
     // printArray(arr, n);
