@@ -174,9 +174,11 @@ primary_expression
 			 value_in_global_variables = to_string($$->ival);
 		}
 		else{
-			comp temp = get_temp_label("int");
-			emit({"store_int",NULL},{to_string($$ -> ival),NULL},{"",NULL},temp);
-			$$->place=temp;
+			if(!in_param){
+				comp temp = get_temp_label("int");
+				emit({"store_int",NULL},{to_string($$ -> ival),NULL},{"",NULL},temp);
+				$$->place=temp;
+			}
 		}
 		///
 
