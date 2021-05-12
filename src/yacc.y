@@ -36,7 +36,7 @@ string param_names = "";
 extern int yylineno;
 extern vector <quad> emitted_code;
 set<s_entry*> global_entry_set;
-
+string funcType = "";
 vector<int> st_line_no;
 string arg_list = "";
 string return_type = "";
@@ -251,8 +251,11 @@ postfix_expression
 				temp -> type = $$ -> nodeType;
 				temp -> offset = $1 -> offset;
 				temp -> size = $1 -> size;
-				$$ -> place = {name,temp};
+				if(is_global(($1 -> place).second)){
+					temp_global_set.insert(temp);
+				}
 				$$ -> nodeLex = name;
+				$$ -> place = {name,temp};
 				emit({"arr_element",NULL},$$ -> place,$3 -> place,{to_string(product),NULL});
 	}
 	| postfix_expression '(' ')'							{$$=$1;
@@ -632,9 +635,9 @@ multiplicative_expression
 	| multiplicative_expression '*' cast_expression        {$$=make_node("*", $1, $3);
 			string s=multiply($1->nodeType, $3->nodeType,'*');
 			if(s=="int"){
-				$$->nodeType="long long";
+				$$->nodeType="int";
 				///
-				comp temp = get_temp_label("long long");
+				comp temp = get_temp_label("int");
 
 				emit({"*int",NULL},$1 -> place,$3 -> place,temp);	
 				$$->place=temp;
@@ -642,17 +645,17 @@ multiplicative_expression
 				///
 			}
 			else if(s=="float"){
-				$$->nodeType="long double";
+				$$->nodeType="float";
 				///
-				comp temp1 = get_temp_label("long double");
+				comp temp1 = get_temp_label("float");
 			    s_entry *op=lookup("*");
 				if(isInt($1->nodeType)){
-					comp temp2=get_temp_label("long double");
+					comp temp2=get_temp_label("float");
 					emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
 					emit({"*real",NULL},temp2,$3 -> place,temp1);	
 				}
 				else if(isInt($3->nodeType)){
-					comp temp2=get_temp_label("long double");
+					comp temp2=get_temp_label("float");
 					emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
 					emit({"*real",NULL},$1 -> place,temp2,temp1);
 				}
@@ -672,9 +675,9 @@ multiplicative_expression
 	| multiplicative_expression '/' cast_expression        {$$=make_node("/", $1, $3);
 			string s=multiply($1->nodeType, $3->nodeType,'/');
 			if(s=="int"){
-				$$->nodeType="long long";
+				$$->nodeType="int";
 				///
-				comp temp = get_temp_label("long long");
+				comp temp = get_temp_label("int");
 
 				emit({"/int",NULL},$1 -> place,$3 -> place,temp);	
 				$$->place=temp;
@@ -682,16 +685,16 @@ multiplicative_expression
 				///
 			}
 			else if(s=="float"){
-				$$->nodeType="long double";
+				$$->nodeType="int";
 				///
-				comp temp1 = get_temp_label("long double");
+				comp temp1 = get_temp_label("int");
 				if(isInt($1->nodeType)){
-					comp temp2=get_temp_label("long double");
+					comp temp2=get_temp_label("int");
 					emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
 					emit({"/real",NULL},temp2,$3 -> place,temp1);	
 				}
 				else if(isInt($3->nodeType)){
-					comp temp2=get_temp_label("long double");
+					comp temp2=get_temp_label("int");
 					emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
 					emit({"/real",NULL},$1 -> place,temp2,temp1);
 				}
@@ -712,9 +715,9 @@ multiplicative_expression
 	| multiplicative_expression '%' cast_expression        {$$=make_node("%", $1, $3);
 			string s=multiply($1->nodeType, $3->nodeType,'%');
 			if(s=="int"){
-				$$->nodeType="long long";
+				$$->nodeType="int";
 				///
-				comp temp = get_temp_label("long long");
+				comp temp = get_temp_label("int");
 				emit({"%",NULL},$1 -> place,$3 -> place,temp);	
 				$$->place=temp;
 				$$->nextlist = {};
@@ -734,20 +737,20 @@ additive_expression
 	| additive_expression '+' multiplicative_expression     {$$=make_node("+", $1, $3);
 		string s= addition($1->nodeType, $3->nodeType);
 		if(!s.empty()){
-			if(s=="int")$$->nodeType="long long";
-			else if(s=="float")$$->nodeType="long double";
+			if(s=="int")$$->nodeType="int";
+			else if(s=="float")$$->nodeType="float";
 			else $$->nodeType=s;
 
 			///
 			comp temp1 = get_temp_label(s);
 
 			if(isInt($1->nodeType)&&isFloat($3->nodeType)){
-				comp temp2=get_temp_label("long double");
+				comp temp2=get_temp_label("float");
 				emit({"inttoreal",NULL},$1 -> place,{"",NULL},temp2);	
 				emit({"+"+s,NULL},temp2,$3 -> place,temp1);	
 			}
 			else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
-				comp temp2=get_temp_label("long double");
+				comp temp2=get_temp_label("float");
 				emit({"inttoreal",NULL},$3 -> place,{"",NULL},temp2);	
 				emit({"+"+s,NULL},$1 -> place,temp2,temp1);	
 			}
@@ -768,20 +771,20 @@ additive_expression
 	| additive_expression '-' multiplicative_expression     {$$=make_node("-", $1, $3);
 		string s= addition($1->nodeType, $3->nodeType);
 		if(!s.empty()){
-			if(s=="int")$$->nodeType="long long";
-			else if(s=="float")$$->nodeType="long double";
+			if(s=="int")$$->nodeType="int";
+			else if(s=="float")$$->nodeType="float";
 			else  $$->nodeType=s;
 
 			///
 			comp temp1 = get_temp_label(s);
 
 			if(isInt($1->nodeType)&&isFloat($3->nodeType)){
-				comp temp2=get_temp_label("long double");
+				comp temp2=get_temp_label("float");
 				emit({"inttoreal",NULL},$1 -> place,{"",NULL},temp2);	
 				emit({"-"+s,NULL},temp2,$3 -> place,temp1);	
 			}
 			else if(isInt($3->nodeType)&&isFloat($1->nodeType)){
-				comp temp2=get_temp_label("long double");
+				comp temp2=get_temp_label("float");
 				emit({"inttoreal",NULL},$3 -> place,{"",NULL},temp2);	
 				emit({"-"+s,NULL},$1 -> place,temp2,temp1);	
 			}
@@ -1073,7 +1076,7 @@ and_expression
 		if(!s.empty())
 		{
 			if(s=="bool")$$->nodeType=s;
-			else $$->nodeType="long long";
+			else $$->nodeType="int";
 			///
 			comp temp = get_temp_label("int");
 			emit({"&",NULL},$1 -> place,$3 -> place,temp);	
@@ -1097,7 +1100,7 @@ exclusive_or_expression
 		if(!s.empty())
 		{
 			if(s=="bool")$$->nodeType=s;
-			else $$->nodeType="long long";
+			else $$->nodeType="int";
 			///
 			comp temp = get_temp_label("int");
 			emit({"^",NULL},$1 -> place,$3 -> place,temp);	
@@ -1121,7 +1124,7 @@ inclusive_or_expression
 		if(!s.empty())
 		{
 			if(s=="bool")$$->nodeType=s;
-			else $$->nodeType="long long";
+			else $$->nodeType="int";
 			///
 			comp temp = get_temp_label("int");
 			emit({"|",NULL},$1 -> place,$3 -> place,temp);	
@@ -1842,6 +1845,7 @@ direct_declarator
 		$$ -> size = ($1 -> size)*($3 -> ival);
 		///
 		$$ ->place={$1->nodeLex,NULL};
+		if(curr_table == GST) value_in_global_variables = "";
 		///
 	}
 	| direct_declarator '[' ']'							  		{$$=make_node("direct_declarator",$1,make_node("[]"));
@@ -1867,7 +1871,12 @@ direct_declarator
 		$$ -> nodeType = $1 -> nodeType;
 		funcName = $1 -> nodeLex;
 		funcParams[funcName] = param_names;
-		funcSize[funcName] += $5 -> size;
+		if(funcSize.count(funcName)){
+			funcSize[funcName] += $5 -> size;
+		}
+		else{
+			funcSize[funcName] = ($5 -> size);
+		}
 		param_names = "";
 		emit({"FUNC_START",NULL},{$1 -> nodeLex,NULL},{"",NULL},{"",NULL});
 	}
@@ -1923,7 +1932,7 @@ parameter_list
 		param_names += ($$ -> nodeLex);
 	}
 	| parameter_list ',' M parameter_declaration                 	{$$=make_node("parameter_list",$1,$4);
-		$$ -> size = $1 -> size + $4 -> size;
+		$$ -> size = ($1 -> size) + ($4 -> size);
 		param_names += ("," + ($4 -> nodeLex));
 		///
 		backpatch($1->nextlist,$3);
@@ -1936,7 +1945,7 @@ parameter_declaration
 	: declaration_specifiers  declarator                  		{$$=make_node("parameter_declaration",$1,$2);
 		$$ -> size = get_size($2 -> nodeType);
 		$$ -> nodeLex = $2 -> nodeLex;
-		s_entry* find = lookup_in_curr($2 -> nodeLex);
+		s_entry* find = lookup_in_table(temp_table,$2 -> nodeLex);
 		if(find){
 			yyerror("Error: redeclaration of variable.");
 		}
@@ -2363,14 +2372,25 @@ jump_statement
 		$$->breaklist.push_back((int)emitted_code.size()-1);
 	}
 	| RETURN ';'						        {$$=make_node("return");
-		return_type = "void";
-		///todo:
-		emit({"FUNC_END",NULL},{"",NULL},{"",NULL},{"",NULL});
+		if(funcType != "void"){
+			yyerror("Error : Return type not consistent with output type of function.");
+		}
+		///
+		emit({"RETURN",NULL},{"",NULL},{"",NULL},{"",NULL});
 	}
 	| RETURN expression ';'						{$$=make_node("jump_statement",make_node("return"),$2);
-		return_type = $2 -> nodeType;
+		if(is_struct(funcType) || is_struct($2 -> nodeType)){
+			if(($2 -> nodeType) != funcType){
+				yyerror("Error : Return type not consistent with output type of function.");
+			}
+		}
+		else{
+			if(funcType != ($2 -> nodeType)){
+				yyerror("Warning : Implicit typecasting at return type.");
+			}
+		}
 		///todo:
-		emit({"FUNC_END",NULL},$2 -> place,{"",NULL},{"",NULL});
+		emit({"RETURN",NULL},$2 -> place,{"",NULL},{"",NULL});
 	}
 	;
 
@@ -2440,19 +2460,10 @@ function_definition
 		return_type = "";
 		accept2 = 0;
 	}
-	| M14 compound_statement                       {$$=make_node("function_definition",$1,$2);
-		if(is_struct($1 -> nodeType) || is_struct(return_type)){
-			if($1 -> nodeType != return_type){
-				yyerror("Error : Return type not consistent with output type of function.");
-			}
-		}
-		else{
-			if($1 -> nodeType != return_type){
-				yyerror("Warning : Implicit typecasting at return type.");
-			}
-		}
-		return_type = "";
+	| M14 compound_statement                       {$$=make_node("function_definition",$1,$2);	
+		emit({"FUNC_END",NULL},{funcName,NULL},{"",NULL},{"",NULL});
 		funcName = "";
+		funcType = "";
 	}
 	| declarator M3 M4 declaration_list compound_statement M4                        {$$=make_node("function_definition",$1,$4,$5);
 		int x= 0;
@@ -2507,18 +2518,9 @@ function_definition
 		accept2 = 0;
 	}
 	| M15 compound_statement                                              {$$=make_node("function_definition",$1,$2);
-		if(is_struct("int") || is_struct(return_type)){
-			if("int" != return_type){
-				yyerror("Error : Return type not consistent with output type of function.");
-			}
-		}
-		else{
-			if("int" != return_type){
-				yyerror("Warning : Implicit typecasting at return type.");
-			}
-		}
-		return_type = "";
+		emit({"FUNC_END",NULL},{funcName,NULL},{"",NULL},{"",NULL});
 		funcName = "";
+		funcType = "";
 	}
 	;
 
@@ -2609,7 +2611,7 @@ M14
 		if(funcMap.find($2 -> nodeLex) == funcMap.end()){	
 			if(!lookup($2 -> nodeLex)){
 				 funcMap.insert({$2 -> nodeLex,funcArg});
-				 make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0,$2 -> size);
+				 make_symTable_entry($2 -> nodeLex,$2 -> nodeType,0,get_size($2 -> nodeType));
 			}
 			else{
 				yyerror("Error: redeclaration of the function.");
@@ -2619,6 +2621,7 @@ M14
 			yyerror("Error: redeclaration of the function.");
 		}
 		funcArg = "";
+		funcType = $2 -> nodeType;
 		var_type = "";
 		parent[temp_table] = curr_table;
 		curr_table = temp_table;
@@ -2641,6 +2644,7 @@ M15
 			yyerror("Error: redeclaration of the function.");
 		}
 		funcArg = "";
+		funcType = "int";
 		parent[temp_table] = curr_table;
 		curr_table = temp_table;
 		accept2 = 0;
@@ -2763,8 +2767,8 @@ int main(int argc, char *argv[]){
 	for(auto p:*GST)
 	{
 		global_entry_set.insert(p.second);
+		temp_global_set.insert(p.second);
 	}
-
 	freopen("3ac_code.txt","w",stdout);
 	print_code();
 	freopen("code.asm","w",stdout);

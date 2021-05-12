@@ -14,20 +14,26 @@ void bubbleSort(int arr[], int n)
     return ;
 }
 
-// void printArray(int arr[], int size)
-// {
-// 	int i;
-// 	for (i=0; i < size; i++)
-// 		printf("%d ", arr[i]);
-// 	printf("\n");
-// }
+void printArray(int arr[], int size)
+{
+	int i;
+	for (i=0; i < size; i++)
+		printf(arr[i]);
+    return ;
+}
 
 int main()
 {
-	// int arr[] = {64, 34, 25, 12, 22, 11, 90};
-    int *arr;
-	int n = sizeof(arr)/sizeof(arr[0]);
+    int arr[7];
+	int n = 7;
+    arr[0]=9;
+    arr[1]=7;
+    arr[2]=8;
+    arr[3]=1;
+    arr[4]=6;
+    arr[5]=5;
+    arr[6]=2;
 	bubbleSort(arr, n);
-	// printArray(arr, n);
+	printArray(arr, n);
 	return 0;
 }

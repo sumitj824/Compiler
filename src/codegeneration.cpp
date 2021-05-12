@@ -65,10 +65,19 @@ void generate_code(){
                 s_entry * temp = parameters[i].op_1.second;
                 string type = temp -> type;
                 if(type.back() == '*'){
-                    push_line("li $t0, " + to_string(temp -> offset));
-                    push_line("add $t0, $sp, $t0");
-                    push_line("sw $t0, " + to_string(temp_off)+ "($s0)");
-                    temp_off += get_size(type);
+                    if(is_parameter(parameters[i].op_1.first)){
+                        push_line("li $t0, " + to_string(temp -> offset));
+                        push_line("add $t0, $sp, $t0");
+                        push_line("lw $t1, 0($t0)");
+                        push_line("sw $t1, " + to_string(temp_off) + "($s0)");
+                        temp_off += get_size(type);
+                    }
+                    else{
+                        push_line("li $t0, " + to_string(temp -> offset));
+                        push_line("add $t0, $sp, $t0");
+                        push_line("sw $t0, " + to_string(temp_off)+ "($s0)");
+                        temp_off += get_size(type);
+                    }
                 }
                 else{
                     comp op1 = parameters[i].op_1;
@@ -112,7 +121,17 @@ void generate_code(){
                         continue;
                     }
                     if(!global_variables_completed.count(i.first)){
-                        push_line(i.first + " : .space 4");
+                        if(array_symTable_entry.count(i.second)){
+                            vector <int> dim = array_symTable_entry[i.second];
+                            int pro = 1;
+                            for(auto i : dim){
+                                pro *= i;
+                            }
+                            push_line(i.first + " : .space " + to_string(pro));
+                        }
+                        else{
+                            push_line(i.first + " : .space " + to_string(i.second -> size));
+                        }
                     }
                 }
                 curr_Func = "main";
@@ -135,7 +154,7 @@ void generate_code(){
 
         // handle the return case for functions
 
-        if(instruction == "FUNC_END"){
+        if(instruction == "RETURN"){
             if(curr_Func == "main"){
                 push_line("li $a0, 0");
                 push_line("li $v0, 10");
@@ -160,7 +179,13 @@ void generate_code(){
                 push_line("b func_end");
                 load_prev_registers();
             }
-            curr_Func = "__global";
+        }
+
+        if(instruction == "FUNC_END"){
+            int size = funcSize[curr_Func];
+            push_line("add $sp, $sp, " + to_string(size));
+            push_line("b func_end");
+            load_prev_registers();
         }
 
         if(instruction == "="){

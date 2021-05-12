@@ -21,7 +21,7 @@ int main ()
 {
 	int number = 23945;
 	if(odd(number)==1)
-		// printf("%d is odd\n",number);
+		printf(1);
 	
 	return 0;
 }

@@ -3,6 +3,7 @@
 #include <map>
 #include <list>
 #include <vector>
+#include <set>
 using namespace std;
 
 
@@ -35,6 +36,7 @@ extern map <s_entry*,vector <int>> array_symTable_entry;
 extern map <string,int> funcSize;
 extern map <string,string> funcParams;
 extern string funcName;
+extern set <s_entry*> temp_global_set;
 
 s_entry* lookup(string a);
 
@@ -49,3 +51,4 @@ void update_init(string name,int init);
 int check_type(string type1,string type2);
 int is_struct(string type1);
 int get_size(string type);
+int is_global(s_entry * temp);
