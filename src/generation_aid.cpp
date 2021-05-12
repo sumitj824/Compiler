@@ -10,13 +10,23 @@ void push_line(string s){
 void print_assembly_code(){
     for(auto a : assembly_code){
         if(a.first == "__global") continue;
-        cout << a.first << ":" << endl;
+        cout << a.first;
+        if(a.first != ".data"){
+            cout << " : " << endl; 
+        }
+        else{
+            cout << endl;
+        }
         cout << endl;
         for(auto i : a.second){
             cout << "       " << i << endl;
         }
         cout << endl;
         cout << endl;
+        if(a.first == ".data"){
+            cout << ".text" << endl;
+            cout << endl;
+        }
     }
 }
 
@@ -73,8 +83,10 @@ void load_array_element0(comp q){ // to load array_element in $t0
         push_line("move $t0, $t1");
     }
     else{
-        if(global_entry_set.count(q.second)){
-
+        if(temp_global_set.count(q.second)){
+            push_line("lw $t1, " + to_string(q.second -> size) + "($sp)");
+            push_line("add $t1, $gp, " + name);
+            push_line("move $t0, $t1");
         }
         else{
             push_line("add $t0, $sp, " + to_string(q.second -> offset));
@@ -95,11 +107,13 @@ void load_array_element1(comp q){ // to load array_element in $t1
         push_line("move $t1, $t2");
     }
     else{
-        if(global_entry_set.count(q.second)){
-
+        if(temp_global_set.count(q.second)){
+            push_line("lw $t2, " + to_string(q.second -> size) + "($sp)");
+            push_line("add $t2, $gp, " + name);
+            push_line("move $t1, $t2");
         }
         else{
-            push_line("add $t1, $sp, " + to_string(q.second -> offset));
+            push_line("add $t1, $sp, " + to_string(q.second -> offset)); // t1 -> base_address of a
             push_line("lw $t2, " + to_string(q.second -> size) + "($sp)");
             push_line("add $t2, $t2, $t1");
             push_line("move $t1, $t2");
@@ -117,8 +131,10 @@ void load_array_element2(comp q){ // to load array_element in $t2
         push_line("move $t2, $t3");
     }
     else{
-        if(global_entry_set.count(q.second)){
-
+        if(temp_global_set.count(q.second)){
+            push_line("lw $t3, " + to_string(q.second -> size) + "($sp)");
+            push_line("add $t3,$gp, " + name);
+            push_line("move $t2, $t3");
         }
         else{
             push_line("add $t2, $sp, " + to_string(q.second -> offset));

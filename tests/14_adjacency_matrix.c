@@ -1,7 +1,7 @@
 
 
 
-void createAdjMatrix(int Adj[][],int arr[][2],int N,int M)
+void createAdjMatrix(int Adj[][10],int arr[][2],int N,int M)
 {	int i,j,x,y;
 	for ( i = 0; i < N + 1; i++) {
 
@@ -35,13 +35,12 @@ int main()
 {
 
 	// Number of vertices
-	int N = 5;
-	int Adj[N + 1][N + 1];
+	int N = 10;
+	int Adj[10][10];
 	// int arr[][2]= { { 1, 2 }, { 2, 3 },{ 4, 5 }, { 1, 5 } };
 	int **arr;
 	// Number of Edges
-	int M = sizeof(arr) / sizeof(arr[0]);
-	// For Adjacency Matrix
+	int a[5];
 	createAdjMatrix(Adj, arr,N,M);
 	printAdjMatrix(Adj,N);
 	return 0;

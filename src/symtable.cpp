@@ -21,6 +21,7 @@ map <array_arg_table*,array_arg_table*> parent_array_arg_table;
 map <string,int> funcSize;
 map <s_entry*,vector <int>> array_symTable_entry;
 map <string,string> funcParams;
+set <s_entry*> temp_global_set;
 string funcName = "";
 
 void make_symTable_entry(string name,string type,int init,int size){
@@ -76,7 +77,6 @@ void make_symTable_entry2(symTable* table,string name,string type,int init,int s
         array_symTable_entry[p] = (*curr_array_arg_table)[name];
     }
     (*table).insert({name,p});
-    funcSize[funcName] += size;
 }
 
 s_entry* lookup(string a)
@@ -206,4 +206,16 @@ int get_size(string type){
     // if(type ==  "char") return sizeof(char);
 
     return 4;
+}
+
+int is_global(s_entry* s){
+    if(temp_global_set.count(s)){
+        return 1;
+    }
+    for(auto i : *GST){
+        if(i.second == s){
+            return 1;
+        }
+    }
+    return 0;
 }

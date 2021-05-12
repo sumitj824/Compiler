@@ -1,6 +1,5 @@
 
- 
-int partition (int arr[], int low, int high)
+ int partition (int arr[], int low, int high)
 {
     int pivot = arr[high]; 
     int temp;
@@ -58,6 +57,6 @@ int main()
     arr[4]=6;
     arr[5]=5;
     quickSort(arr, 0, n - 1);
-    printArray(arr, n);
+    printArray(arr,n);
     return 0;
 }
