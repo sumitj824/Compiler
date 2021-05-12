@@ -34,7 +34,6 @@ void generate_code(){
     curr_Func = "__global";
     formBasicBlocks();
     for(int i = 0;i < emitted_code.size();i++){
-       // cout<<i<<endl;
         if(basicBlock.find(i)!=basicBlock.end()){
             push_line("Label"+to_string(i)+" :");
         }
@@ -211,13 +210,11 @@ void generate_code(){
         }
 
         if(instruction == "store_int"){
-            //cout<<"hello......\n";
             comp op1 = emitted_code[i].op_1;
             comp res = emitted_code[i].result;
             push_line("li $t0, " + op1.first);
             push_line("add $t1, $sp, " + to_string(res.second -> offset));
             push_line("sw $t0, 0($t1)");
-            //cout<<"hello at the end....\n";
         }
 
         if(instruction == "store_float"){

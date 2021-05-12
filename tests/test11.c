@@ -1,11 +1,18 @@
-int f(int a, int b){
-    return 156;
+
+void f(){
+    int a = 0;
+    if(!a){
+        printf(1);
+    }
+    if(a){
+        printf(2);
+    }
+    return ;
+
 }
 
-int main(){
-    int a = 5;
-    int b = 3;
-    int c = f(a,b);
-    int d = 789;
-    return 0;
+int main ()
+{
+    f();
+  return 0;
 }
