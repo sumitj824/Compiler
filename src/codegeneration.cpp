@@ -52,14 +52,11 @@ void generate_code(){
             int curr_temp_off = 0; 
             for(int j = 0; j < initializer_list_vec.size(); j++){
                 //push_line("lw $t0, " + to_string(initializer_list_vec[j].op1.second -> offset) + "($sp)");
-                load_normal_element0(initializer_list_vec[j].op1);  //value to be passed is in $t0
-                push_line("add $t2, $sp, " + to_string(emitted_code[i].op1.second -> offset));
-                push_line("lw $t3, " + curr_temp_off + "($sp)");
-                push_line("add $t3, $t3, $t2");
-                push_line("move $t2, $t3");
-                curr_temp_off += 4;
+                load_normal_element0(initializer_list_vec[j].op_1);  //value to be passed is in $t0
+                push_line("add $t2, $sp, " + to_string(((emitted_code[i].op_1).second) -> offset));
                 push_line("lw $t3, 0($t0)");
-                push_line("sw $t3, 0($t2)");
+                push_line("sw $t3, "+ to_string(curr_temp_off)+"($t2)");
+                curr_temp_off += 4;
             }
         }
 

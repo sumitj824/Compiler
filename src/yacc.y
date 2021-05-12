@@ -1502,19 +1502,23 @@ init_declarator
 						$1 -> size = get_size(tmp)*initializer_list_size; 
 						(*curr_array_arg_table).insert({$1 -> nodeLex,{initializer_list_size}});
 					}
-					emit({"array_initialized",NULL},{$1 -> nodeLex, NULL},{"",NULL},{"",NULL});
-					value_in_global_variables = "";
+					
 				}
 				make_symTable_entry($1->nodeLex,$1 -> nodeType,1,$1 -> size);
 				$$ -> init = 1;
 			}
-			initializer_list_size = 0;
+			// initializer_list_size = 0;
 			array_case2 = 0;
 			accept2 = 0;
 
 			if(curr_table == GST){
 				emit({"store_in_global_variable",NULL},{value_in_global_variables, NULL},{"",NULL},{$1->nodeLex, NULL});
 				value_in_global_variables = "";
+			}
+			else if(initializer_list_size!=0){
+				emit({"array_initialized",NULL},{$1 -> nodeLex, lookup($1->nodeLex)},{"",NULL},{"",NULL});
+				value_in_global_variables = "";
+				initializer_list_size = 0;
 			}
 			else{
 				$1 -> place = {$1 -> nodeLex,lookup($1 -> nodeLex)};
@@ -1961,6 +1965,17 @@ parameter_declaration
 			yyerror("Error: redeclaration of variable.");
 		}
 		else{
+			string type = ($2 -> nodeType);
+            if(type.back() == '*'){
+                if(((*curr_array_arg_table)).count($2 -> nodeLex)){
+
+                }
+                else{
+                    (*curr_array_arg_table)[$2 -> nodeLex].push_back(1);
+                    // type.pop_back();
+                    // vector <int> dim = (curr_array_arg_table)[$2 -> nodeLex];
+                }
+            }
 			make_symTable_entry2(temp_table,$2 -> nodeLex,$2 -> nodeType,1,get_size($2 -> nodeType));
 		}
 		if(funcArg == ""){
@@ -2087,7 +2102,7 @@ initializer_list
 		initializer_list_size++;
 		///
 		 backpatch($1->nextlist,$3);
-		 emit({"initializer_list",NULL},$3 -> place,{"",NULL},{"",NULL});
+		 emit({"initializer_list",NULL},$4 -> place,{"",NULL},{"",NULL});
 		 $$->nextlist=$4 -> nextlist;
 		///
 	}
