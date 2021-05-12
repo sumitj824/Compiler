@@ -1,11 +1,9 @@
 int main(){
-  int a = 0;
-  if(a == 1){
-    a = 7;
-  }
-  else{
-    a = 3;
-  }
-  printf(a);
-  return 0;
+   int a=1;
+   int b=0;
+   if(a || b )
+   {
+       a=0;
+   }
+   return 0;
 }

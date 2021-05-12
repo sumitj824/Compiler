@@ -34,12 +34,14 @@ void generate_code(){
     curr_Func = "__global";
     formBasicBlocks();
     for(int i = 0;i < emitted_code.size();i++){
+       // cout<<i<<endl;
         if(basicBlock.find(i)!=basicBlock.end()){
             push_line("Label"+to_string(i)+" :");
         }
         string instruction = emitted_code[i].op_code.first;
         push_line("");
         push_line("# "+ emitted_code[i].op_code.first+ " "+emitted_code[i].op_1.first +" "+ emitted_code[i].op_2.first+" "+emitted_code[i].result.first);
+       // cout<<("# "+ emitted_code[i].op_code.first+ " "+emitted_code[i].op_1.first +" "+ emitted_code[i].op_2.first+" "+emitted_code[i].result.first)<<endl;;
         
         if(instruction == "store_in_global_variable"){
             curr_Func = ".data";
@@ -209,16 +211,108 @@ void generate_code(){
         }
 
         if(instruction == "store_int"){
+            //cout<<"hello......\n";
             comp op1 = emitted_code[i].op_1;
             comp res = emitted_code[i].result;
             push_line("li $t0, " + op1.first);
             push_line("add $t1, $sp, " + to_string(res.second -> offset));
             push_line("sw $t0, 0($t1)");
+            //cout<<"hello at the end....\n";
         }
 
         if(instruction == "store_float"){
+            comp op1 = emitted_code[i].op_1;
+            comp res = emitted_code[i].result;
+            push_line("li.s $f0, " + op1.first);
+            push_line("add $t1, $sp, " + to_string(res.second -> offset));
+            push_line("swc1 $f0, 0($t1)");
             // instructinos to store float in temp
         }
+
+        if(instruction == "+float"){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            comp res = emitted_code[i].result;
+            if(is_array_element(op1.first)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(op2.first)){
+                load_array_element1(op2);
+            }
+            else{
+                load_normal_element1(op2);
+            }
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("lwc1.s $f0, 0($t0)");
+            push_line("lwc1.s $f1, 0($t1)");
+            push_line("add.s $f2, $f0, $f1");
+            push_line("swc1.s $f2. 0($t2)");
+        }
+
+        if(instruction == "*float"){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            comp res = emitted_code[i].result;
+            if(is_array_element(op1.first)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(op2.first)){
+                load_array_element1(op2);
+            }
+            else{
+                load_normal_element1(op2);
+            }
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("lwc1.s $f0, 0($t0)");
+            push_line("lwc1.s $f1, 0($t1)");
+            push_line("mul.s $f2, $f0, $f1");
+            push_line("swc1.s $f2. 0($t2)");
+        }
+        if(instruction == "/float"){
+            comp op1 = emitted_code[i].op_1;
+            comp op2 = emitted_code[i].op_2;
+            comp res = emitted_code[i].result;
+            if(is_array_element(op1.first)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(op2.first)){
+                load_array_element1(op2);
+            }
+            else{
+                load_normal_element1(op2);
+            }
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            push_line("lwc1.s $f0, 0($t0)");
+            push_line("lwc1.s $f1, 0($t1)");
+            push_line("div.s $f2, $f0, $f1");
+            push_line("swc1.s $f2. 0($t2)");
+        }
+
+
 
         if(instruction == "string_literal"){
             // instructions to store string_literal in temp.
@@ -740,4 +834,5 @@ void generate_code(){
             push_line("sw $t5, 0($t2)");
         }
     }
+
 }

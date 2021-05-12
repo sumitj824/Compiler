@@ -1154,15 +1154,15 @@ conditional_expression
 		emit({"store_int",NULL},{"0",NULL},{"",NULL},temp2);
 		emit({"=",NULL},temp2,{"",NULL},temp);
 		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
-		backpatch($1->truelist,n);
-		backpatch($1->falselist,n+2);
-		$$->nextlist.push_back(n+1);
-		$$->nextlist.push_back(n+3);
-		$$->truelist={n+1};
-		$$->falselist={n+3};
+		backpatch($1->truelist,n+1);
+		backpatch($1->falselist,n+4);
+		$$->nextlist.push_back(n+2);
+		$$->nextlist.push_back(n+5);
+		$$->truelist={n+2};
+		$$->falselist={n+5};
 		$$->place = temp;
-		$$->nextlist = $1->truelist;
-		$$->nextlist.merge($1->falselist);
+		//$$->nextlist = $1->truelist;
+		//$$->nextlist.merge($1->falselist);
 		}
 	}
 	| logical_or_expression question_mark expression ':' N conditional_expression    {$$=make_node("conditional_expression",$1,$3,$6);
@@ -2128,7 +2128,7 @@ N2
 
 selection_statement
 	: IF '(' expression ')' N1 statement               		{$$=make_node("IF (expr) stmt",$3,$6);
-		if(is_logical == 0){
+		if($3->is_logical == 0){
 			emitted_code[$5-2].op_1 = $3->place;
 			$3->truelist.push_back($5-2);
 			$3->falselist.push_back($5-1);
@@ -2141,7 +2141,7 @@ selection_statement
 	///
 	}
 	| IF '(' expression ')' N1 statement N2  ELSE statement     	{$$=make_node("IF (expr) stmt ELSE stmt",$3,$6,$9);
-		if(is_logical == 0){
+		if($3->is_logical == 0){
 			emitted_code[$5-2].op_1 = $3->place;
 			//emitted_code[$5-2].result = $5;
 			$3->truelist.push_back($5-2);
