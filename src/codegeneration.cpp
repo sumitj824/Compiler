@@ -73,11 +73,10 @@ void generate_code(){
                         temp_off += get_size(type);
                     }
                     else{
-                        push_line("li $t0, " + to_string(temp -> offset));
-                        push_line("add $t0, $sp, $t0");
-                        push_line("sw $t0, " + to_string(temp_off)+ "($s0)");
-                        temp_off += get_size(type);
+                        load_normal_element1(parameters[i].op_1);
+                        push_line("sw $t1, " + to_string(temp_off) + "($s0)");
                     }
+                    temp_off += get_size(type);
                 }
                 else{
                     comp op1 = parameters[i].op_1;
@@ -87,8 +86,21 @@ void generate_code(){
                     else{
                         load_normal_element0(op1);
                     }
-                    push_line("lw $t1, 0($t0)");
-                    push_line("sw $t1, " + to_string(temp_off) + "($s0)");
+                    string type = (op1.second) -> type;
+                    if(is_struct(type)){
+                        symTable *temp = id_to_struct[type];
+                        push_line("add $t0, $s0, " + to_string(temp_off));
+                        push_line("add $t1, $sp, " + to_string((op1.second) -> offset));
+                        for(auto i : (*temp)){
+                            s_entry * t = i.second;
+                            push_line("lw $t2, " + to_string(t -> offset) + "($t1)");
+                            push_line("sw $t2, " + to_string(t -> offset) + "($t0)");
+                        }
+                    }
+                    else{
+                        push_line("lw $t1, 0($t0)");
+                        push_line("sw $t1, " + to_string(temp_off) + "($s0)");
+                    }
                     temp_off += get_size(type);
                 }
             }
@@ -103,7 +115,20 @@ void generate_code(){
                 load_normal_element2(res);
             }
             parameters.clear();
-            push_line("sw $v0, 0($t2)");
+            string type = (res.second) -> type;
+            if(is_struct(type)){
+                symTable *temp = id_to_struct[type];
+                for(auto i : (*temp)){
+                    s_entry * t = i.second;
+                    push_line("add $t3, $t2, " + to_string(t -> offset));
+                    push_line("add $t4, $v0, " + to_string(t -> offset));
+                    push_line("lw $t5, 0($t4)");
+                    push_line("sw $t5, 0($t3)");
+                }
+            }
+            else{
+                push_line("sw $v0, 0($t2)");
+            }
         }
 
         if(instruction == "FUNC_START"){
@@ -166,13 +191,37 @@ void generate_code(){
                     push_line("li $v0, 0");
                 }
                 else{
-                    if(is_array_element(op1.first)){
-                        load_array_element2(op1);
+                    string type = (op1.second) -> type;
+                    if(type.back() == '*'){
+                        if(is_parameter(op1.first)){
+                            load_normal_element2(op1);
+                            push_line("lw $v0, 0($t0)");
+                        }
+                        else{
+                            load_normal_element2(op1);
+                            push_line("move $v0, $t0");
+                        }
+                    }
+                    else if(is_struct(type)){
+                        if(is_array_element(op1.first)){
+                            load_array_element2(op1);
+                            push_line("move $v0, $t2");
+                        }
+                        else{
+                            load_normal_element2(op1);
+                            push_line("move $v0, $t2");
+                        }
                     }
                     else{
-                        load_normal_element2(op1);
+                        if(is_array_element(op1.first)){
+                            load_array_element2(op1);
+                            push_line("lw $v0, 0($t2)");
+                        }
+                        else{
+                            load_normal_element2(op1);
+                            push_line("lw $v0, 0($t2)");
+                        }
                     }
-                    push_line("lw $v0, 0($t2)");
                 }
                 int size = funcSize[curr_Func];
                 push_line("add $sp, $sp, " + to_string(size));
@@ -203,8 +252,21 @@ void generate_code(){
             else{
                 load_normal_element2(res);
             }
-            push_line("lw $t3, 0($t0)");
-            push_line("sw $t3, 0($t2)");
+            string type = (op1.second) -> type;
+            if(is_struct(type)){
+                symTable *temp = id_to_struct[type];
+                for(auto i : (*temp)){
+                    s_entry * t = i.second;
+                    push_line("add $t3, $t2, " + to_string(t -> offset));
+                    push_line("add $t4, $t0, " + to_string(t -> offset));
+                    push_line("lw $t5, 0($t4)");
+                    push_line("sw $t5, 0($t3)");
+                }
+            }
+            else{
+                push_line("lw $t3, 0($t0)");
+                push_line("sw $t3, 0($t2)");
+            }
         }
         if(instruction == "+int"){            
             comp op1 = emitted_code[i].op_1;
@@ -878,6 +940,7 @@ void generate_code(){
         }
         if(instruction == "~"){
              comp op1 = emitted_code[i].op_1;
+            //comp op2 = emitted_code[i].op_2;
             comp res = emitted_code[i].result;
             if(is_array_element(op1.first)){  
                 load_array_element0(op1);
@@ -885,6 +948,12 @@ void generate_code(){
             else{
                 load_normal_element0(op1);
             }
+            //if(is_array_element(op2.first)){
+            //    load_array_element1(op2);
+            //}
+            //else{
+            //    load_normal_element1(op2);
+            //}
             if(is_array_element(res.first)){
                 load_array_element2(res);
             }

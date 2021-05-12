@@ -306,13 +306,22 @@ postfix_expression
 				$$ -> nodeLex = $1 -> nodeLex + "." + $3;
 				if(is_array_element($1 -> nodeLex)){
 					emit({"struct_array",NULL},$1 -> place,{to_string(find -> offset),NULL},{"",NULL});
-					$$ -> place = {$$ -> nodeLex,($1 -> place).second};
+					s_entry *temp = new s_entry();
+					temp -> type = $$ -> nodeType;
+					temp -> offset = ($1 -> place).second -> offset;
+					temp -> size = ($1 -> place).second -> size;
+					if(is_global(($1 -> place).second)){
+						temp_global_set.insert(temp);
+					}
+					$$ -> place = {$$ -> nodeLex,temp};
 				}
 				else{
-					int offset = ($1 -> place).second -> offset;
-					offset += find -> offset;
-					find -> offset = offset;
-					$$ -> place = {$$ -> nodeLex,find};
+					s_entry *temp = new s_entry();
+					temp -> type = $$ -> nodeType;
+					temp -> offset = ($1 -> place).second -> offset;
+					temp -> offset += (find -> offset);
+					temp -> size = find -> size;
+					$$ -> place = {$$ -> nodeLex,temp};
 				}
 			}
 			else{
@@ -685,16 +694,16 @@ multiplicative_expression
 				///
 			}
 			else if(s=="float"){
-				$$->nodeType="int";
+				$$->nodeType="float";
 				///
-				comp temp1 = get_temp_label("int");
+				comp temp1 = get_temp_label("float");
 				if(isInt($1->nodeType)){
-					comp temp2=get_temp_label("int");
+					comp temp2=get_temp_label("float");
 					emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
 					emit({"/real",NULL},temp2,$3 -> place,temp1);	
 				}
 				else if(isInt($3->nodeType)){
-					comp temp2=get_temp_label("int");
+					comp temp2=get_temp_label("float");
 					emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
 					emit({"/real",NULL},$1 -> place,temp2,temp1);
 				}
