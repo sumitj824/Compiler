@@ -1,6 +1,5 @@
-int arr[5];
 
-int binarySearch(int l, int r, int x)
+int binarySearch(int arr[],int l, int r, int x)
 {
     if (r >= l) {
         int mid = l + (r - l) / 2;
@@ -10,9 +9,9 @@ int binarySearch(int l, int r, int x)
             return mid;
 
         if (arr[mid] > x)
-            return binarySearch(l, mid - 1, x);
+            return binarySearch(arr,l, mid - 1, x);
 
-        return binarySearch(mid + 1, r, x);
+        return binarySearch(arr,mid + 1, r, x);
     }
 
 
@@ -20,7 +19,8 @@ int binarySearch(int l, int r, int x)
 }
 
 int main(void)
-{
+{   
+    int arr[5];
     int n = 5;
     int x = 10,index;
     arr[0]=1;
@@ -28,7 +28,7 @@ int main(void)
     arr[2]=10;
     arr[3]=15;
     arr[4]=16;
-    index = binarySearch(0, n - 1, x);
+    index = binarySearch(arr,0, n - 1, x);
     printf(index);
     return 0;
 }
