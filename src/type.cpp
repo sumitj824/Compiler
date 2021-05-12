@@ -27,6 +27,7 @@ bool isInt(string t)
     if(t=="signed int" || t=="signed long" || t=="signed long long" || t=="signed long long int" || t=="signed long int")return 1;
     if(t=="unsigned int" || t=="unsigned long" || t=="unsigned long long" || t=="unsigned long long int" || t=="unsigned long int")return 1;
     if(t=="short" || t=="short int" || t=="signed short" || t=="unsigned short" || t=="unsigned short int" || t=="signed short int")return 1;
+    if(t == "char") return 1;
     return 0;
 }
 
@@ -184,8 +185,8 @@ string addition(string t1,string t2)
         return "float";
     }
 
-    else if(t1=="char" && isInt(t2)) return "char";
-    else if(t2=="char" && isInt(t1)) return "char";
+    else if(t1=="char" && isInt(t2)) return "int";
+    else if(t2=="char" && isInt(t1)) return "int";
     else if(t1.back()=='*' && isInt(t2)) return t1;
     else if(t2.back()=='*' && isInt(t1)) return t2;
     else return "";
