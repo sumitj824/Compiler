@@ -160,7 +160,6 @@ void generate_code(){
                 push_line("b func_end");
                 load_prev_registers();
             }
-            curr_Func = "__global";
         }
 
         if(instruction == "="){
