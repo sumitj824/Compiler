@@ -221,59 +221,61 @@ primary_expression
 	| STRING_LITERAL										{$$=make_node($1);
 		///
 		$$ -> nodeType = "char*";
-		if(curr_table == GST){
-			 value_in_global_variables = string($1);
-		}
-		else{
-			comp temp = get_temp_label("char*");
-			emit({"string_literal",NULL},{string($1),NULL},{"",NULL},temp);
-			$$->place={string($1),NULL};
-		}
+		// if(curr_table == GST){
+		// 	 value_in_global_variables = string($1);
+		// }
+		// else{
+		// 	comp temp = get_temp_label("char*");
+		// 	emit({"string_literal",NULL},{string($1),NULL},{"",NULL},temp);
+		// 	$$->place={string($1),NULL};
+		// }
 		inside_string_literal = 1;
 		if(1){
 			comp temp = get_temp_label2("char*");
 			// 
 			string sq = string($1);
-			sq.pop_back();
-			sq.pop_back();
-			for(int j = 0; j < sq.length() - 2;j++){
-				sq[i] = sq[i + 2];
+			string s="";
+			for(int j=0;j<sq.length();j++){
+				if(sq[j]=='\\'){
+					if(j+1<sq.length() && sq[j+1]=='n')s+=sq[j];
+				}else s+=sq[j];
 			}
-			sq.pop_back();
-			sq.pop_back();
-			emit({"string_literal_handle",NULL},{sq,NULL},{"",NULL},temp);
+			
+			// cout<<sq<<endl;
+			emit({"string_literal_handle",NULL},{s,NULL},{"",NULL},temp);
 			$$->place = temp;
+			$$->nodeLex=temp.first;
 		}
-		else{
-			string s = string($1);
-			for(int k = 0; k < s.length(); k++){
-				if(s[k] != '\\'){
-					comp temp = get_temp_label("int");
-					emit({"store_int",NULL},{to_string((int)s[k]),NULL},{"",NULL},temp);
-					emit({"string_literal_local_char",NULL},temp,{"",NULL},{"",NULL});
-				}
-				else{
-					if(k + 1 < s.length()){
-						if(s[k+1] == 'n'){
-							comp temp = get_temp_label("int");
-							emit({"store_int",NULL},{to_string(10),NULL},{"",NULL},temp);
-							emit({"string_literal_local_char",NULL},temp,{"",NULL},{"",NULL});
-							k++;
-						}
-						else{
-							comp temp = get_temp_label("int");
-							emit({"store_int",NULL},{to_string((int)s[k]),NULL},{"",NULL},temp);
-							emit({"string_literal_local_char",NULL},temp,{"",NULL},{"",NULL});
-						}
-					}
-					else{
-						comp temp = get_temp_label("int");
-						emit({"store_int",NULL},{to_string((int)s[k]),NULL},{"",NULL},temp);
-						emit({"string_literal_local_char",NULL},temp,{"",NULL},{"",NULL});
-					}
-				}
-			}
-		}
+		// else{
+		// 	string s = string($1);
+		// 	for(int k = 0; k < s.length(); k++){
+		// 		if(s[k] != '\\'){
+		// 			comp temp = get_temp_label("int");
+		// 			emit({"store_int",NULL},{to_string((int)s[k]),NULL},{"",NULL},temp);
+		// 			emit({"string_literal_local_char",NULL},temp,{"",NULL},{"",NULL});
+		// 		}
+		// 		else{
+		// 			if(k + 1 < s.length()){
+		// 				if(s[k+1] == 'n'){
+		// 					comp temp = get_temp_label("int");
+		// 					emit({"store_int",NULL},{to_string(10),NULL},{"",NULL},temp);
+		// 					emit({"string_literal_local_char",NULL},temp,{"",NULL},{"",NULL});
+		// 					k++;
+		// 				}
+		// 				else{
+		// 					comp temp = get_temp_label("int");
+		// 					emit({"store_int",NULL},{to_string((int)s[k]),NULL},{"",NULL},temp);
+		// 					emit({"string_literal_local_char",NULL},temp,{"",NULL},{"",NULL});
+		// 				}
+		// 			}
+		// 			else{
+		// 				comp temp = get_temp_label("int");
+		// 				emit({"store_int",NULL},{to_string((int)s[k]),NULL},{"",NULL},temp);
+		// 				emit({"string_literal_local_char",NULL},temp,{"",NULL},{"",NULL});
+		// 			}
+		// 		}
+		// 	}
+		// }
 		 
 		$$->nextlist={};
 		///

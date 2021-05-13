@@ -112,16 +112,20 @@ void generate_code(){
 
         if(instruction == "string_literal_handle"){
             local_string_char_vec.clear();
+            string temp_func =curr_Func;
             curr_Func = ".data";
-            push_line(emitted_code[i].result.first + " : .asciiz \"" + emitted_code[i].op_1.first + "\"");
+            push_line(emitted_code[i].result.first + " : .asciiz " + emitted_code[i].op_1.first);
             global_variables_completed.insert(emitted_code[i].result.first);
-            curr_Func = "__global";
+            curr_Func = temp_func;
         }
         
         if(instruction == "CALL_FUNC"){
-            if(call_func == "prints"){
+            string call_func2 = emitted_code[i].op_1.first;
+            
+            if(call_func2 == "prints"){
                 argument_label = parameters[0].op_1.first;
                 prints_implementation();
+                parameters.clear();
             }
             else{
                 string call_func = emitted_code[i].op_1.first;
@@ -313,7 +317,7 @@ void generate_code(){
             }
         }
 
-        if(instruction == "FUNC_END"){
+        if(instruction == "FUNC_END" && curr_Func!="main"){
             int size = funcSize[curr_Func];
             push_line("add $sp, $sp, " + to_string(size));
             push_line("b func_end");
