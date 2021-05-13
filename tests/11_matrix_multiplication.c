@@ -45,7 +45,7 @@ void display(int result[][9], int row, int column) {
 }
 
 int main() {
-    int first[9][9], second[9][9], result[9][9], r1, c1, r9, c9;
+   int first[9][9], second[9][9], result[9][9], r1, c1, r9, c9;
    r1=9;
    r9=9;
    c1=9;

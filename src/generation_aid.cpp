@@ -77,16 +77,17 @@ void load_array_element0(comp q){ // to load array_element in $t0
     string name = get_array_name(q.first);
     if(is_parameter(name)){
         push_line("add $t0, $sp, " + to_string(q.second -> offset));
-        push_line("lw $t1, ($t0)");
+        push_line("lw $t1, 0($t0)");
         push_line("lw $t0, " + to_string(q.second -> size) + "($sp)");
         push_line("add $t1, $t1, $t0");
         push_line("move $t0, $t1");
     }
     else{
         if(temp_global_set.count(q.second)){
-            push_line("lw $t1, " + to_string(q.second -> size) + "($sp)");
-            push_line("add $t1, $gp, " + name);
-            push_line("move $t0, $t1");
+            push_line("lw $t2, " + to_string(q.second -> size) + "($sp)");
+            push_line("la $t3, " + name);
+            push_line("add $t3, $t3, $t2");
+            push_line("move $t0, $t3");
         }
         else{
             push_line("add $t0, $sp, " + to_string(q.second -> offset));
@@ -101,7 +102,7 @@ void load_array_element1(comp q){ // to load array_element in $t1
     string name = get_array_name(q.first);
     if(is_parameter(name)){
         push_line("add $t1, $sp, " + to_string(q.second -> offset));
-        push_line("lw $t2, ($t1)");
+        push_line("lw $t2, 0($t1)");
         push_line("lw $t1, " + to_string(q.second -> size) + "($sp)");
         push_line("add $t2, $t2, $t1");
         push_line("move $t1, $t2");
@@ -109,8 +110,9 @@ void load_array_element1(comp q){ // to load array_element in $t1
     else{
         if(temp_global_set.count(q.second)){
             push_line("lw $t2, " + to_string(q.second -> size) + "($sp)");
-            push_line("add $t2, $gp, " + name);
-            push_line("move $t1, $t2");
+            push_line("la $t3, " + name);
+            push_line("add $t3, $t3, $t2");
+            push_line("move $t1, $t3");
         }
         else{
             push_line("add $t1, $sp, " + to_string(q.second -> offset)); // t1 -> base_address of a
@@ -125,7 +127,7 @@ void load_array_element2(comp q){ // to load array_element in $t2
     string name = get_array_name(q.first);
     if(is_parameter(name)){
         push_line("add $t2, $sp, " + to_string(q.second -> offset));
-        push_line("lw $t3, ($t2)");
+        push_line("lw $t3, 0($t2)");
         push_line("lw $t2, " + to_string(q.second -> size) + "($sp)");
         push_line("add $t3, $t3, $t2");
         push_line("move $t2, $t3");
@@ -133,8 +135,9 @@ void load_array_element2(comp q){ // to load array_element in $t2
     else{
         if(temp_global_set.count(q.second)){
             push_line("lw $t3, " + to_string(q.second -> size) + "($sp)");
-            push_line("add $t3,$gp, " + name);
-            push_line("move $t2, $t3");
+            push_line("la $t4, " + name);
+            push_line("add $t4, $t4, $t3");
+            push_line("move $t2, $t4");
         }
         else{
             push_line("add $t2, $sp, " + to_string(q.second -> offset));
@@ -172,7 +175,7 @@ void load_normal_element0(comp q){
         load_array_element0(q);
     }
     else{
-        if(global_entry_set.count(q.second)){
+        if(temp_global_set.count(q.second)){
             push_line("la $t0, " + q.first);
         }
         else push_line("add $t0, $sp, " + to_string(q.second -> offset));
@@ -189,7 +192,7 @@ void load_normal_element1(comp q){
         load_array_element1(q);
     }
     else{
-        if(global_entry_set.count(q.second)){
+        if(temp_global_set.count(q.second)){
             push_line("la $t1, " + q.first);
         }
         else push_line("add $t1, $sp, " + to_string(q.second -> offset));
@@ -206,7 +209,7 @@ void load_normal_element2(comp q){
         load_array_element2(q);
     }
     else{
-        if(global_entry_set.count(q.second)){
+        if(temp_global_set.count(q.second)){
             push_line("la $t2, " + q.first);
         }
         else push_line("add $t2, $sp, " + to_string(q.second -> offset));

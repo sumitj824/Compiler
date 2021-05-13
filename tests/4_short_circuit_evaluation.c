@@ -21,7 +21,7 @@ int main(){
    if(a && func1() ) //this should not call  func2
    {
        
-       printf(4);
+      printf(4);
    }
    else
    {
