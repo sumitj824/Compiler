@@ -83,7 +83,7 @@ void generate_code(){
                         push_line("add $t0, $sp, $t0");
                         push_line("lw $t1, 0($t0)");
                         push_line("sw $t1, " + to_string(temp_off) + "($s0)");
-                        temp_off += get_size(type);
+                       
                     }
                     else{
                         load_normal_element1(parameters[i].op_1);
