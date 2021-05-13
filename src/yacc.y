@@ -1618,6 +1618,7 @@ init_declarator
 		accept2 = 0;
 	}
 	| declarator '=' initializer							{$$=make_node("init_declarator",$1,$3);
+		int temp_addr = (int)emitted_code.size();
 		s_entry * find = lookup_in_curr($1->nodeLex);
 		if(array_case2 && initializer_list_size == 0){
 			yyerror("Error : unexpected initialisation of array.");
@@ -1705,6 +1706,7 @@ init_declarator
 					emit({"=",NULL},$3->place,{"",NULL},$1->place);
 				}
 			}
+			backpatch($3->nextlist,temp_addr);
 		}
 		else{
 			yyerror("Error : unexpected initialisation of variable.");
@@ -2402,8 +2404,9 @@ compound_statement
 		curr_table = parent[curr_table];
 		curr_array_arg_table = parent_array_arg_table[curr_array_arg_table];
 		curr_struct_table = struct_parent[curr_struct_table];
+		$$->nextlist = $3->nextlist;
 	}
-	| M10 '{' declaration_list statement_list '}'   {$$=make_node("compound_statement",$3,$4);
+	| M10 '{' declaration_list M statement_list '}'   {$$=make_node("compound_statement",$3,$5);
 		if(symTable_type[curr_table] == "function"){
 			printSymTable(curr_table,funcName,"function",st_line_no.back(),yylineno);
 			st_line_no.pop_back();
@@ -2415,9 +2418,10 @@ compound_statement
 		curr_table = parent[curr_table];
 		curr_array_arg_table = parent_array_arg_table[curr_array_arg_table];
 		curr_struct_table = struct_parent[curr_struct_table];
-		$$->nextlist = $4->nextlist;
-		$$->breaklist = $4->breaklist;
-		$$->continuelist = $4->continuelist;
+		backpatch($3->nextlist,$4);
+		$$->nextlist = $5->nextlist;
+		$$->breaklist = $5->breaklist;
+		$$->continuelist = $5->continuelist;
 	}
 	;
 
