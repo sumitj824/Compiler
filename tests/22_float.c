@@ -10,9 +10,13 @@ int main(){
     x=x*y;
     y=100*y;
     print_float(x);
+    prints(" ");
     print_float(y);
+    prints(" ");
     print_float(arr[0][0]);
+    prints(" ");
     print_float(arr[0][1]);
+    prints(" ");
     print_float(c);
     
 

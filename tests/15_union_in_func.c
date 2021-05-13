@@ -15,6 +15,7 @@ int main(){
     x.a=1;
     y=func(x);
     printf(x.a);//1
+    prints("\n");
     printf(y.b);//4
 
     return 0;
