@@ -31,7 +31,7 @@ void newtonRaphson(float x)
 		x = x - h;
 	}
 	prints("The value of the root is : " );
-    print_float(x);
+    print_float(x); //-1.000
 
     return ;
 }

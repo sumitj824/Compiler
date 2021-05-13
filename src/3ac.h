@@ -6,11 +6,6 @@
 #include "symtable.h"
 using namespace std;
 
-// typedef struct{
-//     string name;
-//     unsigned long long int offset;
-//     int size;
-// } comp;
 
 typedef pair<string, s_entry *> comp;
 
@@ -31,3 +26,4 @@ void backpatch(list<int> l,int to_addr);
 comp get_temp_label(string type);
 comp get_temp_label2(string type);
 void print_code();
+string re_new();

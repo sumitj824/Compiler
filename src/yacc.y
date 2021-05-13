@@ -2759,12 +2759,18 @@ function_definition
 		var_type = "";
 		return_type = "";
 		accept2 = 0;
+		if(re_new()!=""){
+			yyerror("Error: Use of undeclared label in the function.");
+		}
 	}
 	| M14 compound_statement                       {$$=make_node("function_definition",$1,$2);	
 		emit({"FUNC_END",NULL},{funcName,NULL},{"",NULL},{"",NULL});
 		backpatch($2->nextlist,(int)emitted_code.size()-1);
 		funcName = "";
 		funcType = "";
+		if(re_new()!=""){
+			yyerror("Error: Use of undeclared label in the function.");
+		}
 	}
 	| declarator M3 M4 declaration_list compound_statement M4                        {$$=make_node("function_definition",$1,$4,$5);
 		int x= 0;
@@ -2817,12 +2823,18 @@ function_definition
 		tmpstr = "";
 		tmp_map.clear();
 		accept2 = 0;
+		if(re_new()!=""){
+			yyerror("Error: Use of undeclared label in the function.");
+		}
 	}
 	| M15 compound_statement                                              {$$=make_node("function_definition",$1,$2);
 		emit({"FUNC_END",NULL},{funcName,NULL},{"",NULL},{"",NULL});
 		backpatch($2->nextlist,(int)emitted_code.size()-1);
 		funcName = "";
 		funcType = "";
+		if(re_new()!=""){
+			yyerror("Error: Use of undeclared label in the function.");
+		}
 	}
 	;
 

@@ -57,6 +57,17 @@ void print_code(){
     }
 }
 
+string re_new(){
+    for(auto x:label_list_map){
+        if(label_map.find(x.first)==label_map.end()){
+            return "error";
+        }
+    }
+    label_map.clear();
+    label_list_map.clear();
+    return "";
+}
+
 
 
 

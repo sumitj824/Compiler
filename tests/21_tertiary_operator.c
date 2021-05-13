@@ -6,7 +6,7 @@ int main() {
       prints("tertiary operator working");
    }else
    {
-      prints('not working');
+      prints("not working");
    }
    
    
