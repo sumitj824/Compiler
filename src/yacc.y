@@ -286,7 +286,10 @@ primary_expression
 
 
 postfix_expression
-	: primary_expression       								{$$=$1;}
+	: primary_expression       								{$$=$1;
+			$$->is_logical=0;
+		is_logical=0;
+	}
 	| postfix_expression '[' expression ']'					{$$=make_node("postfix_expression", $1, $3);
 				$$->init = ($1->init && $3->init);
 				string s=postfix($1->nodeType,1);
@@ -521,7 +524,11 @@ argument_expression_list
 	;
 
 unary_expression
-	: postfix_expression									{$$=$1;}
+	: postfix_expression									{$$=$1;
+	
+		$$->is_logical=0;
+		is_logical=0;
+	}
 	| INC_OP unary_expression								{$$=make_node($1,$2);
 			$$->init=$2->init;
 		    string s=postfix($2->nodeType,3);
@@ -730,7 +737,11 @@ unary_operator
 	;
 
 cast_expression
-	: unary_expression									   {$$=$1;}
+	: unary_expression									   {$$=$1;
+			$$->is_logical=0;
+		is_logical=0;
+	
+	}
 	| '(' type_name ')' cast_expression                    {$$=make_node("cast_expression", $2, $4);
 				string s = $2->nodeType;
 				int num = 0;
@@ -765,7 +776,10 @@ cast_expression
 	;
 
 multiplicative_expression
-	: cast_expression									   {$$=$1;}
+	: cast_expression									   {$$=$1;
+			$$->is_logical=0;
+		is_logical=0;
+	}
 	| multiplicative_expression '*' cast_expression        {$$=make_node("*", $1, $3);
 			string s=multiply($1->nodeType, $3->nodeType,'*');
 			if(s=="int"){
@@ -867,7 +881,11 @@ multiplicative_expression
 	;
 
 additive_expression
-	: multiplicative_expression								{$$=$1;}
+	: multiplicative_expression								{$$=$1;
+		$$->is_logical=0;
+		is_logical=0;
+	
+	}
 	| additive_expression '+' multiplicative_expression     {$$=make_node("+", $1, $3);
 		string s= addition($1->nodeType, $3->nodeType);
 		if(!s.empty()){
@@ -941,7 +959,10 @@ additive_expression
 	;
 
 shift_expression
-	: additive_expression									{$$=$1;}
+	: additive_expression									{$$=$1;
+			$$->is_logical=0;
+		is_logical=0;
+	}
 	| shift_expression LEFT_OP additive_expression		{$$=make_node("<<",$1,$3);
 		if(isInt($1->nodeType) && isInt($3->nodeType)) {
 			$$->nodeType= $1->nodeType;
@@ -979,7 +1000,10 @@ shift_expression
 	}
 	;
 relational_expression	
-	: shift_expression										{$$=$1;}
+	: shift_expression										{$$=$1;
+			$$->is_logical=0;
+		is_logical=0;
+	}
 	| relational_expression '<' shift_expression   {$$=make_node("<",$1,$3);
 		string s= relational($1->nodeType, $3->nodeType);
 		// cout<<"1 :"<<$1->nodeLex<<" 3: "<<$3->nodeLex<<endl;
@@ -1127,7 +1151,10 @@ relational_expression
 	;
 
 equality_expression
-	: relational_expression									{$$=$1;}
+	: relational_expression									{$$=$1;
+			$$->is_logical=0;
+		is_logical=0;
+	}
 	| equality_expression EQ_OP relational_expression       {$$=make_node("==",$1,$3);
 		string s= equality($1->nodeType, $3->nodeType);
 		if(!s.empty())
@@ -1205,7 +1232,10 @@ equality_expression
 	;
 
 and_expression
-	: equality_expression									       {$$=$1;}
+	: equality_expression									       {$$=$1;
+			$$->is_logical=0;
+			is_logical=0;
+	}
 	| and_expression '&' equality_expression                       {$$=make_node("&",$1,$3);
 		string s= bitwise($1->nodeType, $3->nodeType);
 		if(!s.empty())
@@ -1229,7 +1259,10 @@ and_expression
 	;
 
 exclusive_or_expression
-	: and_expression											    {$$=$1;}
+	: and_expression											    {$$=$1;
+		$$->is_logical=0;
+		is_logical=0;
+	}
 	| exclusive_or_expression '^' and_expression			{$$=make_node("^",$1,$3);
 		string s= bitwise($1->nodeType, $3->nodeType);
 		if(!s.empty())
@@ -1253,7 +1286,10 @@ exclusive_or_expression
 	;
 
 inclusive_or_expression
-	: exclusive_or_expression										{$$=$1;}
+	: exclusive_or_expression										{$$=$1;
+		$$->is_logical=0;
+		is_logical=0;
+	}
 	| inclusive_or_expression '|' exclusive_or_expression			{$$=make_node("|",$1,$3);
 		string s= bitwise($1->nodeType, $3->nodeType);
 		if(!s.empty())
@@ -1303,7 +1339,7 @@ logical_and_expression
 		$$->nodeType="bool";
 		$$->init= ($1->init&& $3->init);
 		///
-		if(is_logical == 0){
+		if($1->is_logical == 0){
 			emitted_code[$2-2].op_1 = $1->place;
 			$1->truelist.push_back($2-2);
 			$1->falselist.push_back($2-1);
@@ -1371,6 +1407,7 @@ question_mark
 
 N
 	: %empty 		{
+		// cout<<"fdaf "<<emitted_code.size()<<endl;
 		emit({"=",NULL},{"",NULL},{"",NULL},{"",NULL});
 		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 		$$ = (int)emitted_code.size();
@@ -1385,12 +1422,22 @@ conditional_expression
 		string type = "store_";
 		if(isInt($1->nodeType)) type+="int";
 		else type+="float";
+		if(isInt($1->nodeType)){
 		emit({type,NULL},{"1",NULL},{"",NULL},temp2);
 		emit({"=",NULL},temp2,{"",NULL},temp);
 		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 		emit({type,NULL},{"0",NULL},{"",NULL},temp2);
 		emit({"=",NULL},temp2,{"",NULL},temp);
 		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
+		}
+		else if(isFloat($1->nodeType)){
+		emit({type,NULL},{"1",NULL},{"",NULL},temp2);
+		emit({"float_=",NULL},temp2,{"",NULL},temp);
+		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
+		emit({type,NULL},{"0",NULL},{"",NULL},temp2);
+		emit({"float_=",NULL},temp2,{"",NULL},temp);
+		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
+		}
 		backpatch($1->truelist,n);
 		backpatch($1->falselist,n+3);
 		$$->nextlist.push_back(n+2);
@@ -2531,7 +2578,7 @@ iteration_statement
 	//: WHILE '(' M expression ')' N1 statement N2                                      	{$$=make_node("WHILE (expr) stmt",$4,$7);
 	///
 		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
-		if(is_logical == 0){
+		if($4->is_logical == 0){
 			emitted_code[$6-2].op_1 = $4->place;
 			//emitted_code[$6-2].result = $6;
 			$4->truelist.push_back($6-2);
