@@ -673,7 +673,7 @@ void generate_code(){
             }
             push_line("lwc1 $f0, 0($t0)");
             push_line("lwc1 $f1, 0($t1)");
-            push_line("c.gt.s $f0, $f1");
+            push_line("c.lt.s $f1, $f0");
             push_line("cfc1 $t5,$25");
             push_line("andi $t5, 1");
             push_line("sw $t5, 0($t2)");
@@ -700,7 +700,7 @@ void generate_code(){
             else{
                 load_normal_element2(res);
             }
-            push_line("lwc1 $f0, 0($t0)");
+            push_line("lwc1 $f0, 0($t0)"); 
             push_line("lwc1 $f1, 0($t1)");
             push_line("c.le.s $f0, $f1");
             push_line("cfc1 $t5,$25");
@@ -731,7 +731,7 @@ void generate_code(){
             }
             push_line("lwc1 $f0, 0($t0)");
             push_line("lwc1 $f1, 0($t1)");
-            push_line("c.ge.s $f0, $f1");
+            push_line("c.le.s $f1, $f0");
             push_line("cfc1 $t5,$25");
             push_line("andi $t5, 1");
             push_line("sw $t5, 0($t2)");

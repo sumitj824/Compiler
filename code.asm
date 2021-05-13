@@ -27,7 +27,7 @@ func_end :
 main : 
 
        li $t1, 80
-       add $t1, $t1, 44
+       add $t1, $t1, 68
        add $sp, $sp, $t1
        sub $sp, $sp, 80
        sw $ra, 0($sp)
@@ -53,51 +53,64 @@ main :
        add $sp, $sp, 80
        sub $sp, $sp, $t1
        
-       # store_float 2.000000  _t1
-       li.s $f0, 2.000000
+       # store_float 2.100000  _t1
+       li.s $f0, 2.100000
        add $t1, $sp, 0
        swc1 $f0, 0($t1)
        
-       # realtoint _t1  _t3
+       # = _t1  a
        add $t0, $sp, 0
        add $t2, $sp, 8
-       lwc1 $f0, 0($t0)
-       cvt.w.s $f1, $f0
-       mfc1 $t3, $f1 
-       sw $t3, 0($t2)
-       
-       # = _t3  a
-       add $t0, $sp, 8
-       add $t2, $sp, 16
        lw $t3, 0($t0)
        sw $t3, 0($t2)
        
-       # param a  
+       # store_float 1.100000  _t3
+       li.s $f0, 1.100000
+       add $t1, $sp, 12
+       swc1 $f0, 0($t1)
        
-       # CALL_FUNC printf  _t6
+       # = _t3  b
+       add $t0, $sp, 12
+       add $t2, $sp, 20
+       lw $t3, 0($t0)
+       sw $t3, 0($t2)
+       
+       # /real a b _t5
+       
+       # = _t5  b
+       add $t0, $sp, 28
+       add $t2, $sp, 20
+       lw $t3, 0($t0)
+       sw $t3, 0($t2)
+       
+       # realtoreal b  _t7
+       
+       # param d  
+       
+       # CALL_FUNC printf  _t10
        li $t1, 80
        add $t1, $t1, 20
        sub $s0, $sp, $t1
-       add $t0, $sp, 16
+       add $t0, $sp, 24
        lw $t1, 0($t0)
        sw $t1, 0($s0)
        move $sp, $s0
        jal printf
-       add $t2, $sp, 24
+       add $t2, $sp, 48
        sw $v0, 0($t2)
        
-       # store_int 0  _t8
+       # store_int 0  _t12
        li $t0, 0
-       add $t1, $sp, 32
+       add $t1, $sp, 56
        sw $t0, 0($t1)
        
-       # RETURN _t8  
+       # RETURN _t12  
        li $a0, 0
        li $v0, 10
        syscall
        
        # FUNC_END main  
-       add $sp, $sp, 44
+       add $sp, $sp, 68
        b func_end
 
 
