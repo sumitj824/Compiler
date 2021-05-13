@@ -230,8 +230,19 @@ primary_expression
 			$$->place={string($1),NULL};
 		}
 		inside_string_literal = 1;
-		if(curr_table == GST){
-			global_val_in_string_literal = string($1);
+		if(1){
+			comp temp = get_temp_label2("char*");
+			// 
+			string sq = string($1);
+			sq.pop_back();
+			sq.pop_back();
+			for(int j = 0; j < sq.length() - 2;j++){
+				sq[i] = sq[i + 2];
+			}
+			sq.pop_back();
+			sq.pop_back();
+			emit({"string_literal_handle",NULL},{sq,NULL},{"",NULL},temp);
+			$$->place = temp;
 		}
 		else{
 			string s = string($1);
@@ -2916,6 +2927,9 @@ int main(int argc, char *argv[]){
     make_symTable_entry("read_float","float",0,0);
     funcMap.insert({"read_float",""});
     funcSize.insert({"read_float",20});
+	make_symTable_entry("prints","void",0,0);
+	funcMap.insert({"prints","char*"});
+	funcSize.insert({"prints",20});
 	complete[""] = 1;
 	if(argc==1)
 	{

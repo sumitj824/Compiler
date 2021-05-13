@@ -2,6 +2,7 @@
 
 map <string, vector <string>> assembly_code;
 map<int, string> basicBlock;
+string argument_label = "";
 
 void push_line(string s){
     assembly_code[curr_Func].push_back(s);
@@ -362,4 +363,10 @@ int findNext(int addr){
         addr = stoi(emitted_code[addr].result.first);
     }
     return addr;
+}
+
+void prints_implementation(){
+    push_line("la $a0, " + argument_label);
+    push_line("li $v0, 4");
+    push_line("syscall");
 }

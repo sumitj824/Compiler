@@ -109,84 +109,102 @@ void generate_code(){
             }
             local_string_char_vec.clear();
         }
+
+        if(instruction == "string_literal_handle"){
+            local_string_char_vec.clear();
+            curr_Func = ".data";
+            push_line(emitted_code[i].result.first + " : .asciiz \"" + emitted_code[i].op_1.first + "\"");
+            global_variables_completed.insert(emitted_code[i].result.first);
+            curr_Func = "__global";
+        }
         
         if(instruction == "CALL_FUNC"){
-            string call_func = emitted_code[i].op_1.first;
-            int size = funcSize[call_func];
-            // copy the previous stack pointer to s0
-            push_line("li $t1, " + to_string(80));
-            push_line("add $t1, $t1, " + to_string(size));
-            push_line("sub $s0, $sp, $t1");
-            // move the stack_pointer to func_size + space_required_for_registers
-            // TODO : test whether value of pointer is copied or not in case of a parameter.
-            int temp_off = 0;
-            for(int i = 0;i < parameters.size();i++){
-                s_entry * temp = parameters[i].op_1.second;
-                string type = temp -> type;
-                if(type.back() == '*'){
-                    if(is_parameter(parameters[i].op_1.first)){
-                        push_line("li $t0, " + to_string(temp -> offset));
-                        push_line("add $t0, $sp, $t0");
-                        push_line("lw $t1, 0($t0)");
-                        push_line("sw $t1, " + to_string(temp_off) + "($s0)");
-                       
+            if(call_func == "prints"){
+                argument_label = parameters[0].op_1.first;
+                prints_implementation();
+            }
+            else{
+                string call_func = emitted_code[i].op_1.first;
+                int size = funcSize[call_func];
+                // copy the previous stack pointer to s0
+                push_line("li $t1, " + to_string(80));
+                push_line("add $t1, $t1, " + to_string(size));
+                push_line("sub $s0, $sp, $t1");
+                // move the stack_pointer to func_size + space_required_for_registers
+                
+                // TODO : test whether value of pointer is copied or not in case of a parameter.
+                
+            
+                int temp_off = 0;
+
+                for(int i = 0;i < parameters.size();i++){
+                    s_entry * temp = parameters[i].op_1.second;
+                    string type = temp -> type;
+                    if(type.back() == '*'){
+                        if(is_parameter(parameters[i].op_1.first)){
+                            push_line("li $t0, " + to_string(temp -> offset));
+                            push_line("add $t0, $sp, $t0");
+                            push_line("lw $t1, 0($t0)");
+                            push_line("sw $t1, " + to_string(temp_off) + "($s0)");
+                        
+                        }
+                        else{
+                            load_normal_element1(parameters[i].op_1);
+                            push_line("sw $t1, " + to_string(temp_off) + "($s0)");
+                        }
+                        temp_off += get_size(type);
                     }
                     else{
-                        load_normal_element1(parameters[i].op_1);
-                        push_line("sw $t1, " + to_string(temp_off) + "($s0)");
+                        comp op1 = parameters[i].op_1;
+                        if(is_array_element(op1.first)){
+                            load_array_element0(op1);
+                        }
+                        else{
+                            load_normal_element0(op1);
+                        }
+                        string type = (op1.second) -> type;
+                        if(is_struct(type)){
+                            symTable *temp = id_to_struct[type];
+                            push_line("add $t0, $s0, " + to_string(temp_off));
+                            push_line("add $t1, $sp, " + to_string((op1.second) -> offset));
+                            for(auto i : (*temp)){
+                                s_entry * t = i.second;
+                                push_line("lw $t2, " + to_string(t -> offset) + "($t1)");
+                                push_line("sw $t2, " + to_string(t -> offset) + "($t0)");
+                            }
+                        }
+                        else{
+                            push_line("lw $t1, 0($t0)");
+                            push_line("sw $t1, " + to_string(temp_off) + "($s0)");
+                        }
+                        temp_off += get_size(type);
                     }
-                    temp_off += get_size(type);
+                }
+                push_line("move $sp, $s0");
+                // jump to function called.
+                push_line("jal " + call_func);
+                comp res = emitted_code[i].result;
+                if(is_array_element(res.first)){
+                    load_array_element2(res);
                 }
                 else{
-                    comp op1 = parameters[i].op_1;
-                    if(is_array_element(op1.first)){
-                        load_array_element0(op1);
-                    }
-                    else{
-                        load_normal_element0(op1);
-                    }
-                    string type = (op1.second) -> type;
-                    if(is_struct(type)){
-                        symTable *temp = id_to_struct[type];
-                        push_line("add $t0, $s0, " + to_string(temp_off));
-                        push_line("add $t1, $sp, " + to_string((op1.second) -> offset));
-                        for(auto i : (*temp)){
-                            s_entry * t = i.second;
-                            push_line("lw $t2, " + to_string(t -> offset) + "($t1)");
-                            push_line("sw $t2, " + to_string(t -> offset) + "($t0)");
-                        }
-                    }
-                    else{
-                        push_line("lw $t1, 0($t0)");
-                        push_line("sw $t1, " + to_string(temp_off) + "($s0)");
-                    }
-                    temp_off += get_size(type);
+                    load_normal_element2(res);
                 }
-            }
-            push_line("move $sp, $s0");
-            // jump to function called.
-            push_line("jal " + call_func);
-            comp res = emitted_code[i].result;
-            if(is_array_element(res.first)){
-                load_array_element2(res);
-            }
-            else{
-                load_normal_element2(res);
-            }
-            parameters.clear();
-            string type = (res.second) -> type;
-            if(is_struct(type)){
-                symTable *temp = id_to_struct[type];
-                for(auto i : (*temp)){
-                    s_entry * t = i.second;
-                    push_line("add $t3, $t2, " + to_string(t -> offset));
-                    push_line("add $t4, $v0, " + to_string(t -> offset));
-                    push_line("lw $t5, 0($t4)");
-                    push_line("sw $t5, 0($t3)");
+                parameters.clear();
+                string type = (res.second) -> type;
+                if(is_struct(type)){
+                    symTable *temp = id_to_struct[type];
+                    for(auto i : (*temp)){
+                        s_entry * t = i.second;
+                        push_line("add $t3, $t2, " + to_string(t -> offset));
+                        push_line("add $t4, $v0, " + to_string(t -> offset));
+                        push_line("lw $t5, 0($t4)");
+                        push_line("sw $t5, 0($t3)");
+                    }
                 }
-            }
-            else{
-                push_line("sw $v0, 0($t2)");
+                else{
+                    push_line("sw $v0, 0($t2)");
+                }
             }
         }
 

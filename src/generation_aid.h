@@ -7,6 +7,7 @@ extern map<int, string> basicBlock;
 
 extern vector <quad> parameters;
 extern set<s_entry*> global_entry_set;
+extern string argument_label;
 
 void push_line(string s);
 
@@ -37,3 +38,5 @@ void print_assembly_code();
 void formBasicBlocks();
 int findNext(int addr);
 void library_function_implementation();
+
+void prints_implementation();
