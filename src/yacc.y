@@ -2778,6 +2778,15 @@ int main(int argc, char *argv[]){
 	make_symTable_entry("printf","void",0,0);
 	funcMap.insert({"printf","int"});
 	funcSize.insert({"printf",20});
+	make_symTable_entry("print_float","void",0,0);
+    funcMap.insert({"print_float",""});
+    funcSize.insert({"print_float",20});
+    make_symTable_entry("read_int","int",0,0);
+    funcMap.insert({"read_int",""});
+    funcSize.insert({"read_int",20});
+    make_symTable_entry("read_float","float",0,0);
+    funcMap.insert({"read_float",""});
+    funcSize.insert({"read_float",20});
 	complete[""] = 1;
 	if(argc==1)
 	{

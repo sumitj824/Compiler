@@ -18,22 +18,7 @@ void generate_code(){
     //     }
     //     push_line(i.first + " :");
     // }
-    load_prev_registers();
-    curr_Func = "printf";
-    int size = funcSize[curr_Func];
-    push_line("li $t1, " + to_string(80));
-    push_line("add $t1, $t1, " + to_string(size));
-    push_line("add $sp, $sp, $t1");
-    save_all_registers();
-    push_line("sub $sp, $sp, $t1");
-    push_line("lw $t0, 0($sp)");
-    push_line("li $v0, 1");
-    push_line("move $a0, $t0");
-    push_line("syscall");
-    push_line("li $v0, 0");
-    push_line("add $sp, $sp, 20");
-    push_line("b func_end");
-    curr_Func = "__global";
+    library_function_implementation();
     formBasicBlocks();
     for(int i = 0;i < emitted_code.size();i++){
         if(basicBlock.find(i)!=basicBlock.end()){

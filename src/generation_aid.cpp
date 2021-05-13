@@ -7,6 +7,64 @@ void push_line(string s){
     assembly_code[curr_Func].push_back(s);
 }
 
+void library_function_implementation(){
+    load_prev_registers();
+    curr_Func = "printf";
+    int size = funcSize[curr_Func];
+    push_line("li $t1, " + to_string(80));
+    push_line("add $t1, $t1, " + to_string(size));
+    push_line("add $sp, $sp, $t1");
+    save_all_registers();
+    push_line("sub $sp, $sp, $t1");
+    push_line("lw $t0, 0($sp)");
+    push_line("li $v0, 1");
+    push_line("move $a0, $t0");
+    push_line("syscall");
+    push_line("li $v0, 0");
+    push_line("add $sp, $sp, 20");
+    push_line("b func_end");
+    curr_Func = "print_float";
+    size = funcSize[curr_Func];
+    push_line("li $t1, " + to_string(80));
+    push_line("add $t1, $t1, " + to_string(size));
+    push_line("add $sp, $sp, $t1");
+    save_all_registers();
+    push_line("sub $sp, $sp, $t1");
+    push_line("lwc1 $f12, 0($sp)");
+    push_line("li $v0, 2");
+    push_line("syscall");
+    push_line("li $v0, 0");
+    push_line("add $sp, $sp, 20");
+    push_line("b func_end");
+    curr_Func = "read_int";
+    size = funcSize[curr_Func];
+    push_line("li $t1, " + to_string(80));
+    push_line("add $t1, $t1, " + to_string(size));
+    push_line("add $sp, $sp, $t1");
+    save_all_registers();
+    push_line("sub $sp, $sp, $t1");
+    push_line("li $v0, 5");
+    push_line("syscall");
+    push_line("add $sp, $sp, 20");
+    push_line("b func_end");
+    curr_Func = "read_float";
+    size = funcSize[curr_Func];
+    push_line("li $t1, " + to_string(80));
+    push_line("add $t1, $t1, " + to_string(size));
+    push_line("add $sp, $sp, $t1");
+    save_all_registers();
+    push_line("sub $sp, $sp, $t1");
+    push_line("li $v0, 6");
+    push_line("syscall");
+    push_line("mfc1 $t0, $f0");
+    push_line("move $v0, $t0");
+    push_line("add $sp, $sp, 20");
+    push_line("b func_end");
+    curr_Func = "__global";
+}
+
+
+
 void print_assembly_code(){
     for(auto a : assembly_code){
         if(a.first == "__global") continue;
