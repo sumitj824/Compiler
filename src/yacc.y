@@ -30,6 +30,8 @@ int struct_count = 0;
 int accept = 0;
 int array_case2 = 0;
 int in_param = 0;
+int in_initializer_list=0;
+string val_in_global_initializer_list ="";
 int simple_block = 0;
 int is_union2 = 0;
 string param_names = "";
@@ -81,7 +83,7 @@ string value_in_global_variables = "";
 
 
 %type <num> and_operator or_operator question_mark M N N1 N2
-%type <ptr> M2 M3 M4 M5 M6 M7 M8 M9 M10 M11 M12 M13 M14 M15
+%type <ptr> M2 M3 M4 M5 M6 M7 M8 M9 M10 M11 M12 M13 M14 M15 M16
 %type <str> assignment_operator
 %type <ptr> primary_expression postfix_expression argument_expression_list unary_expression unary_operator cast_expression multiplicative_expression additive_expression 
 %type <ptr> shift_expression relational_expression equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
@@ -169,16 +171,20 @@ primary_expression
 		$$->init = 1;
 		///
 		$$->nextlist={};
-
-		if(curr_table == GST){
-			 value_in_global_variables = to_string($$->ival);
+		
+		if(!in_param){
+		if(curr_table == GST && (!in_initializer_list)){
+			value_in_global_variables = to_string($$->ival);
+			comp temp = get_temp_label("int");
+			emit({"store_int",NULL},{to_string($$ -> ival),NULL},{"",NULL},temp);
+			$$->place=temp;
+			
 		}
 		else{
-			if(!in_param){
 				comp temp = get_temp_label("int");
 				emit({"store_int",NULL},{to_string($$ -> ival),NULL},{"",NULL},temp);
 				$$->place=temp;
-			}
+		}
 		}
 		///
 
@@ -531,7 +537,7 @@ unary_expression
 	}
 	| unary_operator cast_expression						{$$=make_node("unary_expression",$1,$2);
 			$$->init=$2->init;
-			
+			$$->ival=($1->ival)*($2->ival);
 		    string s=unary($2->nodeType,$1->name);
 			if(!s.empty())
 			{
@@ -602,25 +608,35 @@ unary_expression
 unary_operator
 	: '&'		{$$=make_node("&");
 		$$->place={"unary&",NULL};
+		$$->ival=1;
+
 	}
 	| '*'		{$$=make_node("*");
 		//s_entry *op=lookup("*");
 		$$->place={"unary*",NULL};
+		$$->ival=1;
+
 	}
 	| '+'		{$$=make_node("+");
 		//s_entry *op=lookup("+");
 		$$->place={"unary+",NULL};
+		$$->ival=1;
+
 	}
 	| '-'		{$$=make_node("-");
 		//s_entry *op=lookup("-");
 		$$->place={"unary-",NULL};
+		$$->ival=-1;
 	}
 	| '~'		{$$=make_node("~");
 		//s_entry *op=lookup("~");
 		$$->place={"~",NULL};
+		$$->ival=1;
 	}
 	| '!'		{$$=make_node("!");
 		$$->place={"!",NULL};
+		$$->ival=1;
+
 	}
 	;
 
@@ -1511,9 +1527,14 @@ init_declarator
 			array_case2 = 0;
 			accept2 = 0;
 
-			if(curr_table == GST){
-				emit({"store_in_global_variable",NULL},{value_in_global_variables, NULL},{"",NULL},{$1->nodeLex, NULL});
+			if(curr_table == GST && (!in_initializer_list)){
+				emit({"store_in_global_variable",NULL},{to_string($3->ival), NULL},{"",NULL},{$1->nodeLex, NULL});
 				value_in_global_variables = "";
+			}
+			else if(initializer_list_size!=0 && curr_table==GST){
+				emit({"global_array_intialized",NULL},{val_in_global_initializer_list,NULL},{"",NULL},{$1->nodeLex, NULL});
+				val_in_global_initializer_list="";
+				initializer_list_size = 0;
 			}
 			else if(initializer_list_size!=0){
 				emit({"array_initialized",NULL},{$1 -> nodeLex, lookup($1->nodeLex)},{"",NULL},{"",NULL});
@@ -1528,6 +1549,7 @@ init_declarator
 		else{
 			yyerror("Error : unexpected initialisation of variable.");
 		}
+		in_initializer_list=0;
 			//TODO:3ac
 	}
 	;
@@ -2082,29 +2104,53 @@ initializer
 	: assignment_expression											{$$=$1;
 		
 	}
-	| '{' initializer_list '}'										{$$=$2;}
-	| '{' initializer_list ',' '}'									{$$=make_node("initializer",$2,make_node($3));
+	| '{' M16 initializer_list '}'										{$$=$3;}
+	| '{' M16 initializer_list ',' '}'									{$$=make_node("initializer",$3,make_node($4));
 		
-		// $$->nodeType = $2 -> nodeType+"*"; //same in above //!doubt
+		// $$->nodeType = $3 -> nodeType+"*"; //same in above //!doubt
 		///
-		 $$->place=$2 -> place;
-		 $$->nextlist=$2 -> nextlist;
+		 $$->place=$3 -> place;
+		 $$->nextlist=$3 -> nextlist;
 		///
 	}
 	;
 
+M16 
+	:%empty		{
+		in_initializer_list=1;
+	}
+	;
+
+
 initializer_list
 	: initializer											{$$=$1;
 		initializer_list_size++;
+		if(curr_table == GST) {
+			if($1->ival!=-43144134){
+			if(!val_in_global_initializer_list.empty())val_in_global_initializer_list+=", "+to_string($1->ival);
+			else val_in_global_initializer_list=to_string($1->ival);
+			}
+		}
+		// cout<<"yes val: "<<($1->ival)<<endl;
 		emit({"initializer_list",NULL},$1 -> place,{"",NULL},{"",NULL});
+		$$->ival=-43144134;
 	}
 	| initializer_list ',' M initializer						{$$=make_node("initializer_list",$1,$4);
 		initializer_list_size++;
+		if(curr_table == GST) {
+			if($4->ival!=-43144134){
+			if(!val_in_global_initializer_list.empty())val_in_global_initializer_list+=", "+to_string($4->ival);
+			else val_in_global_initializer_list=to_string($4->ival);
+			}
+		}
+		// cout<<"no val: "<<($4->ival)<<endl;
+
 		///
 		 backpatch($1->nextlist,$3);
 		 emit({"initializer_list",NULL},$4 -> place,{"",NULL},{"",NULL});
 		 $$->nextlist=$4 -> nextlist;
 		///
+		$$->ival=-43144134;
 	}
 	;
 

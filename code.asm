@@ -27,7 +27,7 @@ func_end :
 main : 
 
        li $t1, 80
-       add $t1, $t1, 204
+       add $t1, $t1, 316
        add $sp, $sp, $t1
        sub $sp, $sp, 80
        sw $ra, 0($sp)
@@ -58,170 +58,166 @@ main :
        add $t1, $sp, 0
        sw $t0, 0($t1)
        
-       # store_int 1  _t3
-       li $t0, 1
+       # store_int 2  _t3
+       li $t0, 2
        add $t1, $sp, 8
        sw $t0, 0($t1)
        
-       # initializer_list _t3  
-       
-       # store_int 2  _t5
-       li $t0, 2
+       # store_int 1  _t5
+       li $t0, 1
        add $t1, $sp, 16
        sw $t0, 0($t1)
        
-       # initializer_list _t5  
+       # unary- _t5  _t6
+       add $t0, $sp, 16
+       add $t2, $sp, 20
+       lw $t3, 0($t0)
+       neg $t4, $t3
+       sw $t4, 0($t2)
        
-       # store_int 3  _t7
-       li $t0, 3
-       add $t1, $sp, 24
+       # initializer_list _t6  
+       
+       # store_int 2  _t8
+       li $t0, 2
+       add $t1, $sp, 28
        sw $t0, 0($t1)
        
-       # initializer_list _t7  
-       
-       # store_int 4  _t9
-       li $t0, 4
-       add $t1, $sp, 32
-       sw $t0, 0($t1)
+       # unary- _t8  _t9
+       add $t0, $sp, 28
+       add $t2, $sp, 32
+       lw $t3, 0($t0)
+       neg $t4, $t3
+       sw $t4, 0($t2)
        
        # initializer_list _t9  
        
-       # store_int 5  _t11
-       li $t0, 5
+       # initializer_list   
+       
+       # store_int 3  _t11
+       li $t0, 3
        add $t1, $sp, 40
        sw $t0, 0($t1)
        
-       # initializer_list _t11  
-       
-       # array_initialized a  
-       add $t0, $sp, 8
-       add $t2, $sp, 48
-       lw $t3, 0($t0)
-       sw $t3, 0($t2)
-       add $t0, $sp, 16
-       add $t2, $sp, 48
-       lw $t3, 0($t0)
-       sw $t3, 4($t2)
-       add $t0, $sp, 24
-       add $t2, $sp, 48
-       lw $t3, 0($t0)
-       sw $t3, 8($t2)
-       add $t0, $sp, 32
-       add $t2, $sp, 48
-       lw $t3, 0($t0)
-       sw $t3, 12($t2)
+       # unary- _t11  _t12
        add $t0, $sp, 40
-       add $t2, $sp, 48
+       add $t2, $sp, 44
        lw $t3, 0($t0)
-       sw $t3, 16($t2)
+       neg $t4, $t3
+       sw $t4, 0($t2)
        
-       # store_int 9  _t13
-       li $t0, 9
-       add $t1, $sp, 60
+       # initializer_list _t12  
+       
+       # store_int 4  _t14
+       li $t0, 4
+       add $t1, $sp, 52
        sw $t0, 0($t1)
        
-       # = _t13  c
-       add $t0, $sp, 60
+       # unary- _t14  _t15
+       add $t0, $sp, 52
+       add $t2, $sp, 56
+       lw $t3, 0($t0)
+       neg $t4, $t3
+       sw $t4, 0($t2)
+       
+       # initializer_list _t15  
+       
+       # initializer_list   
+       
+       # store_int 6  _t17
+       li $t0, 6
+       add $t1, $sp, 64
+       sw $t0, 0($t1)
+       
+       # unary- _t17  _t18
+       add $t0, $sp, 64
        add $t2, $sp, 68
        lw $t3, 0($t0)
-       sw $t3, 0($t2)
+       neg $t4, $t3
+       sw $t4, 0($t2)
        
-       # store_int 0  _t15
-       li $t0, 0
-       add $t1, $sp, 72
-       sw $t0, 0($t1)
+       # initializer_list _t18  
        
-       # store_int 0  _t16
-       li $t0, 0
+       # store_int 7  _t20
+       li $t0, 7
        add $t1, $sp, 76
        sw $t0, 0($t1)
        
-       # arr_element a[_t16] _t16 4
-       lw $t0, 72($sp)
-       lw $t1, 76($sp)
-       li $t2, 4
-       mul $t3, $t1 , $t2
-       add $t0, $t3, $t0
-       sw $t0, 72($sp)
+       # unary- _t20  _t21
+       add $t0, $sp, 76
+       add $t2, $sp, 80
+       lw $t3, 0($t0)
+       neg $t4, $t3
+       sw $t4, 0($t2)
        
-       # param a[_t16]  
+       # initializer_list _t21  
        
-       # CALL_FUNC printf  _t19
-       li $t1, 80
-       add $t1, $t1, 20
-       sub $s0, $sp, $t1
-       add $t0, $sp, 48
-       lw $t1, 72($sp)
-       add $t1, $t1, $t0
-       move $t0, $t1
-       lw $t1, 0($t0)
-       sw $t1, 0($s0)
-       move $sp, $s0
-       jal printf
+       # initializer_list   
+       
+       # array_initialized a  
+       add $t0, $sp, 20
        add $t2, $sp, 88
-       sw $v0, 0($t2)
+       lw $t3, 0($t0)
+       sw $t3, 0($t2)
+       add $t0, $sp, 32
+       add $t2, $sp, 88
+       lw $t3, 0($t0)
+       sw $t3, 4($t2)
+       add $t0, $sp, 44
+       add $t2, $sp, 88
+       lw $t3, 0($t0)
+       sw $t3, 8($t2)
+       add $t0, $sp, 56
+       add $t2, $sp, 88
+       lw $t3, 0($t0)
+       sw $t3, 12($t2)
+       add $t0, $sp, 68
+       add $t2, $sp, 88
+       lw $t3, 0($t0)
+       sw $t3, 16($t2)
+       add $t0, $sp, 80
+       add $t2, $sp, 88
+       lw $t3, 0($t0)
+       sw $t3, 20($t2)
        
-       # store_int 0  _t21
+       # store_int 0  _t23
        li $t0, 0
-       add $t1, $sp, 96
+       add $t1, $sp, 112
        sw $t0, 0($t1)
        
-       # store_int 1  _t22
-       li $t0, 1
-       add $t1, $sp, 100
+       # store_int 0  _t24
+       li $t0, 0
+       add $t1, $sp, 116
        sw $t0, 0($t1)
        
-       # arr_element a[_t22] _t22 4
-       lw $t0, 96($sp)
-       lw $t1, 100($sp)
-       li $t2, 4
+       # arr_element a[_t24] _t24 8
+       lw $t0, 112($sp)
+       lw $t1, 116($sp)
+       li $t2, 8
        mul $t3, $t1 , $t2
        add $t0, $t3, $t0
-       sw $t0, 96($sp)
+       sw $t0, 112($sp)
        
-       # param a[_t22]  
-       
-       # CALL_FUNC printf  _t25
-       li $t1, 80
-       add $t1, $t1, 20
-       sub $s0, $sp, $t1
-       add $t0, $sp, 48
-       lw $t1, 96($sp)
-       add $t1, $t1, $t0
-       move $t0, $t1
-       lw $t1, 0($t0)
-       sw $t1, 0($s0)
-       move $sp, $s0
-       jal printf
-       add $t2, $sp, 112
-       sw $v0, 0($t2)
-       
-       # store_int 0  _t27
+       # store_int 0  _t26
        li $t0, 0
-       add $t1, $sp, 120
-       sw $t0, 0($t1)
-       
-       # store_int 2  _t28
-       li $t0, 2
        add $t1, $sp, 124
        sw $t0, 0($t1)
        
-       # arr_element a[_t28] _t28 4
-       lw $t0, 120($sp)
+       # arr_element a[_t24][_t26] _t26 4
+       lw $t0, 112($sp)
        lw $t1, 124($sp)
        li $t2, 4
        mul $t3, $t1 , $t2
        add $t0, $t3, $t0
-       sw $t0, 120($sp)
+       sw $t0, 112($sp)
        
-       # param a[_t28]  
+       # param a[_t24][_t26]  
        
-       # CALL_FUNC printf  _t31
+       # CALL_FUNC printf  _t29
        li $t1, 80
        add $t1, $t1, 20
        sub $s0, $sp, $t1
-       add $t0, $sp, 48
-       lw $t1, 120($sp)
+       add $t0, $sp, 88
+       lw $t1, 112($sp)
        add $t1, $t1, $t0
        move $t0, $t1
        lw $t1, 0($t0)
@@ -231,31 +227,44 @@ main :
        add $t2, $sp, 136
        sw $v0, 0($t2)
        
-       # store_int 0  _t33
+       # store_int 0  _t31
        li $t0, 0
        add $t1, $sp, 144
        sw $t0, 0($t1)
        
-       # store_int 3  _t34
-       li $t0, 3
+       # store_int 0  _t32
+       li $t0, 0
        add $t1, $sp, 148
        sw $t0, 0($t1)
        
-       # arr_element a[_t34] _t34 4
+       # arr_element a[_t32] _t32 8
        lw $t0, 144($sp)
        lw $t1, 148($sp)
+       li $t2, 8
+       mul $t3, $t1 , $t2
+       add $t0, $t3, $t0
+       sw $t0, 144($sp)
+       
+       # store_int 1  _t34
+       li $t0, 1
+       add $t1, $sp, 156
+       sw $t0, 0($t1)
+       
+       # arr_element a[_t32][_t34] _t34 4
+       lw $t0, 144($sp)
+       lw $t1, 156($sp)
        li $t2, 4
        mul $t3, $t1 , $t2
        add $t0, $t3, $t0
        sw $t0, 144($sp)
        
-       # param a[_t34]  
+       # param a[_t32][_t34]  
        
        # CALL_FUNC printf  _t37
        li $t1, 80
        add $t1, $t1, 20
        sub $s0, $sp, $t1
-       add $t0, $sp, 48
+       add $t0, $sp, 88
        lw $t1, 144($sp)
        add $t1, $t1, $t0
        move $t0, $t1
@@ -263,56 +272,213 @@ main :
        sw $t1, 0($s0)
        move $sp, $s0
        jal printf
-       add $t2, $sp, 160
+       add $t2, $sp, 168
        sw $v0, 0($t2)
        
        # store_int 0  _t39
        li $t0, 0
-       add $t1, $sp, 168
+       add $t1, $sp, 176
        sw $t0, 0($t1)
        
-       # store_int 4  _t40
-       li $t0, 4
-       add $t1, $sp, 172
+       # store_int 1  _t40
+       li $t0, 1
+       add $t1, $sp, 180
        sw $t0, 0($t1)
        
-       # arr_element a[_t40] _t40 4
-       lw $t0, 168($sp)
-       lw $t1, 172($sp)
+       # arr_element a[_t40] _t40 8
+       lw $t0, 176($sp)
+       lw $t1, 180($sp)
+       li $t2, 8
+       mul $t3, $t1 , $t2
+       add $t0, $t3, $t0
+       sw $t0, 176($sp)
+       
+       # store_int 0  _t42
+       li $t0, 0
+       add $t1, $sp, 188
+       sw $t0, 0($t1)
+       
+       # arr_element a[_t40][_t42] _t42 4
+       lw $t0, 176($sp)
+       lw $t1, 188($sp)
        li $t2, 4
        mul $t3, $t1 , $t2
        add $t0, $t3, $t0
-       sw $t0, 168($sp)
+       sw $t0, 176($sp)
        
-       # param a[_t40]  
+       # param a[_t40][_t42]  
        
-       # CALL_FUNC printf  _t43
+       # CALL_FUNC printf  _t45
        li $t1, 80
        add $t1, $t1, 20
        sub $s0, $sp, $t1
-       add $t0, $sp, 48
-       lw $t1, 168($sp)
+       add $t0, $sp, 88
+       lw $t1, 176($sp)
        add $t1, $t1, $t0
        move $t0, $t1
        lw $t1, 0($t0)
        sw $t1, 0($s0)
        move $sp, $s0
        jal printf
-       add $t2, $sp, 184
+       add $t2, $sp, 200
        sw $v0, 0($t2)
        
-       # store_int 0  _t45
+       # store_int 0  _t47
        li $t0, 0
-       add $t1, $sp, 192
+       add $t1, $sp, 208
        sw $t0, 0($t1)
        
-       # RETURN _t45  
+       # store_int 1  _t48
+       li $t0, 1
+       add $t1, $sp, 212
+       sw $t0, 0($t1)
+       
+       # arr_element a[_t48] _t48 8
+       lw $t0, 208($sp)
+       lw $t1, 212($sp)
+       li $t2, 8
+       mul $t3, $t1 , $t2
+       add $t0, $t3, $t0
+       sw $t0, 208($sp)
+       
+       # store_int 1  _t50
+       li $t0, 1
+       add $t1, $sp, 220
+       sw $t0, 0($t1)
+       
+       # arr_element a[_t48][_t50] _t50 4
+       lw $t0, 208($sp)
+       lw $t1, 220($sp)
+       li $t2, 4
+       mul $t3, $t1 , $t2
+       add $t0, $t3, $t0
+       sw $t0, 208($sp)
+       
+       # param a[_t48][_t50]  
+       
+       # CALL_FUNC printf  _t53
+       li $t1, 80
+       add $t1, $t1, 20
+       sub $s0, $sp, $t1
+       add $t0, $sp, 88
+       lw $t1, 208($sp)
+       add $t1, $t1, $t0
+       move $t0, $t1
+       lw $t1, 0($t0)
+       sw $t1, 0($s0)
+       move $sp, $s0
+       jal printf
+       add $t2, $sp, 232
+       sw $v0, 0($t2)
+       
+       # store_int 0  _t55
+       li $t0, 0
+       add $t1, $sp, 240
+       sw $t0, 0($t1)
+       
+       # store_int 2  _t56
+       li $t0, 2
+       add $t1, $sp, 244
+       sw $t0, 0($t1)
+       
+       # arr_element a[_t56] _t56 8
+       lw $t0, 240($sp)
+       lw $t1, 244($sp)
+       li $t2, 8
+       mul $t3, $t1 , $t2
+       add $t0, $t3, $t0
+       sw $t0, 240($sp)
+       
+       # store_int 0  _t58
+       li $t0, 0
+       add $t1, $sp, 252
+       sw $t0, 0($t1)
+       
+       # arr_element a[_t56][_t58] _t58 4
+       lw $t0, 240($sp)
+       lw $t1, 252($sp)
+       li $t2, 4
+       mul $t3, $t1 , $t2
+       add $t0, $t3, $t0
+       sw $t0, 240($sp)
+       
+       # param a[_t56][_t58]  
+       
+       # CALL_FUNC printf  _t61
+       li $t1, 80
+       add $t1, $t1, 20
+       sub $s0, $sp, $t1
+       add $t0, $sp, 88
+       lw $t1, 240($sp)
+       add $t1, $t1, $t0
+       move $t0, $t1
+       lw $t1, 0($t0)
+       sw $t1, 0($s0)
+       move $sp, $s0
+       jal printf
+       add $t2, $sp, 264
+       sw $v0, 0($t2)
+       
+       # store_int 0  _t63
+       li $t0, 0
+       add $t1, $sp, 272
+       sw $t0, 0($t1)
+       
+       # store_int 2  _t64
+       li $t0, 2
+       add $t1, $sp, 276
+       sw $t0, 0($t1)
+       
+       # arr_element a[_t64] _t64 8
+       lw $t0, 272($sp)
+       lw $t1, 276($sp)
+       li $t2, 8
+       mul $t3, $t1 , $t2
+       add $t0, $t3, $t0
+       sw $t0, 272($sp)
+       
+       # store_int 1  _t66
+       li $t0, 1
+       add $t1, $sp, 284
+       sw $t0, 0($t1)
+       
+       # arr_element a[_t64][_t66] _t66 4
+       lw $t0, 272($sp)
+       lw $t1, 284($sp)
+       li $t2, 4
+       mul $t3, $t1 , $t2
+       add $t0, $t3, $t0
+       sw $t0, 272($sp)
+       
+       # param a[_t64][_t66]  
+       
+       # CALL_FUNC printf  _t69
+       li $t1, 80
+       add $t1, $t1, 20
+       sub $s0, $sp, $t1
+       add $t0, $sp, 88
+       lw $t1, 272($sp)
+       add $t1, $t1, $t0
+       move $t0, $t1
+       lw $t1, 0($t0)
+       sw $t1, 0($s0)
+       move $sp, $s0
+       jal printf
+       add $t2, $sp, 296
+       sw $v0, 0($t2)
+       
+       # store_int 0  _t71
+       li $t0, 0
+       add $t1, $sp, 304
+       sw $t0, 0($t1)
+       
+       # RETURN _t71  
        li $a0, 0
        li $v0, 10
        syscall
        
        # FUNC_END main  
-       add $sp, $sp, 204
+       add $sp, $sp, 316
        b func_end
 
 

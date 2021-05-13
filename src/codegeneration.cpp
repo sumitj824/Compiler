@@ -45,19 +45,29 @@ void generate_code(){
        // cout<<("# "+ emitted_code[i].op_code.first+ " "+emitted_code[i].op_1.first +" "+ emitted_code[i].op_2.first+" "+emitted_code[i].result.first)<<endl;;
         
         if(instruction == "initializer_list"){
-            initializer_list_vec.push_back(emitted_code[i]);
+           if(emitted_code[i].op_1.second!=NULL) initializer_list_vec.push_back(emitted_code[i]);
         }
 
         if(instruction == "array_initialized"){
             int curr_temp_off = 0; 
+        
             for(int j = 0; j < initializer_list_vec.size(); j++){
-                //push_line("lw $t0, " + to_string(initializer_list_vec[j].op1.second -> offset) + "($sp)");
+                
                 load_normal_element0(initializer_list_vec[j].op_1);  //value to be passed is in $t0
+                // load_normal_element2((emitted_code[i].op_1));  //value to be passed is in $t0
                 push_line("add $t2, $sp, " + to_string(((emitted_code[i].op_1).second) -> offset));
                 push_line("lw $t3, 0($t0)");
                 push_line("sw $t3, "+ to_string(curr_temp_off)+"($t2)");
                 curr_temp_off += 4;
             }
+            initializer_list_vec.clear();
+        }
+        if(instruction=="global_array_intialized"){
+            initializer_list_vec.clear();
+            curr_Func = ".data";
+            push_line(emitted_code[i].result.first + " : .word " + emitted_code[i].op_1.first);
+            global_variables_completed.insert(emitted_code[i].result.first);
+            curr_Func = "__global";
         }
 
         if(instruction == "store_in_global_variable"){
