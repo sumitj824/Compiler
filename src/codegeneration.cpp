@@ -110,6 +110,15 @@ void generate_code(){
             local_string_char_vec.clear();
         }
 
+        if(instruction == "struct_pointer_case"){
+            comp op1 = emitted_code[i].op_1;
+            comp res = emitted_code[i].result;
+            push_line("li $t0, " + res.first);
+            push_line("lw $t1, " + to_string(op1.second -> size) + "($sp)");
+            push_line("add $t1, $t1, $t0");
+            push_line("sw $t1, " + to_string(op1.second -> size) + "($sp)");
+        }
+
         if(instruction == "string_literal_handle"){
             local_string_char_vec.clear();
             string temp_func =curr_Func;

@@ -223,6 +223,11 @@ int is_special_struct_case(string name){
     return 0;
 }
 
+
+int is_pointer_dereference(string name){
+    return (name[0] == '*');
+}
+
 void load_normal_element0(comp q){
     int x = is_special_struct_case(q.first);
     if(x == 1){
@@ -236,12 +241,17 @@ void load_normal_element0(comp q){
     else if(x == 2){
         push_line("add $t0, $sp, " + to_string((q.second) -> offset));
         push_line("lw $t1, 0($t0)");
-        push_line("add $t0, $t1, " + to_string((q.second) -> size));
+        push_line("lw $t4," + to_string((q.second) -> size) + "($sp)");
+        push_line("add $t0, $t1, $t4");
     }
     else{
         if(temp_global_set.count(q.second)){
             push_line("la $t0, " + q.first);
         }
+        else if(is_pointer_dereference(q.first)){
+            push_line("add $t3, $sp, " + to_string((q.second)-> offset));
+            push_line("lw $t0, 0($t3)");
+        } 
         else push_line("add $t0, $sp, " + to_string(q.second -> offset));
     }
 } 
@@ -259,15 +269,21 @@ void load_normal_element1(comp q){
     else if(x == 2){
         push_line("add $t1, $sp, " + to_string((q.second) -> offset));
         push_line("lw $t2, 0($t1)");
-        push_line("add $t1, $t2, " + to_string((q.second) -> size));
+        push_line("lw $t4," + to_string((q.second) -> size) + "($sp)");
+        push_line("add $t1, $t2, $t4");
     }
     else{
         if(temp_global_set.count(q.second)){
             push_line("la $t1, " + q.first);
         }
+        else if(is_pointer_dereference(q.first)){
+            push_line("add $t3, $sp, " + to_string((q.second)-> offset));
+            push_line("lw $t1, 0($t3)");
+        } 
         else push_line("add $t1, $sp, " + to_string(q.second -> offset));
     }
 } 
+
 
 void load_normal_element2(comp q){
     int x = is_special_struct_case(q.first);
@@ -282,12 +298,17 @@ void load_normal_element2(comp q){
     else if(x == 2){
         push_line("add $t2, $sp, " + to_string((q.second) -> offset));
         push_line("lw $t3, 0($t2)");
-        push_line("add $t2, $t3, " + to_string((q.second) -> size));
+        push_line("lw $t4," + to_string((q.second) -> size) + "($sp)");
+        push_line("add $t2, $t3, $t4");
     }
     else{
         if(temp_global_set.count(q.second)){
             push_line("la $t2, " + q.first);
         }
+        else if(is_pointer_dereference(q.first)){
+            push_line("add $t3, $sp, " + to_string((q.second)-> offset));
+            push_line("lw $t2, 0($t3)");
+        } 
         else push_line("add $t2, $sp, " + to_string(q.second -> offset));
     }
 } 

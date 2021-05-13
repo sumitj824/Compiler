@@ -408,10 +408,9 @@ postfix_expression
 				s_entry *temp= new s_entry();
 				temp-> type = find-> type;
 				temp->offset = ($1 -> place).second -> offset;
-				comp temp2 = get_temp_label("int");
-				temp->size=temp2.second->offset;
+				temp-> size  = ($1 -> place).second -> size;
 				$$->place={$$->nodeLex,temp};
-
+				emit({"struct_pointer_case",NULL},$$ -> place,{"",NULL},{to_string(find -> offset),NULL});	
 
 			}
 			else{
@@ -608,42 +607,50 @@ unary_expression
 		    string s=unary($2->nodeType,$1->name);
 			if(!s.empty())
 			{
-				$$->nodeType=s;
-				$$-> nodeLex = $1 -> nodeLex+$2 -> nodeLex;
-				///
-				comp temp = get_temp_label(s);
-				
-				if(isFloat($$->nodeType)){
-					string op = "float_"+($1->place).first;
-					emit({op,NULL},$2->place,{"",NULL},temp);
-					$$->place = temp;
-					$$->nextlist = {};
-				}else{
-					if(isInt($$->nodeType)){
-						if(($1->place).first == "!"){
-							int curr = (int)emitted_code.size();
-							emit({"if_goto",NULL},$2->place,{"",NULL},{to_string(curr+3),NULL});
-							emit({"store_int",NULL},{"1",NULL},{"",NULL},temp);
-							emit({"goto",NULL},{"",NULL},{"",NULL},{to_string(curr+4),NULL});
-							emit({"store_int",NULL},{"0",NULL},{"",NULL},temp);
-							//$$->nextlist = $1->nextlist;
-							//$$->nextlist.push_back(curr+2);
-							$$->place = temp;
-						}else{
-							
-							emit($1->place,$2 -> place,{"",NULL},temp);	
-							$$->place=temp;
-							$$->nextlist = {};
-						}
-					}else{
-						comp temp = get_temp_label($$ -> nodeType);
-                        emit($1 -> place,$2 -> place,{"",NULL},temp);
-                        $$ -> nodeLex = ($1 -> nodeLex) + ($2 -> nodeLex);
-                        temp.first = $$ -> nodeLex;
-                        $$ -> place = temp;
+					$$->nodeType=s;
+					$$-> nodeLex = $1 -> nodeLex+$2 -> nodeLex;
+					///
+					comp temp = get_temp_label(s);
+					
+					if(($1 -> place).first == "unary*"){
+						s_entry *temp = new s_entry();
+						temp -> offset = ($2 -> place).second -> offset;
+						temp -> type = $$ -> nodeType;
+						$$ -> place = {$$ -> nodeLex,temp};
 					}
+					else{
+						if(isFloat($$->nodeType)){
+							string op = "float_"+($1->place).first;
+							emit({op,NULL},$2->place,{"",NULL},temp);
+							$$->place = temp;
+							$$->nextlist = {};
+						}else{
+							if(isInt($$->nodeType)){
+								if(($1->place).first == "!"){
+									int curr = (int)emitted_code.size();
+									emit({"if_goto",NULL},$2->place,{"",NULL},{to_string(curr+3),NULL});
+									emit({"store_int",NULL},{"1",NULL},{"",NULL},temp);
+									emit({"goto",NULL},{"",NULL},{"",NULL},{to_string(curr+4),NULL});
+									emit({"store_int",NULL},{"0",NULL},{"",NULL},temp);
+									//$$->nextlist = $1->nextlist;
+									//$$->nextlist.push_back(curr+2);
+									$$->place = temp;
+								}else{
+									
+									emit($1->place,$2 -> place,{"",NULL},temp);	
+									$$->place=temp;
+									$$->nextlist = {};
+								}
+							}else{
+								comp temp = get_temp_label($$ -> nodeType);
+								emit($1 -> place,$2 -> place,{"",NULL},temp);
+								$$ -> nodeLex = ($1 -> nodeLex) + ($2 -> nodeLex);
+								temp.first = $$ -> nodeLex;
+								$$ -> place = temp;
+							}
+						}
+					///
 				}
-				///
 			}
 			else{
 				yyerror("Error: Type inconsistent with unary operator");
@@ -678,6 +685,7 @@ unary_expression
 
 unary_operator
 	: '&'		{$$=make_node("&");
+		$$ -> nodeLex = "&";
 		$$->place={"unary&",NULL};
 		$$->ival=1;
 		$$->dval = 1;
@@ -685,6 +693,7 @@ unary_operator
 	}
 	| '*'		{$$=make_node("*");
 		//s_entry *op=lookup("*");
+		$$ -> nodeLex = "*";
 		$$->place={"unary*",NULL};
 		$$->ival=1;
 		$$->dval = 1;
@@ -692,6 +701,7 @@ unary_operator
 	}
 	| '+'		{$$=make_node("+");
 		//s_entry *op=lookup("+");
+		$$ -> nodeLex = "+";
 		$$->place={"unary+",NULL};
 		$$->ival=1;
 		$$->dval = 1;
@@ -705,11 +715,13 @@ unary_operator
 	}
 	| '~'		{$$=make_node("~");
 		//s_entry *op=lookup("~");
+		$$ -> nodeLex = "~";
 		$$->place={"~",NULL};
 		$$->ival=1;
 		$$->dval = 1;
 	}
 	| '!'		{$$=make_node("!");
+		$$ -> nodeLex = "!";
 		$$->place={"!",NULL};
 		$$->ival=1;
 		$$->dval = 1;
