@@ -550,7 +550,7 @@ unary_expression
 			if(!s.empty())
 			{
 				$$->nodeType=s;
-				$$-> nodeLex = $2 -> nodeLex;
+				$$-> nodeLex = $1 -> nodeLex+$2 -> nodeLex;
 				///
 				comp temp = get_temp_label(s);
 				
@@ -577,7 +577,11 @@ unary_expression
 							$$->nextlist = {};
 						}
 					}else{
-						yyerror("cast expression must be of type integer or float");
+						comp temp = get_temp_label($$ -> nodeType);
+                        emit($1 -> place,$2 -> place,{"",NULL},temp);
+                        $$ -> nodeLex = ($1 -> nodeLex) + ($2 -> nodeLex);
+                        temp.first = $$ -> nodeLex;
+                        $$ -> place = temp;
 					}
 				}
 				///
