@@ -347,6 +347,14 @@ postfix_expression
 				$$ -> nodeType = find -> type;
 				$$ -> init = find -> init;
 				$$ -> nodeLex = $1 -> nodeLex + $2 + $3;
+				s_entry *temp= new s_entry();
+				temp-> type = find-> type;
+				temp->offset = ($1 -> place).second -> offset;
+				comp temp2 = get_temp_label("int");
+				temp->size=temp2.second->offset;
+				$$->place={$$->nodeLex,temp};
+
+
 			}
 			else{
 				yyerror("Error : Undefined attribute access in structure.");
