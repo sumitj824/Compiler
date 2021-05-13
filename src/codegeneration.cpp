@@ -281,6 +281,28 @@ void generate_code(){
                 push_line("sw $t3, 0($t2)");
             }
         }
+        if(instruction == "float_="){
+            comp op1 = emitted_code[i].op_1;
+            comp res = emitted_code[i].result; 
+            if(is_array_element(op1.first)){  
+                load_array_element0(op1);
+            }
+            else{
+                load_normal_element0(op1);
+            }
+            if(is_array_element(res.first)){
+                load_array_element2(res);
+            }
+            else{
+                load_normal_element2(res);
+            }
+            //string type = (op1.second) -> type;
+
+            
+                push_line("lwc1 $f0, 0($t0)");
+                push_line("swc1 $f0, 0($t2)");
+            
+        }
         if(instruction == "+int"){            
             comp op1 = emitted_code[i].op_1;
             comp op2 = emitted_code[i].op_2;
@@ -351,7 +373,7 @@ void generate_code(){
             push_line("lwc1 $f0, 0($t0)");
             push_line("lwc1 $f1, 0($t1)");
             push_line("add.s $f2, $f0, $f1");
-            push_line("swc1 $f2. 0($t2)");
+            push_line("swc1 $f2, 0($t2)");
         }
 
         if(instruction == "*float"){
@@ -379,7 +401,7 @@ void generate_code(){
             push_line("lwc1 $f0, 0($t0)");
             push_line("lwc1 $f1, 0($t1)");
             push_line("mul.s $f2, $f0, $f1");
-            push_line("swc1 $f2. 0($t2)");
+            push_line("swc1 $f2, 0($t2)");
         }
         if(instruction == "/float"){
             comp op1 = emitted_code[i].op_1;
@@ -406,7 +428,7 @@ void generate_code(){
             push_line("lwc1 $f0, 0($t0)");
             push_line("lwc1 $f1, 0($t1)");
             push_line("div.s $f2, $f0, $f1");
-            push_line("swc1 $f2. 0($t2)");
+            push_line("swc1 $f2, 0($t2)");
         }
 
 

@@ -648,7 +648,7 @@ cast_expression
 				for(int i=0;i<s.length();i++){
 					if(s[i]==' ') num=i;
 				}
-				$2->nodeType = s.substr(num+1,s.length()-num-1);
+				if(num!=0) $2->nodeType = s.substr(num+1,s.length()-num-1);
 			$$->nodeType=$2->nodeType;
 			$$->init=$4->init;
 			$$ -> nodeLex = $4 -> nodeLex;
@@ -697,15 +697,15 @@ multiplicative_expression
 				if(isInt($1->nodeType)){
 					comp temp2=get_temp_label("float");
 					emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
-					emit({"*real",NULL},temp2,$3 -> place,temp1);	
+					emit({"*float",NULL},temp2,$3 -> place,temp1);	
 				}
 				else if(isInt($3->nodeType)){
 					comp temp2=get_temp_label("float");
 					emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
-					emit({"*real",NULL},$1 -> place,temp2,temp1);
+					emit({"*float",NULL},$1 -> place,temp2,temp1);
 				}
 				else {
-					emit({"*real",NULL},$1 -> place,$3->place,temp1);
+					emit({"*float",NULL},$1 -> place,$3->place,temp1);
 				}
 				$$->place=temp1;
 				$$->nextlist = {};
@@ -736,15 +736,15 @@ multiplicative_expression
 				if(isInt($1->nodeType)){
 					comp temp2=get_temp_label("float");
 					emit({"inttoreal",NULL},$1->place,{"",NULL},temp2);
-					emit({"/real",NULL},temp2,$3 -> place,temp1);	
+					emit({"/float",NULL},temp2,$3 -> place,temp1);	
 				}
 				else if(isInt($3->nodeType)){
 					comp temp2=get_temp_label("float");
 					emit({"inttoreal",NULL},$3->place,{"",NULL},temp2);
-					emit({"/real",NULL},$1 -> place,temp2,temp1);
+					emit({"/float",NULL},$1 -> place,temp2,temp1);
 				}
 				else {
-					emit({"/real",NULL},$1 -> place,$3->place,temp1);
+					emit({"/float",NULL},$1 -> place,$3->place,temp1);
 	
 				}
 				$$->place=temp1;
@@ -1363,6 +1363,7 @@ assignment_expression
 		string p=assign($1->nodeType,$3->nodeType,$2);
 		if(!p.empty())
 		{
+			cout<<$1->nodeType <<" ............."<<$3->nodeType<<endl;
 			$$->nodeType=$1->nodeType;
 			if(p=="warning"){
                 yyerror("Warning: Assignment with incompatible pointer type"); 
@@ -1373,7 +1374,25 @@ assignment_expression
 			int temp_addr = (int)emitted_code.size();
 			string s($2);
 			if(s == "="){
-				emit({"=",NULL},$3->place,{"",NULL},$1->place);
+				if(isFloat($1->nodeType)){
+					if(isFloat($3->nodeType)){
+						//comp temp1 = get_temp_label($1->nodeType);
+						emit({"float_=",NULL},$3->place,{"",NULL},$1->place);
+					}
+					if(isInt($3->nodeType)){
+						emit({"inttoreal",NULL},$3->place,{"",NULL},$3->place);
+						emit({"float_=",NULL},$3->place,{"",NULL},$1->place);
+					}
+				}else
+				if(isInt($1->nodeType)){
+					if(isFloat($3->nodeType)){
+						emit({"realtoint",NULL},$3->place,{"",NULL},$3->place);
+					}
+					emit({"=",NULL},$3->place,{"",NULL},$1->place);
+				}else{
+					emit({"=",NULL},$3->place,{"",NULL},$1->place);
+				}
+				//emit({"=",NULL},$3->place,{"",NULL},$1->place);
 			}else{
 				if(s[0] == '+' || s[0] == '-' || s[0] == '*' || s[0] == '/'){
 					if(isInt($1->nodeType) && isInt($3->nodeType)){
@@ -1391,6 +1410,10 @@ assignment_expression
 
 						string op = s.substr(0,1)+"float";
 						emit({op,NULL},$1->place,$3->place,$1->place);
+
+						if(isInt($1->nodeType)){
+							emit({"realtoint",NULL},$1->place,{"",NULL},$1->place);
+						}
 					}
 				}else{
 					string op="";
@@ -1565,7 +1588,25 @@ init_declarator
 			}
 			else{
 				$1 -> place = {$1 -> nodeLex,lookup($1 -> nodeLex)};
-				emit({"=",NULL},$3->place,{"",NULL},$1->place);
+				cout<<$1->nodeType<<"....................."<<$3->nodeType<<endl;
+				if(isFloat($1->nodeType)){
+					if(isFloat($3->nodeType)){
+						//comp temp1 = get_temp_label($1->nodeType);
+						emit({"float_=",NULL},$3->place,{"",NULL},$1->place);
+					}
+					if(isInt($3->nodeType)){
+						emit({"inttoreal",NULL},$3->place,{"",NULL},$3->place);
+						emit({"float_=",NULL},$3->place,{"",NULL},$1->place);
+					}
+				}else
+				if(isInt($1->nodeType)){
+					if(isFloat($3->nodeType)){
+						emit({"realtoint",NULL},$3->place,{"",NULL},$3->place);
+					}
+					emit({"=",NULL},$3->place,{"",NULL},$1->place);
+				}else{
+					emit({"=",NULL},$3->place,{"",NULL},$1->place);
+				}
 			}
 		}
 		else{
