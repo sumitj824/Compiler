@@ -10,6 +10,8 @@ vector <quad> parameters;
 
 vector <quad> initializer_list_vec;
 
+vector <quad> local_string_char_vec;
+
 void generate_code(){
     // curr_Func = ".data";
     // for(auto i : *GST){
@@ -47,7 +49,7 @@ void generate_code(){
             }
             initializer_list_vec.clear();
         }
-        if(instruction=="global_array_intialized"){
+        if(instruction=="global_array_intialized_int"){
             initializer_list_vec.clear();
             curr_Func = ".data";
             push_line(emitted_code[i].result.first + " : .word " + emitted_code[i].op_1.first);
@@ -55,14 +57,58 @@ void generate_code(){
             curr_Func = "__global";
         }
 
-        if(instruction == "store_in_global_variable"){
+        if(instruction=="global_array_intialized_float"){
+            initializer_list_vec.clear();
+            curr_Func = ".data";
+            push_line(emitted_code[i].result.first + " : .float " + emitted_code[i].op_1.first);
+            global_variables_completed.insert(emitted_code[i].result.first);
+            curr_Func = "__global";
+        }
+
+        if(instruction == "store_in_global_variable_int"){
             curr_Func = ".data";
             if(!is_array_element(emitted_code[i].result.first)){
                 push_line(emitted_code[i].result.first + " : .word " + emitted_code[i].op_1.first);
                 global_variables_completed.insert(emitted_code[i].result.first);
             }
             curr_Func = "__global";
-        }        
+        }
+
+        if(instruction == "store_in_global_variable_float"){
+            curr_Func = ".data";
+            if(!is_array_element(emitted_code[i].result.first)){
+                push_line(emitted_code[i].result.first + " : .float " + emitted_code[i].op_1.first);
+                global_variables_completed.insert(emitted_code[i].result.first);
+            }
+            curr_Func = "__global";
+        }
+
+        if(instruction == "global_string"){
+            local_string_char_vec.clear();
+            curr_Func = ".data";
+            push_line(emitted_code[i].result.first + " : .asciiz \"" + emitted_code[i].op_1.first + "\"");
+            global_variables_completed.insert(emitted_code[i].result.first);
+            curr_Func = "__global";
+        }
+
+        if(instruction == "string_literal_local_char"){
+            if(emitted_code[i].op_1.second!=NULL) local_string_char_vec.push_back(emitted_code[i]);
+        }
+
+        if(instruction == "initializing_local_string"){
+            int curr_temp_off = 0; 
+        
+            for(int j = 0; j < local_string_char_vec.size(); j++){
+                
+                load_normal_element0(local_string_char_vec[j].op_1);  //value to be passed is in $t0
+                // load_normal_element2((emitted_code[i].op_1));  //value to be passed is in $t0
+                push_line("add $t2, $sp, " + to_string(((emitted_code[i].op_1).second) -> offset));
+                push_line("lw $t3, 0($t0)");
+                push_line("sw $t3, "+ to_string(curr_temp_off)+"($t2)");
+                curr_temp_off += 4;
+            }
+            local_string_char_vec.clear();
+        }
         
         if(instruction == "CALL_FUNC"){
             string call_func = emitted_code[i].op_1.first;
@@ -168,7 +214,13 @@ void generate_code(){
                             push_line(i.first + " : .space " + to_string(pro));
                         }
                         else{
-                            push_line(i.first + " : .space " + to_string(i.second -> size));
+                            if(((i.second) -> type).find("float") != string::npos || ((i.second) -> type).find("double") != string::npos){
+                                push_line(i.first + " : .float 0.0");
+                            }
+                            else if(((i.second) -> type).find("int") != string::npos || ((i.second) -> type).find("long") != string::npos){
+                                push_line(i.first + " : .word 0");
+                            }
+                            else push_line(i.first + " : .space " + to_string(i.second -> size));
                         }
                     }
                 }

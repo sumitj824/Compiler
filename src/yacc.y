@@ -31,7 +31,8 @@ int accept = 0;
 int array_case2 = 0;
 int in_param = 0;
 int in_initializer_list=0;
-string val_in_global_initializer_list ="";
+string val_in_global_initializer_list_int ="";
+string val_in_global_initializer_list_float ="";
 int simple_block = 0;
 int is_union2 = 0;
 string param_names = "";
@@ -47,6 +48,8 @@ int accept2 = 0;
 int is_logical = 0;
 map <string,int> complete;
 symTable * temp_table;
+string global_val_in_string_literal = "";
+int inside_string_literal = 0;
 void yyerror(char *s);
 int yylex();
 
@@ -198,15 +201,21 @@ primary_expression
 		if(s[s.length()-1] == 'F') $$->nodeType = "float"; 
 		$$->init=1;
 		///
-		if(curr_table == GST){
-			 value_in_global_variables = to_string($$->dval);
-		 }
-		 else{
-			comp temp = get_temp_label("float");
-			emit({"store_float",NULL},{to_string($$->dval),NULL},{"",NULL},temp);
-			$$->place=temp;
-		 }
 		$$->nextlist={};
+		if(!in_param){
+		if(curr_table == GST && (!in_initializer_list)){
+			value_in_global_variables = to_string($$->dval);
+			comp temp = get_temp_label("float");
+			emit({"store_float",NULL},{to_string($$ -> dval),NULL},{"",NULL},temp);
+			$$->place=temp;
+			
+		}
+		else{
+				comp temp = get_temp_label("float");
+				emit({"store_float",NULL},{to_string($$ -> dval),NULL},{"",NULL},temp);
+				$$->place=temp;
+		}
+		}
 		///
 	}
 	| STRING_LITERAL										{$$=make_node($1);
@@ -215,13 +224,49 @@ primary_expression
 		if(curr_table == GST){
 			 value_in_global_variables = string($1);
 		}
-		 else{
+		else{
 			comp temp = get_temp_label("char*");
 			emit({"string_literal",NULL},{string($1),NULL},{"",NULL},temp);
 			$$->place={string($1),NULL};
-		 }
+		}
+		inside_string_literal = 1;
+		if(curr_table == GST){
+			global_val_in_string_literal = string($1);
+		}
+		else{
+			string s = string($1);
+			for(int k = 0; k < s.length(); k++){
+				if(s[k] != '\\'){
+					comp temp = get_temp_label("int");
+					emit({"store_int",NULL},{to_string((int)s[k]),NULL},{"",NULL},temp);
+					emit({"string_literal_local_char",NULL},temp,{"",NULL},{"",NULL});
+				}
+				else{
+					if(k + 1 < s.length()){
+						if(s[k+1] == 'n'){
+							comp temp = get_temp_label("int");
+							emit({"store_int",NULL},{to_string(10),NULL},{"",NULL},temp);
+							emit({"string_literal_local_char",NULL},temp,{"",NULL},{"",NULL});
+							k++;
+						}
+						else{
+							comp temp = get_temp_label("int");
+							emit({"store_int",NULL},{to_string((int)s[k]),NULL},{"",NULL},temp);
+							emit({"string_literal_local_char",NULL},temp,{"",NULL},{"",NULL});
+						}
+					}
+					else{
+						comp temp = get_temp_label("int");
+						emit({"store_int",NULL},{to_string((int)s[k]),NULL},{"",NULL},temp);
+						emit({"string_literal_local_char",NULL},temp,{"",NULL},{"",NULL});
+					}
+				}
+			}
+		}
+		 
 		$$->nextlist={};
 		///
+
 	}
 	| '(' expression ')'									{$$=$2;}
 	;
@@ -546,6 +591,7 @@ unary_expression
 	| unary_operator cast_expression						{$$=make_node("unary_expression",$1,$2);
 			$$->init=$2->init;
 			$$->ival=($1->ival)*($2->ival);
+			$$->dval=($1->dval)*($2->dval);
 		    string s=unary($2->nodeType,$1->name);
 			if(!s.empty())
 			{
@@ -621,33 +667,39 @@ unary_operator
 	: '&'		{$$=make_node("&");
 		$$->place={"unary&",NULL};
 		$$->ival=1;
+		$$->dval = 1;
 
 	}
 	| '*'		{$$=make_node("*");
 		//s_entry *op=lookup("*");
 		$$->place={"unary*",NULL};
 		$$->ival=1;
+		$$->dval = 1;
 
 	}
 	| '+'		{$$=make_node("+");
 		//s_entry *op=lookup("+");
 		$$->place={"unary+",NULL};
 		$$->ival=1;
+		$$->dval = 1;
 
 	}
 	| '-'		{$$=make_node("-");
 		//s_entry *op=lookup("-");
 		$$->place={"unary-",NULL};
 		$$->ival=-1;
+		$$->dval = -1;
 	}
 	| '~'		{$$=make_node("~");
 		//s_entry *op=lookup("~");
 		$$->place={"~",NULL};
 		$$->ival=1;
+		$$->dval = 1;
 	}
 	| '!'		{$$=make_node("!");
 		$$->place={"!",NULL};
 		$$->ival=1;
+		$$->dval = 1;
 
 	}
 	;
@@ -671,7 +723,7 @@ cast_expression
 				$$->place = temp;
 			}else{
 
-				cout<<"......"<<$2->nodeType<<".......... "<<$4->nodeType<<"......................\n";
+				// cout<<"......"<<$2->nodeType<<".......... "<<$4->nodeType<<"......................\n";
 				string op = "real";
 				string op2="real";
 				if(isInt($2->nodeType)) op2 = "int";
@@ -1375,7 +1427,7 @@ assignment_expression
 		string p=assign($1->nodeType,$3->nodeType,$2);
 		if(!p.empty())
 		{
-			cout<<$1->nodeType <<" ............."<<$3->nodeType<<endl;
+			// cout<<$1->nodeType <<" ............."<<$3->nodeType<<endl;
 			$$->nodeType=$1->nodeType;
 			if(p=="warning"){
                 yyerror("Warning: Assignment with incompatible pointer type"); 
@@ -1583,14 +1635,34 @@ init_declarator
 			// initializer_list_size = 0;
 			array_case2 = 0;
 			accept2 = 0;
-
-			if(curr_table == GST && (!in_initializer_list)){
-				emit({"store_in_global_variable",NULL},{to_string($3->ival), NULL},{"",NULL},{$1->nodeLex, NULL});
+			if(inside_string_literal){
+				if(curr_table == GST){
+					emit({"global_string",NULL},{global_val_in_string_literal,NULL},{"",NULL},{$1->nodeLex, NULL});
+				}
+				else{
+					emit({"initializing_local_string",NULL},{$1 -> nodeLex, lookup($1->nodeLex)},{"",NULL},{"",NULL});
+				}
+				inside_string_literal = 0;
+				global_val_in_string_literal = "";
+			}
+			else if(curr_table == GST && (!in_initializer_list)){
+				if(($1->nodeType).find("float") != string::npos || ($1->nodeType).find("double") != string::npos){
+					emit({"store_in_global_variable_float",NULL},{to_string($3->dval), NULL},{"",NULL},{$1->nodeLex, NULL});
+				}
+				else {
+					emit({"store_in_global_variable_int",NULL},{to_string($3->ival), NULL},{"",NULL},{$1->nodeLex, NULL});
+				}
 				value_in_global_variables = "";
 			}
 			else if(initializer_list_size!=0 && curr_table==GST){
-				emit({"global_array_intialized",NULL},{val_in_global_initializer_list,NULL},{"",NULL},{$1->nodeLex, NULL});
-				val_in_global_initializer_list="";
+				if(($1->nodeType).find("float") != string::npos || ($1->nodeType).find("double") != string::npos){
+					emit({"global_array_intialized_float",NULL},{val_in_global_initializer_list_float,NULL},{"",NULL},{$1->nodeLex, NULL});
+				}
+				else {
+					emit({"global_array_intialized_int",NULL},{val_in_global_initializer_list_int,NULL},{"",NULL},{$1->nodeLex, NULL});
+				}
+				val_in_global_initializer_list_float = "";
+				val_in_global_initializer_list_int = "";
 				initializer_list_size = 0;
 			}
 			else if(initializer_list_size!=0){
@@ -2202,8 +2274,10 @@ initializer_list
 		initializer_list_size++;
 		if(curr_table == GST) {
 			if($1->ival!=-43144134){
-			if(!val_in_global_initializer_list.empty())val_in_global_initializer_list+=", "+to_string($1->ival);
-			else val_in_global_initializer_list=to_string($1->ival);
+				if(!val_in_global_initializer_list_int.empty())val_in_global_initializer_list_int+=", "+to_string($1->ival);
+				else val_in_global_initializer_list_int=to_string($1->ival);
+				if(!val_in_global_initializer_list_float.empty())val_in_global_initializer_list_float+=", "+to_string($1->dval);
+				else val_in_global_initializer_list_float=to_string($1->dval);
 			}
 		}
 		// cout<<"yes val: "<<($1->ival)<<endl;
@@ -2214,8 +2288,10 @@ initializer_list
 		initializer_list_size++;
 		if(curr_table == GST) {
 			if($4->ival!=-43144134){
-			if(!val_in_global_initializer_list.empty())val_in_global_initializer_list+=", "+to_string($4->ival);
-			else val_in_global_initializer_list=to_string($4->ival);
+				if(!val_in_global_initializer_list_int.empty())val_in_global_initializer_list_int+=", "+to_string($4->ival);
+				else val_in_global_initializer_list_int=to_string($4->ival);
+				if(!val_in_global_initializer_list_float.empty())val_in_global_initializer_list_float+=", "+to_string($4->dval);
+				else val_in_global_initializer_list_float=to_string($4->dval);
 			}
 		}
 		// cout<<"no val: "<<($4->ival)<<endl;
