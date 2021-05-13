@@ -1,9 +1,8 @@
 
-int a;
-int c[7];
 
 int main ()
 {
-   a=5;
+   int a = (int)(2.0);
+   printf(a);
   return 0;
 }

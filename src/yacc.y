@@ -643,7 +643,12 @@ unary_operator
 cast_expression
 	: unary_expression									   {$$=$1;}
 	| '(' type_name ')' cast_expression                    {$$=make_node("cast_expression", $2, $4);
-
+				string s = $2->nodeType;
+				int num = 0;
+				for(int i=0;i<s.length();i++){
+					if(s[i]==' ') num=i;
+				}
+				$2->nodeType = s.substr(num+1,s.length()-num-1);
 			$$->nodeType=$2->nodeType;
 			$$->init=$4->init;
 			$$ -> nodeLex = $4 -> nodeLex;
@@ -653,7 +658,8 @@ cast_expression
 				emit({"=",NULL},$4->place,{"",NULL},temp);
 				$$->place = temp;
 			}else{
-				//cout<<"......"<<$2->nodeType<<".......... "<<$4->nodeType<<"......................\n";
+
+				cout<<"......"<<$2->nodeType<<".......... "<<$4->nodeType<<"......................\n";
 				string op = "real";
 				string op2="real";
 				if(isInt($2->nodeType)) op2 = "int";
