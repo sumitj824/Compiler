@@ -618,14 +618,28 @@ unary_operator
 cast_expression
 	: unary_expression									   {$$=$1;}
 	| '(' type_name ')' cast_expression                    {$$=make_node("cast_expression", $2, $4);
+
 			$$->nodeType=$2->nodeType;
 			$$->init=$4->init;
 			$$ -> nodeLex = $4 -> nodeLex;
 			///
-			 comp temp = get_temp_label($2->nodeType);
-			 emit({$4->nodeType+"to"+$2->nodeType,NULL},$4 -> place,{"",NULL},temp);	
-			 $$->place=temp;
-			// $$->nextlist = {};
+			comp temp = get_temp_label($2->nodeType);
+			if((isInt($4->nodeType) && isInt($2->nodeType)) || (isFloat($4->nodeType) && isFloat($2->nodeType))){
+				emit({"=",NULL},$4->place,{"",NULL},temp);
+				$$->place = temp;
+			}else{
+				//cout<<"......"<<$2->nodeType<<".......... "<<$4->nodeType<<"......................\n";
+				string op = "real";
+				string op2="real";
+				if(isInt($2->nodeType)) op2 = "int";
+				if(isInt($4->nodeType)) op="int";
+				
+				string act = op+"to"+op2;
+				//act = "realtoint";//......................................todo
+				emit({act,NULL},$4->place,{"",NULL},temp);
+				$$->place = temp;
+			}
+
 			///
 	}
 	;
@@ -1236,7 +1250,7 @@ question_mark
 
 N
 	: %empty 		{
-		emit({"",NULL},{"",NULL},{"",NULL},{"",NULL});
+		emit({"=",NULL},{"",NULL},{"",NULL},{"",NULL});
 		emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 		$$ = (int)emitted_code.size();
 	}
@@ -1273,15 +1287,13 @@ conditional_expression
 			$$->nodeType=s;
 			///
 			comp temp = get_temp_label(s);
-
+			
 			emitted_code[$5-2].op_1 = $3->place;		//(if true) setting the values
 			emitted_code[$5-2].result = temp;
 
-			emit({"",NULL},$6->place,{"",NULL},temp);		//for (if false) equate to $6, and goto statement
+			emit({"=",NULL},$6->place,{"",NULL},temp);		//for (if false) equate to $6, and goto statement
 			emit({"goto",NULL},{"",NULL},{"",NULL},{"",NULL});
 
-			backpatch($1->truelist,$2);
-			backpatch($1->falselist,$5);
 
 			if($1->is_logical == 0){
 				$1->truelist.push_back($2-2);		//if $1 is not a logical exp,truelist,falselist included
@@ -1289,12 +1301,16 @@ conditional_expression
 				emitted_code[$2-2].op_1 = $1->place;
 			}
 
+			backpatch($1->truelist,$2);
+			backpatch($1->falselist,$5);
+
 			$$->nextlist = $3->nextlist;
 			$$->nextlist.merge($6->nextlist);
-			$$->nextlist.push_back($2-1);
+			//$$->nextlist.push_back($2-1);
 			$$->nextlist.push_back($5-1);
+			$$->nextlist.push_back((int)emitted_code.size()-1);
 
-
+			$$->place = temp;
 			is_logical = 0;
 			$$->is_logical = 0;
 			
@@ -2177,9 +2193,9 @@ compound_statement
 		curr_table = parent[curr_table];
 		curr_array_arg_table = parent_array_arg_table[curr_array_arg_table];
 		curr_struct_table = struct_parent[curr_struct_table];
-		$$->nextlist = $3->nextlist;
-		$$->breaklist = $3->breaklist;
-		$$->continuelist = $3->continuelist;
+		$$->nextlist = $4->nextlist;
+		$$->breaklist = $4->breaklist;
+		$$->continuelist = $4->continuelist;
 	}
 	;
 
@@ -2195,7 +2211,8 @@ declaration_list
 	;
 
 statement_list
-	: statement												{$$=$1;}
+	: statement												{$$=$1;
+	}
 	| statement_list M statement								{$$=make_node("statement_list",$1,$3);
 		$$->nextlist = $3->nextlist;
 		$$->continuelist = $1->continuelist; $$->continuelist.merge($3->continuelist);
@@ -2255,11 +2272,13 @@ selection_statement
 			$3->truelist.push_back($5-2);
 			$3->falselist.push_back($5-1);
 		}
-		$6->nextlist.push_back($7);
+		//$6->nextlist.push_back($7);
 		backpatch($3->truelist,$5);
 		backpatch($3->falselist,$7+1);
 		$$->nextlist = $6->nextlist;
+		$$->nextlist.push_back($7);
 		$$->nextlist.merge($9->nextlist);
+		
 		$$->breaklist = $6->breaklist; $$->breaklist.merge($9->breaklist);
 		$$->continuelist = $6->continuelist; $$->continuelist.merge($9->continuelist);
 
@@ -2280,10 +2299,6 @@ iteration_statement
 		}
 		$7->continuelist.push_back((int)emitted_code.size()-1);
 		$7->continuelist.merge($7->nextlist);
-		// for(auto x:$7->breaklist){
-		// 	cout<<x<<' ';
-		// }
-		// cout<<"............................................inside actual\n";
 
 		backpatch($4->truelist,$6);
 		backpatch($7->continuelist,$3);
@@ -2336,8 +2351,6 @@ iteration_statement
 		if($5->is_logical == 2){
 			$5->truelist.push_back($6-1);
 		}
-		// for(auto x:$5->truelist) cout<<x<<" ..................i for";
-		// cout<<"..........................in for"<< $5->is_logical<<endl;
 		$10->continuelist.merge($10->nextlist);
 		$10->continuelist.push_back($11);
 		backpatch($10->continuelist,$6);
@@ -2462,6 +2475,7 @@ function_definition
 	}
 	| M14 compound_statement                       {$$=make_node("function_definition",$1,$2);	
 		emit({"FUNC_END",NULL},{funcName,NULL},{"",NULL},{"",NULL});
+		backpatch($2->nextlist,(int)emitted_code.size()-1);
 		funcName = "";
 		funcType = "";
 	}
@@ -2519,6 +2533,7 @@ function_definition
 	}
 	| M15 compound_statement                                              {$$=make_node("function_definition",$1,$2);
 		emit({"FUNC_END",NULL},{funcName,NULL},{"",NULL},{"",NULL});
+		backpatch($2->nextlist,(int)emitted_code.size()-1);
 		funcName = "";
 		funcType = "";
 	}

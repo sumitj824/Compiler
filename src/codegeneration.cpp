@@ -273,10 +273,10 @@ void generate_code(){
             else{
                 load_normal_element2(res);
             }
-            push_line("lwc1.s $f0, 0($t0)");
-            push_line("lwc1.s $f1, 0($t1)");
+            push_line("lwc1 $f0, 0($t0)");
+            push_line("lwc1 $f1, 0($t1)");
             push_line("add.s $f2, $f0, $f1");
-            push_line("swc1.s $f2. 0($t2)");
+            push_line("swc1 $f2. 0($t2)");
         }
 
         if(instruction == "*float"){
@@ -301,10 +301,10 @@ void generate_code(){
             else{
                 load_normal_element2(res);
             }
-            push_line("lwc1.s $f0, 0($t0)");
-            push_line("lwc1.s $f1, 0($t1)");
+            push_line("lwc1 $f0, 0($t0)");
+            push_line("lwc1 $f1, 0($t1)");
             push_line("mul.s $f2, $f0, $f1");
-            push_line("swc1.s $f2. 0($t2)");
+            push_line("swc1 $f2. 0($t2)");
         }
         if(instruction == "/float"){
             comp op1 = emitted_code[i].op_1;
@@ -328,10 +328,10 @@ void generate_code(){
             else{
                 load_normal_element2(res);
             }
-            push_line("lwc1.s $f0, 0($t0)");
-            push_line("lwc1.s $f1, 0($t1)");
+            push_line("lwc1 $f0, 0($t0)");
+            push_line("lwc1 $f1, 0($t1)");
             push_line("div.s $f2, $f0, $f1");
-            push_line("swc1.s $f2. 0($t2)");
+            push_line("swc1 $f2. 0($t2)");
         }
 
 
@@ -501,7 +501,8 @@ void generate_code(){
             }
             push_line("lw $t3, 0($t0)");
             push_line("mtc1 $t3, $f0 ");
-            push_line("swc1 $f0, 0($t2)");
+            push_line("cvt.s.w $f1, $f0");
+            push_line("swc1 $f1, 0($t2)");
             //push_line("lwc1.s $f1, 0($t2)");
 
         }
@@ -522,8 +523,10 @@ void generate_code(){
                 load_normal_element2(res);
             }
             push_line("lwc1 $f0, 0($t0)");
-            push_line("mfc1 $t3, $f0 ");
-            push_line("sw $f3, 0($t2)");
+            push_line("cvt.w.s $f1, $f0");
+            push_line("mfc1 $t3, $f1 ");
+            
+            push_line("sw $t3, 0($t2)");
             //push_line("lwc1.s $f1, 0($t2)");
 
         }
