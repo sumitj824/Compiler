@@ -36,3 +36,4 @@ void print_assembly_code();
 
 void formBasicBlocks();
 int findNext(int addr);
+void library_function_implementation();

@@ -89,6 +89,10 @@ string validAssign(string t1,string t2)
 char* func_check(string user_arg,string func_arg){
     if(user_arg==func_arg)return NULL;
     char *s;
+    if(func_arg==""){
+        s="Error: too many arguments are provided to function";
+        return s;
+    }
     vector<string> v1,v2;
     string x="";
     for(int i=0;i<user_arg.size();i++)
