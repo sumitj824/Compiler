@@ -24,6 +24,6 @@ int main(void)
     int n = 5;
     int x = 10,index;
     index = binarySearch(arr,0, n - 1, x);
-    printf(index);
+    printf(index);//2
     return 0;
 }

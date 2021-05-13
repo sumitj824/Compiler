@@ -24,15 +24,8 @@ void printArray(int arr[], int size)
 
 int main()
 {
-    int arr[7];
+    int arr[]={9,7,8,1,6,2,5};
 	int n = 7;
-    arr[0]=9;
-    arr[1]=7;
-    arr[2]=8;
-    arr[3]=1;
-    arr[4]=6;
-    arr[5]=5;
-    arr[6]=2;
 	bubbleSort(arr, n);
 	printArray(arr, n);
 	return 0;

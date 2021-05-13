@@ -1,11 +1,14 @@
 
 
-int f(){
-    return 0;
-}
+struct st
+{
+    int a;
+    struct st *b;
+};
 
 int main(){
-    int a,b;
-    b=f();
+    struct st x,*y;
+    x.a=5;
+    x.b=y;
     return 0;
 }

@@ -18,7 +18,7 @@ int ack(int m, int n)
 int main(){
 	int a;
 	a= ack(1, 2);
-	printf(a);
+	printf(a); //4
 	return 0;
 }
 
