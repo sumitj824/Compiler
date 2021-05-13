@@ -30,7 +30,9 @@ void library_function_implementation(){
     push_line("add $sp, $sp, $t1");
     save_all_registers();
     push_line("sub $sp, $sp, $t1");
-    push_line("lwc1 $f12, 0($sp)");
+    // push_line("lwc1 $f12, 0($sp)");
+    push_line("lw $t0, 0($sp)");
+    push_line("mtc1 $t0, $f12");
     push_line("li $v0, 2");
     push_line("syscall");
     push_line("li $v0, 0");

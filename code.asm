@@ -27,7 +27,7 @@ func_end :
 main : 
 
        li $t1, 80
-       add $t1, $t1, 280
+       add $t1, $t1, 248
        add $sp, $sp, $t1
        sub $sp, $sp, 80
        sw $ra, 0($sp)
@@ -200,96 +200,37 @@ main :
        add $t1, $sp, 84
        sw $t0, 0($t1)
        
-       # = _t19  i
-       add $t0, $sp, 84
-       add $t2, $sp, 48
-       lw $t3, 0($t0)
-       sw $t3, 0($t2)
-       Label25 :
-       
-       # store_int 1  _t21
-       li $t0, 1
-       add $t1, $sp, 92
+       # store_int 0  _t20
+       li $t0, 0
+       add $t1, $sp, 88
        sw $t0, 0($t1)
        
-       # < i _t21 _t22
-       add $t0, $sp, 48
-       add $t1, $sp, 92
-       add $t2, $sp, 96
-       lw $t3, 0($t0)
-       lw $t4, 0($t1)
-       slt $t5, $t3, $t4
-       sw $t5, 0($t2)
+       # arr_element arr[_t20] _t20 8
+       lw $t0, 84($sp)
+       lw $t1, 88($sp)
+       li $t2, 8
+       mul $t3, $t1 , $t2
+       add $t0, $t3, $t0
+       sw $t0, 84($sp)
        
-       # if_goto _t22  33
-       add $t0, $sp, 96
-       lw $t1 0($t0)
-       bnez $t1, Label33
+       # struct_array arr[_t20] 0 
+       li $t0, 0
+       lw $t1, 84($sp)
+       add $t1, $t1, $t0
+       sw $t1, 84($sp)
        
-       # goto   64
-       j Label64
-       Label29 :
+       # store_float 1.100000  _t22
+       li.s $f0, 1.100000
+       add $t1, $sp, 96
+       swc1 $f0, 0($t1)
        
-       # store_int 1  _t25
-       li $t0, 1
-       add $t1, $sp, 108
-       sw $t0, 0($t1)
-       
-       # = i  _t24
-       add $t0, $sp, 48
+       # float_== arr[_t20].a _t22 _t24
+       add $t0, $sp, 8
+       lw $t1, 84($sp)
+       add $t1, $t1, $t0
+       move $t0, $t1
+       add $t1, $sp, 96
        add $t2, $sp, 104
-       lw $t3, 0($t0)
-       sw $t3, 0($t2)
-       
-       # +int i _t25 i
-       add $t0, $sp, 48
-       add $t1, $sp, 108
-       add $t2, $sp, 48
-       lw $t3, 0($t0)
-       lw $t4, 0($t1)
-       add $t5, $t3, $t4
-       sw $t5, 0($t2)
-       
-       # goto   25
-       j Label25
-       Label33 :
-       
-       # store_int 0  _t27
-       li $t0, 0
-       add $t1, $sp, 116
-       sw $t0, 0($t1)
-       
-       # store_int 0  _t28
-       li $t0, 0
-       add $t1, $sp, 120
-       sw $t0, 0($t1)
-       
-       # arr_element arr[_t28] _t28 8
-       lw $t0, 116($sp)
-       lw $t1, 120($sp)
-       li $t2, 8
-       mul $t3, $t1 , $t2
-       add $t0, $t3, $t0
-       sw $t0, 116($sp)
-       
-       # struct_array arr[_t28] 0 
-       li $t0, 0
-       lw $t1, 116($sp)
-       add $t1, $t1, $t0
-       sw $t1, 116($sp)
-       
-       # store_float 11.100000  _t30
-       li.s $f0, 11.100000
-       add $t1, $sp, 128
-       swc1 $f0, 0($t1)
-       
-       # float_== arr[_t28].a _t30 _t32
-       add $t0, $sp, 8
-       lw $t1, 116($sp)
-       add $t1, $t1, $t0
-       move $t0, $t1
-       add $t1, $sp, 128
-       add $t2, $sp, 136
        lwc1 $f0, 0($t0)
        lwc1 $f1, 0($t1)
        c.eq.s $f0, $f1
@@ -297,94 +238,94 @@ main :
        andi $t5, 1
        sw $t5, 0($t2)
        
-       # if_goto _t32  41
-       add $t0, $sp, 136
+       # if_goto _t24  31
+       add $t0, $sp, 104
        lw $t1 0($t0)
-       bnez $t1, Label41
+       bnez $t1, Label31
        
-       # goto   45
-       j Label45
-       Label41 :
+       # goto   35
+       j Label35
+       Label31 :
        
-       # store_int 1  _t34
+       # store_int 1  _t26
        li $t0, 1
-       add $t1, $sp, 144
+       add $t1, $sp, 112
        sw $t0, 0($t1)
        
-       # param _t34  
+       # param _t26  
        
-       # CALL_FUNC printf  _t36
+       # CALL_FUNC printf  _t28
        li $t1, 80
        add $t1, $t1, 20
        sub $s0, $sp, $t1
-       add $t0, $sp, 144
+       add $t0, $sp, 112
        lw $t1, 0($t0)
        sw $t1, 0($s0)
        move $sp, $s0
        jal printf
-       add $t2, $sp, 152
+       add $t2, $sp, 120
        sw $v0, 0($t2)
        
-       # goto   48
-       j Label48
-       Label45 :
+       # goto   38
+       j Label38
+       Label35 :
        
-       # store_int 0  _t38
+       # store_int 0  _t30
        li $t0, 0
-       add $t1, $sp, 144
+       add $t1, $sp, 112
        sw $t0, 0($t1)
        
-       # param _t38  
+       # param _t30  
        
-       # CALL_FUNC printf  _t40
+       # CALL_FUNC printf  _t32
        li $t1, 80
        add $t1, $t1, 20
        sub $s0, $sp, $t1
-       add $t0, $sp, 144
+       add $t0, $sp, 112
        lw $t1, 0($t0)
        sw $t1, 0($s0)
        move $sp, $s0
        jal printf
-       add $t2, $sp, 152
+       add $t2, $sp, 120
        sw $v0, 0($t2)
-       Label48 :
+       Label38 :
        
-       # store_int 0  _t42
+       # store_int 0  _t34
        li $t0, 0
-       add $t1, $sp, 144
+       add $t1, $sp, 112
        sw $t0, 0($t1)
        
-       # store_int 0  _t43
+       # store_int 0  _t35
        li $t0, 0
-       add $t1, $sp, 148
+       add $t1, $sp, 116
        sw $t0, 0($t1)
        
-       # arr_element arr[_t43] _t43 8
-       lw $t0, 144($sp)
-       lw $t1, 148($sp)
+       # arr_element arr[_t35] _t35 8
+       lw $t0, 112($sp)
+       lw $t1, 116($sp)
        li $t2, 8
        mul $t3, $t1 , $t2
        add $t0, $t3, $t0
-       sw $t0, 144($sp)
+       sw $t0, 112($sp)
        
-       # struct_array arr[_t43] 4 
+       # struct_array arr[_t35] 4 
        li $t0, 4
-       lw $t1, 144($sp)
+       lw $t1, 112($sp)
        add $t1, $t1, $t0
-       sw $t1, 144($sp)
+       sw $t1, 112($sp)
        
-       # store_float 12.100000  _t45
-       li.s $f0, 12.100000
-       add $t1, $sp, 156
+       # store_float 2.200000  _t37
+       li.s $f0, 2.200000
+       add $t1, $sp, 124
        swc1 $f0, 0($t1)
        
-       # float_== arr[_t43].b _t45 _t47
+       # float_== arr[_t35].b _t37 _t39
        add $t0, $sp, 8
-       lw $t1, 144($sp)
+       lw $t1, 112($sp)
        add $t1, $t1, $t0
        move $t0, $t1
-       add $t1, $sp, 156
-       add $t2, $sp, 164
+       add $t1, $sp, 124
+       add $t2, $sp, 132
        lwc1 $f0, 0($t0)
        lwc1 $f1, 0($t1)
        c.eq.s $f0, $f1
@@ -392,73 +333,70 @@ main :
        andi $t5, 1
        sw $t5, 0($t2)
        
-       # if_goto _t47  56
-       add $t0, $sp, 164
+       # if_goto _t39  46
+       add $t0, $sp, 132
        lw $t1 0($t0)
-       bnez $t1, Label56
+       bnez $t1, Label46
        
-       # goto   60
-       j Label60
-       Label56 :
+       # goto   50
+       j Label50
+       Label46 :
        
-       # store_int 3  _t49
+       # store_int 3  _t41
        li $t0, 3
-       add $t1, $sp, 172
+       add $t1, $sp, 140
        sw $t0, 0($t1)
        
-       # param _t49  
+       # param _t41  
        
-       # CALL_FUNC printf  _t51
+       # CALL_FUNC printf  _t43
        li $t1, 80
        add $t1, $t1, 20
        sub $s0, $sp, $t1
-       add $t0, $sp, 172
+       add $t0, $sp, 140
        lw $t1, 0($t0)
        sw $t1, 0($s0)
        move $sp, $s0
        jal printf
-       add $t2, $sp, 180
+       add $t2, $sp, 148
        sw $v0, 0($t2)
        
-       # goto   29
-       j Label29
-       Label60 :
+       # goto   53
+       j Label53
+       Label50 :
        
-       # store_int 2  _t53
+       # store_int 2  _t45
        li $t0, 2
-       add $t1, $sp, 172
+       add $t1, $sp, 140
        sw $t0, 0($t1)
        
-       # param _t53  
+       # param _t45  
        
-       # CALL_FUNC printf  _t55
+       # CALL_FUNC printf  _t47
        li $t1, 80
        add $t1, $t1, 20
        sub $s0, $sp, $t1
-       add $t0, $sp, 172
+       add $t0, $sp, 140
        lw $t1, 0($t0)
        sw $t1, 0($s0)
        move $sp, $s0
        jal printf
-       add $t2, $sp, 180
+       add $t2, $sp, 148
        sw $v0, 0($t2)
+       Label53 :
        
-       # goto   29
-       j Label29
-       Label64 :
-       
-       # store_int 0  _t57
+       # store_int 0  _t49
        li $t0, 0
-       add $t1, $sp, 116
+       add $t1, $sp, 140
        sw $t0, 0($t1)
        
-       # RETURN _t57  
+       # RETURN _t49  
        li $a0, 0
        li $v0, 10
        syscall
        
        # FUNC_END main  
-       add $sp, $sp, 280
+       add $sp, $sp, 248
        b func_end
 
 
@@ -490,7 +428,8 @@ print_float :
        sw $s6, 76($sp)
        add $sp, $sp, 80
        sub $sp, $sp, $t1
-       lwc1 $f12, 0($sp)
+       lw $t0, 0($sp)
+       mtc1 $t0, $f12
        li $v0, 2
        syscall
        li $v0, 0

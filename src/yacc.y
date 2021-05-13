@@ -2779,7 +2779,7 @@ int main(int argc, char *argv[]){
 	funcMap.insert({"printf","int"});
 	funcSize.insert({"printf",20});
 	make_symTable_entry("print_float","void",0,0);
-    funcMap.insert({"print_float",""});
+    funcMap.insert({"print_float","float"});
     funcSize.insert({"print_float",20});
     make_symTable_entry("read_int","int",0,0);
     funcMap.insert({"read_int",""});

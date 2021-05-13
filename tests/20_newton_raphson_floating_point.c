@@ -54,5 +54,23 @@ int main()
 		arr[i].b=read_float();
 	}
 	
+	// for(i=0; i<1; i++){
+	// 	// print_float(arr[i].a);
+	// 	// print_float(arr[i].b);
+	// }
+	if(arr[0].a==1.1){
+		printf(1);
+	}else
+	{
+		printf(0);
+	}
+	if(arr[0].b==2.2){
+		printf(3);
+	}else
+	{
+		printf(2);
+	}
+	
+	
 	return 0;
 }
