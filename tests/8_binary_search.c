@@ -20,14 +20,9 @@ int binarySearch(int arr[],int l, int r, int x)
 
 int main(void)
 {   
-    int arr[5];
+    int arr[]={1,5,10,15,16};
     int n = 5;
     int x = 10,index;
-    arr[0]=1;
-    arr[1]=5;
-    arr[2]=10;
-    arr[3]=15;
-    arr[4]=16;
     index = binarySearch(arr,0, n - 1, x);
     printf(index);
     return 0;
