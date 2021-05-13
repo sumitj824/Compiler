@@ -18,12 +18,15 @@ int binarySearch(int arr[],int l, int r, int x)
     return -1;
 }
 
-int main(void)
+int main()
 {   
     int arr[]={1,5,10,15,16};
     int n = 5;
     int x = 10,index;
     index = binarySearch(arr,0, n - 1, x);
+    prints("index of ");
+    printf(x);
+    prints(" is : ");
     printf(index);//2
     return 0;
 }

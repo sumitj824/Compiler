@@ -1,11 +1,11 @@
 
 
 int func1(){
-    printf(1);
+    prints("test1 failed\n");
     return 1;
 }
 int func2(){
-    printf(2);
+    prints("test2 failed\n");
     return 1;
 }
 
@@ -15,17 +15,17 @@ int main(){
    int a=1;
    if(a || func1() ) //this should not call func1
    {
-       printf(3);
+       prints("if1 is working\n");
    }
    a=0;
-   if(a && func1() ) //this should not call  func2
+   if(a && func2() ) //this should not call  func2
    {
        
-      printf(4);
+      prints("if2 is not working\n");
    }
    else
    {
-       printf(5);
+       prints("if2 is working\n");
    }
    
    return 0;

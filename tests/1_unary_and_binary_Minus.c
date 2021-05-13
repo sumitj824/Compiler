@@ -8,6 +8,12 @@ int main()
     n=-n;       //-2
     n=n/-2;     //1
     n=-n-1;    //-2
-    printf(n);
+    if(n==-2){
+        prints("testcase passed");
+    }else
+    {
+        prints("testcase failed");
+    }
+    
     return 0;
 }

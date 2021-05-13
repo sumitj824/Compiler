@@ -131,6 +131,7 @@ void printSymTable(symTable* table,string block_name,string block_type,int sline
     start_new_block(block_name,symTable_type[table],sline,eline);
     fprintf(csv_output,"%-25s%-25s%-25s%-25s%-25s\n\n","Key","Type","Is_initialized","Size","Offset");
     for(auto it : (*table)){
+        if((it.first)[0]=='_')continue;
         string type = (it.second) -> type;
         if(id_to_struct_name.count(type)){
             type = id_to_struct_name[type];

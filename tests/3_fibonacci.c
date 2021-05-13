@@ -21,6 +21,6 @@ int main ()
   int n = 9;
   int b;
   b=fib(n);
-  printf(b);
+  printf(b);//34
   return 0;
 }

@@ -1,43 +1,25 @@
-
-struct product{
+struct x{
     int a;
-    char c;
     int b;
 };
 
-union value{
-    int x;
-    int y;
-    char z;
-};
-
-struct product func1(struct product p,union value v)
-{
-    p.a=v.x;
-    p.c=v.z;
-    return p;
+struct x f(struct x a[][6],int N){
+    int i = 0,j = 0;
+    for(i = 0;i < N;i++){
+        for(j = 0;j < 6;j++){
+            a[i][j].a = (i + 1);
+            a[i][j].b = (j + 1);
+        }
+    }
+    return a[2][3];
 }
-
-union value func2(struct product p,union value v)
-{
-    v.x=p.a;
-    v.y=p.b;
-    v.z=p.c;
-    return v;
-}
-
-
 
 int main(){
-    struct product p;
-    union value v;
-    p.a=1;
-    p.b=2;
-    p.c='c';
-    v.x=10;
-    v.y=20;
-    v.z='C';
-    func1(p,v);
-    func2(p,v);
+    struct x a[5][6];
+    a[2][3] = f(a,5);
+    printf(a[2][3].a); //3
+    prints("\n");
+    printf(a[2][3].b); //4
+    prints("\n");
     return 0;
 }

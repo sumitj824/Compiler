@@ -443,8 +443,8 @@ postfix_expression
 					 if(isFloat(s)){
 							comp temp = get_temp_label("float");
 							comp temp2 = get_temp_label("float");
-							emit({"store_float",NULL},{"1",NULL},{"",NULL},temp2);
-							emit({"=",NULL},$1->place,{"",NULL},temp);
+							emit({"store_float",NULL},{"1.00",NULL},{"",NULL},temp2);
+							emit({"float_=",NULL},$1->place,{"",NULL},temp);
 							emit({"+float",NULL},$1->place,temp2,$1->place);
 							
 							$$->place=temp;
@@ -480,8 +480,8 @@ postfix_expression
 					 if(isFloat(s)){
 							comp temp = get_temp_label("float");
 							comp temp2 = get_temp_label("float");
-							emit({"store_float",NULL},{"1",NULL},{"",NULL},temp2);
-							emit({"=",NULL},$1->place,{"",NULL},temp);
+							emit({"store_float",NULL},{"1.00",NULL},{"",NULL},temp2);
+							emit({"float_=",NULL},$1->place,{"",NULL},temp);
 							emit({"-float",NULL},$1->place,temp2,$1->place);
 							$$->place=temp;
 					 }else{
@@ -543,9 +543,9 @@ unary_expression
 					 if(isFloat(s)){
 						 comp temp = get_temp_label("float");
 						 comp temp2 = get_temp_label("float");
-						 emit({"store_float",NULL},{"1",NULL},{"",NULL},temp2);
+						 emit({"store_float",NULL},{"1.00",NULL},{"",NULL},temp2);
 						 emit({"+float",NULL},$2->place,temp2,temp);
-						 emit({"=",NULL},temp,{"",NULL},$2->place);
+						 emit({"float_=",NULL},temp,{"",NULL},$2->place);
 						 $$->place = temp;
 					 }else{
 						 yyerror("Error: Increment operator with not int or float");
@@ -583,9 +583,9 @@ unary_expression
 					 if(isFloat(s)){
 						 comp temp = get_temp_label("float");
 						 comp temp2 = get_temp_label("float");
-							emit({"store_float",NULL},{"1",NULL},{"",NULL},temp2);
+							emit({"store_float",NULL},{"1.00",NULL},{"",NULL},temp2);
 							emit({"-float",NULL},$2->place,temp2,temp);
-						 emit({"=",NULL},temp,{"",NULL},$2->place);
+						 emit({"float_=",NULL},temp,{"",NULL},$2->place);
 						 $$->place=temp;
 					 }else{
 						 yyerror("Error: Decrement operator with not int or float");
@@ -982,6 +982,7 @@ relational_expression
 	: shift_expression										{$$=$1;}
 	| relational_expression '<' shift_expression   {$$=make_node("<",$1,$3);
 		string s= relational($1->nodeType, $3->nodeType);
+		// cout<<"1 :"<<$1->nodeLex<<" 3: "<<$3->nodeLex<<endl;
 		if(!s.empty())
 		{
 			$$->nodeType="bool";
@@ -1661,17 +1662,18 @@ init_declarator
 			// initializer_list_size = 0;
 			array_case2 = 0;
 			accept2 = 0;
-			if(inside_string_literal){
-				if(curr_table == GST){
-					emit({"global_string",NULL},{global_val_in_string_literal,NULL},{"",NULL},{$1->nodeLex, NULL});
-				}
-				else{
-					emit({"initializing_local_string",NULL},{$1 -> nodeLex, lookup($1->nodeLex)},{"",NULL},{"",NULL});
-				}
-				inside_string_literal = 0;
-				global_val_in_string_literal = "";
-			}
-			else if(curr_table == GST && (!in_initializer_list)){
+			// if(inside_string_literal){
+			// 	if(curr_table == GST){
+			// 		emit({"global_string",NULL},{global_val_in_string_literal,NULL},{"",NULL},{$1->nodeLex, NULL});
+			// 	}
+			// 	else{
+			// 		emit({"initializing_local_string",NULL},{$1 -> nodeLex, lookup($1->nodeLex)},{"",NULL},{"",NULL});
+			// 	}
+			// 	inside_string_literal = 0;
+			// 	global_val_in_string_literal = "";
+			// }
+			// else 
+			if(curr_table == GST && (!in_initializer_list)){
 				if(($1->nodeType).find("float") != string::npos || ($1->nodeType).find("double") != string::npos){
 					emit({"store_in_global_variable_float",NULL},{to_string($3->dval), NULL},{"",NULL},{$1->nodeLex, NULL});
 				}
@@ -1698,7 +1700,7 @@ init_declarator
 			}
 			else{
 				$1 -> place = {$1 -> nodeLex,lookup($1 -> nodeLex)};
-				cout<<$1->nodeType<<"....................."<<$3->nodeType<<endl;
+				// cout<<$1->nodeType<<"....................."<<$3->nodeType<<endl;
 				if(isFloat($1->nodeType)){
 					if(isFloat($3->nodeType)){
 						//comp temp1 = get_temp_label($1->nodeType);

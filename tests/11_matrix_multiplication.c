@@ -37,8 +37,9 @@ void display(int result[][3], int row, int column) {
    // printf("\nOutput Matrix:\n");
    for ( i = 0; i < row; ++i) {
       for ( j = 0; j < column; ++j) {
-         printf( result[i][j]);
+         printf( result[i][j]);prints(" ");
       }
+      prints("\n");
    }
    return ;
 }

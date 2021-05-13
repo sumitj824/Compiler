@@ -10,7 +10,7 @@ int main()
                         if(!b){
                             if(a){
                                 if(!b){
-                                    printf(1);
+                                    prints("Working properly");
                                 }
                             }
                         }
@@ -20,4 +20,5 @@ int main()
         }
         
     }
+    return 0;
 }

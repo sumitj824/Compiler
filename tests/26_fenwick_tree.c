@@ -24,9 +24,9 @@ int query(int i,int bit[])
 
 int main()
 {
-    int n=1e6;
+    int n=100;
     int i=0;
-    int bit[n+1];
+    int bit[100];
     int arr[]={1,2,3,4,5,6,7};
 
     for(i=1;i<=n;i++)
@@ -34,9 +34,10 @@ int main()
         bit[i]=0;
     }
 
-    for(i=0;i<sizeof(arr)/sizeof(int);i++)
+    for(i=0;i<7;i++)
     {
         update(i+1,arr[i],bit,n);
     }
+    printf(query(4,bit)); //sould print 10
     return 0;
 }

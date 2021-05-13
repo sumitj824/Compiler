@@ -25,7 +25,9 @@ void printAdjMatrix(int Adj[][10],int N)
 		for ( j = 0; j < N ; j++) {
 			if(Adj[i][j]==1){
 				printf(i);
+				prints(" -> ");
 				printf(j);
+				prints("\n");
 			}
 		}
 	}
@@ -42,7 +44,6 @@ int main()
 	int arr[4][2]= { { 1, 2 }, { 2, 3 },{ 4, 5 }, { 1, 5 } };
 	// Number of Edges
 	int M=4;
-	int a[5];
 	createAdjMatrix(Adj, arr,N,M);
 	printAdjMatrix(Adj,N);
 	return 0;
