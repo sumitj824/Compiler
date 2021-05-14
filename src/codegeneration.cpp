@@ -1298,7 +1298,7 @@ void generate_code(){
             //load("$t0",(emitted_code[i].op_1.second)->offset);
             push_line("bnez $t1, Label" + to_string(addr));  
         }
-        if(instruction == ">>"){
+        if(instruction == "RIGHT_OP"){
             comp op1 = emitted_code[i].op_1;
             comp op2 = emitted_code[i].op_2;
             comp res = emitted_code[i].result;
@@ -1325,7 +1325,7 @@ void generate_code(){
             push_line("srl $t5, $t3, $t4");
             push_line("sw $t5, 0($t2)");
         }
-        if(instruction == "<<"){
+        if(instruction == "LEFT_OP"){
             comp op1 = emitted_code[i].op_1;
             comp op2 = emitted_code[i].op_2;
             comp res = emitted_code[i].result;
